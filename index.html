@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣生技股 2026 臨床時間表</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+  :root{--bg:#0a0e1a;--card:#151d2e;--border:#1e2d45;--accent1:#00d4ff;--accent3:#10b981;--accent4:#f59e0b;--text:#e2e8f0;--muted:#64748b;--q1:#0ea5e9;--q2:#8b5cf6;--q3:#10b981;--q4:#f59e0b;--h2:#ef4444}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  .container{max-width:1100px;margin:0 auto;padding:32px 16px 60px;position:relative;z-index:1}
+  header{margin-bottom:36px;border-bottom:1px solid var(--border);padding-bottom:24px}
+  .header-tag{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent1);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;opacity:.8}
+  h1{font-size:clamp(20px,4vw,30px);font-weight:700;color:#fff;letter-spacing:-.5px;margin-bottom:8px}
+  h1 span{color:var(--accent1)}
+  .subtitle{font-size:13px;color:var(--muted);font-weight:300}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px;align-items:center}
+  .legend-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-right:4px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);opacity:.85}
+  .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .quarters-header{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;margin-bottom:8px;padding:0 4px}
+  .quarter-label{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-align:center;padding:8px 4px;border-radius:4px;letter-spacing:1px}
+  .q1-label{color:var(--q1);background:rgba(14,165,233,.08)}.q2-label{color:var(--q2);background:rgba(139,92,246,.08)}.q3-label{color:var(--q3);background:rgba(16,185,129,.08)}.q4-label{color:var(--q4);background:rgba(245,158,11,.08)}.h2-label{color:var(--h2);background:rgba(239,68,68,.08)}
+  .timeline-rows{display:flex;flex-direction:column;gap:6px}
+  .company-row{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;align-items:stretch;min-height:52px;cursor:default;transition:filter .15s}
+  .company-row:hover{filter:brightness(1.1)}
+  .company-info{display:flex;flex-direction:column;justify-content:center;padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;gap:2px}
+  .company-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .company-ticker{display:flex;align-items:center;gap:4px;margin-top:1px}
+  .ticker-exchange{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);background:rgba(100,116,139,.15);padding:1px 4px;border-radius:2px;letter-spacing:.5px}
+  .company-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--accent1);letter-spacing:1px}
+  .company-market{font-size:10px;padding:1px 5px;border-radius:3px;display:inline-block;margin-top:2px;font-weight:500;width:fit-content}
+  .listed{background:rgba(16,185,129,.15);color:var(--accent3)}.otc{background:rgba(245,158,11,.15);color:var(--accent4)}
+  .cell{background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 4px;gap:3px;min-height:52px;position:relative;overflow:hidden}
+  .cell.empty{background:rgba(21,29,46,.4);border-color:rgba(30,45,69,.4)}
+  .cell.q1{border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.05)}.cell.q2{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.05)}.cell.q3{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.05)}.cell.q4{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.05)}.cell.h2{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.05)}
+  .cell.active::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:6px 6px 0 0}
+  .cell.q1.active::before{background:var(--q1)}.cell.q2.active::before{background:var(--q2)}.cell.q3.active::before{background:var(--q3)}.cell.q4.active::before{background:var(--q4)}.cell.h2.active::before{background:var(--h2)}
+  .event-tag{font-size:9.5px;font-weight:600;padding:2px 5px;border-radius:3px;text-align:center;line-height:1.3;width:100%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+  .tag-resolve{background:rgba(0,212,255,.15);color:var(--accent1)}.tag-data{background:rgba(124,58,237,.2);color:#a78bfa}.tag-license{background:rgba(16,185,129,.15);color:var(--accent3)}.tag-phase{background:rgba(245,158,11,.15);color:var(--accent4)}.tag-approval{background:rgba(239,68,68,.15);color:#fca5a5}.tag-conference{background:rgba(236,72,153,.15);color:#f9a8d4}
+  .drug-name{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tooltip{display:none;position:fixed;background:#1e2d45;border:1px solid var(--accent1);border-radius:8px;padding:12px 14px;font-size:12px;max-width:260px;z-index:1000;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+  .tooltip.show{display:block}
+  .tooltip-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+  .tooltip-drug{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);margin-bottom:6px}
+  .tooltip-desc{color:#94a3b8;line-height:1.5;font-size:11px}
+  .section-title-row{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
+  .section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+  .section-line{flex:1;height:1px;background:var(--border)}
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+  #loading{text-align:center;padding:60px 0;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px}
+  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-tag">TAIWAN BIOTECH · CLINICAL CALENDAR · 2026</div>
+    <h1>台灣生技股 <span>2026</span> 臨床時間表</h1>
+    <p class="subtitle">整合各公司預期臨床試驗結果、解盲、授權及里程碑事件 · 滑鼠懸停可查看詳情</p>
+  </header>
+  <div class="legend">
+    <span class="legend-label">類型</span>
+    <div class="legend-item"><span class="legend-dot" style="background:#00d4ff"></span>解盲/數據讀出</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#a78bfa"></span>臨床數據發表</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>授權/合作</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>進入新期別</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#fca5a5"></span>藥證申請/核准</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#f9a8d4"></span>國際會議發表</div>
+  </div>
+  <div class="quarters-header">
+    <div></div>
+    <div class="quarter-label q1-label">Q1</div>
+    <div class="quarter-label q2-label">Q2</div>
+    <div class="quarter-label q3-label">Q3</div>
+    <div class="quarter-label q4-label">Q4</div>
+    <div class="quarter-label h2-label">下半年</div>
+  </div>
+  <div class="timeline-rows" id="timeline"><div id="loading">LOADING DATA...</div></div>
+  <footer>⚠️ 本圖表資訊整理自公開新聞、法說會及公司公告，僅供參考，不構成投資建議。</footer>
+</div>
+<div class="tooltip" id="tooltip"></div>
+<script>
+const tooltip=document.getElementById('tooltip');
+const timeline=document.getElementById('timeline');
+function renderRow(c){
+  const mc=c.market==='listed'?'listed':'otc';
+  const ml=c.market==='listed'?'上市':'興櫃';
+  const ex=c.market==='listed'?'TWSE':'TPEx';
+  const qs=['q1','q2','q3','q4','h2'];
+  let cells='';
+  qs.forEach(q=>{
+    const ev=c.events[q];
+    if(ev){cells+=`<div class="cell ${q} active" data-company="${c.name}" data-drug="${ev.drug}" data-detail="${ev.detail}" data-quarter="${q.toUpperCase()}"><div class="event-tag ${ev.tag}">${ev.label}</div><div class="drug-name">${ev.drug}</div></div>`;}
+    else{cells+=`<div class="cell empty"></div>`;}
+  });
+  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div></div>${cells}</div>`;
+}
+function bindTooltips(){
+  document.querySelectorAll('.cell.active').forEach(cell=>{
+    cell.addEventListener('mouseenter',()=>{tooltip.innerHTML=`<div class="tooltip-title">${cell.dataset.company} · ${cell.dataset.quarter}</div><div class="tooltip-drug">${cell.dataset.drug}</div><div class="tooltip-desc">${cell.dataset.detail}</div>`;tooltip.classList.add('show');});
+    cell.addEventListener('mousemove',e=>{tooltip.style.left=Math.min(e.clientX+16,window.innerWidth-280)+'px';tooltip.style.top=Math.min(e.clientY+16,window.innerHeight-160)+'px';});
+    cell.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
+  });
+}
+fetch('data.json').then(r=>r.json()).then(data=>{
+  timeline.innerHTML='';
+  data.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='section-title-row';
+    d.innerHTML=`<div class="section-title">${s.section}</div><div class="section-line"></div>`;
+    timeline.appendChild(d);
+    s.companies.forEach(c=>{const div=document.createElement('div');div.innerHTML=renderRow(c);timeline.appendChild(div.firstElementChild);});
+  });
+  bindTooltips();
+}).catch(()=>{timeline.innerHTML='<div id="loading" style="color:#ef4444">⚠ 無法載入 data.json</div>';});
+</script>
+</body>
+</html>
