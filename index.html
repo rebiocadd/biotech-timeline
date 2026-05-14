@@ -56,7 +56,23 @@
   .price-up{color:#ef4444;background:rgba(239,68,68,.15)}
   .price-dn{color:#10b981;background:rgba(16,185,129,.15)}
   .price-date{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);margin-left:2px;opacity:.7}
-  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}}
+  /* 千張大戶表格 */
+  .holders-section{margin-top:48px}
+  .holders-header{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .holders-title{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent1);letter-spacing:2px}
+  .holders-subtitle{font-size:11px;color:var(--muted)}
+  .holders-updated{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto}
+  .holders-table{width:100%;border-collapse:collapse;font-size:12px;overflow-x:auto;display:block}
+  .holders-table th{background:rgba(14,165,233,.12);color:var(--accent1);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+  .holders-table th:first-child,.holders-table th:nth-child(2){text-align:left}
+  .holders-table td{padding:7px 10px;border-bottom:1px solid rgba(30,45,69,.6);text-align:right;white-space:nowrap;color:var(--text)}
+  .holders-table td:first-child{text-align:left;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1)}
+  .holders-table td:nth-child(2){text-align:left;font-weight:600}
+  .holders-table tr:hover td{background:rgba(14,165,233,.04)}
+  .h-up{color:#ef4444;font-weight:700}
+  .h-dn{color:#10b981;font-weight:700}
+  .h-flat{color:var(--muted)}
+  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}.holders-table{font-size:10px}}
   .visitor-bar{display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap}
   .visitor-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
   .visitor-icon{font-size:13px;opacity:.7}
@@ -93,10 +109,64 @@
     <div class="quarter-label h2-label">下半年</div>
   </div>
   <div class="timeline-rows" id="timeline"></div>
+  <div class="holders-section" id="holders-section">
+    <div class="holders-header">
+      <span class="holders-title">🏦 千張大戶統計</span>
+      <span class="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
+      <span class="holders-updated" id="holders-updated"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="holders-table" id="holders-table">
+        <thead>
+          <tr>
+            <th>代號</th><th>公司</th>
+            <th id="th-curr-h">本週人數</th><th id="th-prev-h">上週人數</th><th>人數變化</th>
+            <th id="th-curr-s">本週持股(股)</th><th id="th-prev-s">上週持股(股)</th><th>持股變化(股)</th>
+            <th>總發行股數(股)</th><th>千張佔比%</th>
+          </tr>
+        </thead>
+        <tbody id="holders-body"></tbody>
+      </table>
+    </div>
+  </div>
   <footer>⚠️ 本圖表資訊整理自公開新聞、法說會及公司公告，僅供參考，不構成投資建議。臨床試驗時間表可能依收案進度、監管機關審查等因素調整，投資人應自行評估風險並以公司正式公告為準。</footer>
 </div>
 <div class="tooltip" id="tooltip"></div>
 <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script>
+function fmt(n){return n.toLocaleString();}
+function diff(curr,prev){
+  const d=curr-prev;
+  if(d===0)return '<span class="h-flat">持平</span>';
+  const s=d>0?'+':'';
+  const cls=d>0?'h-up':'h-dn';
+  const arrow=d>0?'▲':'▼';
+  return `<span class="${cls}">${arrow} ${s}${fmt(Math.abs(d))}</span>`;
+}
+function renderHolders(H){
+  document.getElementById('th-curr-h').textContent=H.curr_date+' 人數';
+  document.getElementById('th-prev-h').textContent=H.prev_date+' 人數';
+  document.getElementById('th-curr-s').textContent=H.curr_date+' 持股(股)';
+  document.getElementById('th-prev-s').textContent=H.prev_date+' 持股(股)';
+  document.getElementById('holders-updated').textContent='更新：'+H.curr_date+' vs '+H.prev_date;
+  const tbody=document.getElementById('holders-body');
+  tbody.innerHTML=H.data.map(r=>{
+    const pct=(r.curr_s/r.total_s*100).toFixed(1);
+    const chCls=r.curr_h>r.prev_h?'h-up':r.curr_h<r.prev_h?'h-dn':'h-flat';
+    const chArrow=r.curr_h>r.prev_h?'▲ ':r.curr_h<r.prev_h?'▼ ':'';
+    const chText=r.curr_h===r.prev_h?'<span class="h-flat">持平</span>':`<span class="${chCls}">${chArrow}${r.curr_h>r.prev_h?'+':''}${r.curr_h-r.prev_h}人</span>`;
+    return `<tr>
+      <td>${r.code}</td><td>${r.name}</td>
+      <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
+      <td>${fmt(r.curr_s)}</td><td>${fmt(r.prev_s)}</td><td>${diff(r.curr_s,r.prev_s)}</td>
+      <td>${fmt(r.total_s)}</td><td>${pct}%</td>
+    </tr>`;
+  }).join('');
+}
+fetch('holders.json?v='+Date.now())
+  .then(r=>r.json()).then(renderHolders)
+  .catch(()=>document.getElementById('holders-section').style.display='none');
+</script>
 <script>
 const tooltip=document.getElementById('tooltip');
 const timeline=document.getElementById('timeline');

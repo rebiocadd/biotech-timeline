@@ -1,19 +1,28 @@
-name: 每日自動更新股價
+name: 每日自動更新股價 + 每週千張大戶統計
 
 on:
   schedule:
-    # 第一次：每天 09:00 TST（開盤前）= UTC 01:00
+    # 股價更新：週一至週五 09:00 TST = UTC 01:00
     - cron: '0 1 * * 1-5'
-    # 第二次：每天 15:00 TST（收盤後）= UTC 07:00
+    # 股價更新：週一至週五 15:00 TST = UTC 07:00
     - cron: '0 7 * * 1-5'
-  workflow_dispatch:   # 允許手動觸發
+    # 千張大戶：每週六 10:00 TST = UTC 02:00（TDCC 週六發布前週資料）
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '執行項目'
+        required: false
+        default: 'all'
+        type: choice
+        options: ['all', 'prices', 'holders']
 
 jobs:
   update-prices:
+    if: github.event_name != 'schedule' || (github.event.schedule == '0 1 * * 1-5' || github.event.schedule == '0 7 * * 1-5') || github.event.inputs.task == 'prices' || github.event.inputs.task == 'all'
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # 允許 push
-
+      contents: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -23,10 +32,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 執行股價更新腳本（雙來源驗證）
+      - name: 更新股價（雙來源驗證）
         run: python update_prices.py
 
-      - name: Commit & push（有變更才提交）
+      - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -37,5 +46,34 @@ jobs:
             TAIPEI_TIME=$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')
             git commit -m "自動更新股價 ${TAIPEI_TIME}"
             git push
-            echo "✅ 已推送股價更新"
+          fi
+
+  update-holders:
+    if: github.event_name != 'schedule' || github.event.schedule == '0 2 * * 6' || github.event.inputs.task == 'holders' || github.event.inputs.task == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 更新千張大戶統計（TDCC）
+        run: python update_holders.py
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add holders.json
+          if git diff --staged --quiet; then
+            echo "無變更，跳過 commit"
+          else
+            TAIPEI_TIME=$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')
+            git commit -m "自動更新千張大戶統計 ${TAIPEI_TIME}"
+            git push
           fi
