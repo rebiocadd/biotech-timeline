@@ -1,0 +1,41 @@
+name: 每日自動更新股價
+
+on:
+  schedule:
+    # 第一次：每天 09:00 TST（開盤前）= UTC 01:00
+    - cron: '0 1 * * 1-5'
+    # 第二次：每天 15:00 TST（收盤後）= UTC 07:00
+    - cron: '0 7 * * 1-5'
+  workflow_dispatch:   # 允許手動觸發
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 允許 push
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 執行股價更新腳本（雙來源驗證）
+        run: python update_prices.py
+
+      - name: Commit & push（有變更才提交）
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add date.json
+          if git diff --staged --quiet; then
+            echo "無變更，跳過 commit"
+          else
+            TAIPEI_TIME=$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')
+            git commit -m "自動更新股價 ${TAIPEI_TIME}"
+            git push
+            echo "✅ 已推送股價更新"
+          fi
