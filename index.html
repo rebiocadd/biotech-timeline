@@ -158,8 +158,9 @@ let _hData=[], _sortCol='curr_h', _sortDir=-1;
 
 function renderHolderRow(r){
   const chText=r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`;
+  const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" style="color:var(--accent1);text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${r.code}</a>`;
   return `<tr>
-    <td>${r.code}</td><td>${r.name}</td>
+    <td>${codeLink}</td><td>${r.name}</td>
     <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
     <td>${fmt(r.curr_s)}</td><td>${fmt(r.prev_s)}</td><td>${diffHtml(r.ds)}</td>
     <td>${fmt(r.total_s)}</td><td>${r.pct.toFixed(1)}%</td>
