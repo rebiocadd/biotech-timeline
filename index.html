@@ -57,6 +57,10 @@
   .price-dn{color:#10b981;background:rgba(16,185,129,.15)}
   .price-date{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);margin-left:2px;opacity:.7}
   @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}}
+  .visitor-bar{display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap}
+  .visitor-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+  .visitor-icon{font-size:13px;opacity:.7}
+  .visitor-num{color:var(--accent1);font-weight:700;font-size:12px}
 </style>
 </head>
 <body>
@@ -65,6 +69,11 @@
     <div class="header-tag">蔡P生技臨床雷達 · TAIWAN BIOTECH CLINICAL RADAR · 2026</div>
     <h1>蔡P生技臨床雷達<span style="color:var(--muted);font-size:0.55em;font-weight:400;display:block;margin-top:4px;letter-spacing:0">AI自動抓取公開資訊，追蹤台灣生技股 2026 臨床、解盲與藥證事件</span></h1>
     <p class="subtitle">整合各公司預期臨床試驗結果、解盲、授權及里程碑事件 · 滑鼠懸停可查看詳情</p>
+    <div class="visitor-bar">
+      <div class="visitor-item"><span class="visitor-icon">👁</span>本頁瀏覽：<span class="visitor-num" id="busuanzi_value_page_pv">--</span> 次</div>
+      <div class="visitor-item"><span class="visitor-icon">🌐</span>累計訪客：<span class="visitor-num" id="busuanzi_value_site_uv">--</span> 人</div>
+      <div class="visitor-item"><span class="visitor-icon">📊</span>總瀏覽數：<span class="visitor-num" id="busuanzi_value_site_pv">--</span> 次</div>
+    </div>
   </header>
   <div class="legend">
     <span class="legend-label">類型</span>
@@ -87,6 +96,7 @@
   <footer>⚠️ 本圖表資訊整理自公開新聞、法說會及公司公告，僅供參考，不構成投資建議。臨床試驗時間表可能依收案進度、監管機關審查等因素調整，投資人應自行評估風險並以公司正式公告為準。</footer>
 </div>
 <div class="tooltip" id="tooltip"></div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <script>
 const tooltip=document.getElementById('tooltip');
 const timeline=document.getElementById('timeline');
