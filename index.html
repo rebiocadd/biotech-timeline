@@ -50,7 +50,12 @@
   .section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
   .section-line{flex:1;height:1px;background:var(--border)}
   footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
-  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}}
+  .price-row{display:flex;align-items:center;gap:5px;margin-top:3px}
+  .price-val{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#e2e8f0}
+  .price-chg{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px}
+  .price-up{color:#10b981;background:rgba(16,185,129,.15)}
+  .price-dn{color:#ef4444;background:rgba(239,68,68,.15)}
+  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}}
 </style>
 </head>
 <body>
@@ -58,7 +63,7 @@
   <header>
     <div class="header-tag">TAIWAN BIOTECH · CLINICAL CALENDAR · 2026</div>
     <h1>台灣生技股 <span>2026</span> 臨床時間表</h1>
-    <p class="subtitle">整合各公司預期臨床試驗結果、解盲、授權及里程碑事件 · 滑鼠懸停可查看詳情</p>
+    <p class="subtitle">整合各公司預期臨床試驗結果、解盲、授權及里程碑事件 · 滑鼠懸停可查看詳情 · 股價更新：2026/05/14</p>
   </header>
   <div class="legend">
     <span class="legend-label">類型</span>
@@ -94,7 +99,9 @@ function renderRow(c){
     if(ev)cells+=`<div class="cell ${q} active" data-company="${c.name}" data-drug="${ev.drug}" data-detail="${ev.detail}" data-quarter="${q.toUpperCase()}"><div class="event-tag ${ev.tag}">${ev.label}</div><div class="drug-name">${ev.drug}</div></div>`;
     else cells+=`<div class="cell empty"></div>`;
   });
-  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div></div>${cells}</div>`;
+  const chg=parseFloat(c.change||0);
+  const priceHtml=c.price?`<div class="price-row"><span class="price-val">${c.price}</span><span class="price-chg ${chg>=0?'price-up':'price-dn'}">${chg>=0?'+':''}${c.change}%</span></div>`:'';
+  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${priceHtml}</div>${cells}</div>`;
 }
 function bindTooltips(){
   document.querySelectorAll('.cell.active').forEach(cell=>{
