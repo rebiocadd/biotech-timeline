@@ -521,23 +521,24 @@ function renderHighlights(){
   const items=[];
   const keys=Object.keys(_eventCards);
 
-  // 評分系統：highlightThisWeek=10, 催化強度高=8, 中高=6, 當季 Q2=3, 已進入審查=4, 有 lastConfirmed=2
+  // 本週重點：只挑當季（Q2）事件
   const scored=keys.map(k=>{
     const ev=_eventCards[k];
+    // 只篩選 Q2 事件
+    if(ev._quarter!=='Q2') return null;
     let score=0;
-    if(ev.highlightThisWeek) score+=10;
+    if(ev.highlightThisWeek) score+=15;  // 明確標記為本週重點
     const cat=guessCatalyst(ev);
     if(cat==='高') score+=8;
     else if(cat==='中高') score+=5;
     else if(cat==='中') score+=2;
-    if(ev._quarter==='Q2') score+=3;  // 當季
-    if(ev._quarter==='Q3') score+=2;  // 即將到
     const status=guessStatus(ev);
+    if(status==='已公布') score+=5;
     if(status==='已進入審查'||status==='審查中') score+=4;
     if(status==='延後／待確認'||status==='延後') score+=3;
     if(ev.lastConfirmed) score+=2;
     return {ev, score, key:k};
-  }).filter(x=>x.score>=5).sort((a,b)=>b.score-a.score).slice(0,6);
+  }).filter(x=>x&&x.score>=3).sort((a,b)=>b.score-a.score).slice(0,6);
 
   if(scored.length===0){
     list.innerHTML='<div class="highlight-empty">本週暫無特別標記事件。</div>';
