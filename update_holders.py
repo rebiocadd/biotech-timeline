@@ -78,12 +78,14 @@ def get_page_token(session_cookies):
 
 def query_stock(opener, token, code, date):
     """向後相容：只回 1,000,001+ 等級的 (人數, 股數)"""
-    levels = query_stock_all_levels(opener, token, code, date)
+    levels, _, _ = query_stock_all_levels(opener, token, code, date)
     return levels.get("1000k+", (0, 0))
 
 
 def query_stock_all_levels(opener, token, code, date):
-    """一次 HTML 響應抓 7 個等級。回傳 {level_key: (holders, shares), ...}"""
+    """一次 HTML 響應抓 15 個等級 + 合計人數/股數
+    回傳 (levels_dict, total_holders, total_shares)
+    """
     params = {
         "SYNCHRONIZER_TOKEN": token, "SYNCHRONIZER_URI": "/portal/zh/smWeb/qryStock",
         "method": "submit", "firDate": date, "scaDate": date,
@@ -98,14 +100,23 @@ def query_stock_all_levels(opener, token, code, date):
     html = opener.open(req, timeout=15).read().decode("utf-8", errors="ignore")
 
     levels = {}
+    total_h, total_s = 0, 0
     rows = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL)
     for row in rows:
         cell_html = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL)
-        # 保留逗號以辨識範圍字串
         cells = [re.sub(r'<[^>]+>', '', c).strip() for c in cell_html]
         if len(cells) < 4:
             continue
-        range_label = cells[1]  # 例如 "1,000,001以上" 或 "50,001-100,000"
+        range_label = cells[1]
+        # 合計行：TDCC 內容含「計」字（實際格式 "合　計" 中間是全形空白）
+        if '計' in cells[1]:
+            try:
+                total_h = int(cells[2].replace(',', ''))
+                total_s = int(cells[3].replace(',', ''))
+            except:
+                pass
+            continue
+        # 等級行：依由大到小順序匹配，搭配 break 避免短 marker 誤匹配
         for key, marker, _ in LEVEL_DEFS:
             if key in levels:
                 continue
@@ -117,7 +128,7 @@ def query_stock_all_levels(opener, token, code, date):
                 except:
                     pass
                 break
-    return levels
+    return levels, total_h, total_s
 
 def get_total_shares(opener, token, code, date):
     """取得總發行股數（Level 16 合計行）"""
@@ -191,12 +202,13 @@ def main():
         try:
             # 重新取 token（每次查詢需要新 token）
             opener2, token2 = get_page_token({})
-            curr_levels = query_stock_all_levels(opener2, token2, code, curr_date_raw)
+            curr_levels, curr_total_h, curr_total_s = query_stock_all_levels(opener2, token2, code, curr_date_raw)
 
             opener3, token3 = get_page_token({})
-            prev_levels = query_stock_all_levels(opener3, token3, code, prev_date_raw)
+            prev_levels, prev_total_h, _ = query_stock_all_levels(opener3, token3, code, prev_date_raw)
 
-            total_s = existing_total.get(code, 0)
+            # 總發行股數：合計行的最直接來源
+            total_s = curr_total_s or existing_total.get(code, 0)
             if total_s == 0:
                 opener4, token4 = get_page_token({})
                 total_s = get_total_shares(opener4, token4, code, curr_date_raw)
@@ -218,6 +230,8 @@ def main():
                 "curr_h": top["curr_h"], "curr_s": top["curr_s"],
                 "prev_h": top["prev_h"], "prev_s": top["prev_s"],
                 "total_s": total_s,
+                "total_h": curr_total_h,        # 本週總人數
+                "prev_total_h": prev_total_h,   # 上週總人數（供變化比較）
                 "levels": levels_data,
             })
             # 列印 7 個等級的人數變化（簡短版）
@@ -252,7 +266,7 @@ def main():
         except Exception:
             history = {"weeks": []}
 
-    # 本週 snapshot（包含千張 + 全部 7 個等級）
+    # 本週 snapshot（包含千張 + 全部 15 個等級 + 總人數）
     new_snapshot = {
         "date": curr_date,
         "rawDate": curr_date_raw,
@@ -261,6 +275,7 @@ def main():
                 "code": r["code"], "name": r["name"],
                 "h": r["curr_h"], "s": r["curr_s"],  # 向後相容（千張）
                 "total_s": r["total_s"],
+                "total_h": r.get("total_h", 0),       # 全公司總股東人數
                 "levels": {
                     key: {"h": lv["curr_h"], "s": lv["curr_s"]}
                     for key, lv in (r.get("levels") or {}).items()

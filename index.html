@@ -303,6 +303,7 @@
             <th class="sortable" data-col="curr_s" id="th-curr-s">本週持股(股)</th>
             <th class="sortable" data-col="prev_s" id="th-prev-s">上週持股(股)</th>
             <th class="sortable" data-col="ds">持股變化(股)</th>
+            <th class="sortable" data-col="total_h">總股東(人)</th>
             <th class="sortable" data-col="total_s">總發行股數(股)</th>
             <th class="sortable" data-col="pct">千張佔比%</th>
           </tr>
@@ -358,11 +359,15 @@ let _currentLevel='1000k+';
 
 function renderHolderRow(r){
   const chText=r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`;
+  // 總股東 + 週變化（簡短形式）
+  const thChg = r.dth===0 ? '' :
+    `<span class="${r.dth>0?'h-up':'h-dn'}" style="font-size:.78em;margin-left:4px;opacity:.85">${r.dth>0?'▲':'▼'}${r.dth>0?'+':''}${r.dth.toLocaleString()}</span>`;
   const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
   return `<tr>
     <td>${codeLink}</td><td>${r.name}</td>
     <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
     <td>${fmt(r.curr_s)}</td><td>${fmt(r.prev_s)}</td><td>${diffHtml(r.ds)}</td>
+    <td>${fmt(r.total_h)}${thChg}</td>
     <td>${fmt(r.total_s)}</td><td>${r.pct.toFixed(1)}%</td>
   </tr>`;
 }
@@ -389,11 +394,15 @@ function loadWeek(idx){
     const cLv=(r.levels && r.levels[_currentLevel])||{h:(_currentLevel==='1000k+'?r.h:0), s:(_currentLevel==='1000k+'?r.s:0)};
     const pLv=(p.levels && p.levels[_currentLevel])||{h:(_currentLevel==='1000k+'?p.h:0), s:(_currentLevel==='1000k+'?p.s:0)};
     const ch=cLv.h||0, cs=cLv.s||0, ph=pLv.h||0, ps=pLv.s||0;
+    // 總股東人數（公司層級，不分等級）
+    const cth = r.total_h || 0;
+    const pth = p.total_h || 0;
     return {
       code:r.code, name:r.name,
       curr_h:ch, curr_s:cs,
       prev_h:ph, prev_s:ps,
       total_s:r.total_s,
+      total_h:cth, dth:cth-pth,
       dh:ch-ph, ds:cs-ps,
       pct: r.total_s ? (cs/r.total_s*100) : 0
     };
