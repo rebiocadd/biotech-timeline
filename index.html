@@ -87,9 +87,11 @@
   .ec-catalyst-reason{font-size:10.5px;color:#94a3b8;line-height:1.5;margin-top:3px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:3px}
   /* 本週值得注意區塊 */
   .highlights-section{margin:24px 0 32px;padding:16px 18px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(245,158,11,.06));border:1px solid rgba(245,158,11,.25);border-radius:10px}
-  .highlights-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .highlights-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .highlights-title{font-size:14px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
   .highlights-subtitle{font-size:10.5px;color:var(--muted)}
+  .highlights-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.2);cursor:help}
+  .highlights-meta:hover{background:rgba(245,158,11,.18)}
   .highlights-list{display:flex;flex-direction:column;gap:8px}
   .highlight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:rgba(15,24,40,.6);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s}
   .highlight-item:hover{border-color:var(--accent1);transform:translateX(2px)}
@@ -226,7 +228,8 @@
   <div class="highlights-section" id="highlights-section">
     <div class="highlights-header">
       <span class="highlights-title">⭐ 本週值得注意</span>
-      <span class="highlights-subtitle">近期高催化強度 / 已標記事件 · 自動更新</span>
+      <span class="highlights-subtitle">近期高催化強度 / 已標記事件 · 每次載入自動篩選</span>
+      <span class="highlights-meta" id="highlights-meta" title="自動化排程說明：&#10;💰 股價：平日 09:00、15:00（UTC+8）&#10;📡 新聞掃描：每日 08:00（UTC+8）&#10;🏦 千張統計：每週六 10:00（UTC+8）&#10;⭐ 重點標記：人工維護">⏱ 資料同步中…</span>
     </div>
     <div class="highlights-list" id="highlights-list"></div>
   </div>
@@ -518,6 +521,20 @@ function closeTooltip(){
 function renderHighlights(){
   const list=document.getElementById('highlights-list');
   if(!list) return;
+
+  // 更新「資料同步」時間標籤（取最新的股價或新聞同步時間）
+  const meta=document.getElementById('highlights-meta');
+  if(meta){
+    const s=window._statusData||{};
+    const candidates=[s.prices&&s.prices.lastRun, s.news&&s.news.lastRun].filter(Boolean).sort().reverse();
+    const last=candidates[0];
+    if(last){
+      meta.innerHTML='⏱ 最後同步：'+last+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+    } else {
+      meta.textContent='⏱ 尚未同步';
+    }
+  }
+
   const items=[];
   const keys=Object.keys(_eventCards);
 
@@ -690,6 +707,7 @@ Promise.all([
   fetch('date.json?v='+Date.now()).then(r=>r.json())
 ]).then(([statusData, newsData, timelineData])=>{
   _newsStatus = newsData;
+  window._statusData = statusData;
   renderStatusBar(statusData, newsData);
   renderData(timelineData);
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
