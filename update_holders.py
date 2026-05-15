@@ -12,20 +12,35 @@ update_holders.py - 每週自動更新千張大戶統計
 
 import json, re, sys, os, subprocess, urllib.request, urllib.error
 from datetime import datetime, timedelta, timezone
+
+# 強制 stdout 用 UTF-8（避開 Windows cp950 無法顯示 emoji）
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "holders.json")
 HISTORY_PATH = os.path.join(os.path.dirname(__file__), "holders_history.json")
+DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
 MAX_WEEKS = 52  # 保留最多一年（52週）的歷史資料
 
-COMPANIES = [
-    ("4147","中裕新藥"), ("6919","康霈生技"), ("6535","順藥"),   ("6576","逸達生技"),
-    ("4162","智擎生技"), ("6446","藥華藥"),   ("6949","沛爾生醫"),("7878","藥祇生醫"),
-    ("7827","漢康生技"), ("6467","泰合生技"), ("6696","仁新醫藥"),("7829","思捷優達"),
-    ("6917","竟天生技"), ("6945","圓祥生技"), ("7871","安立璽榮"),("6610","安成生技"),
-    ("7876","鼎晉生技"), ("4168","醣聯"),     ("7754","安基生技"),("7902","宇越生醫"),
-    ("6709","昱厚生技"), ("7776","奧孟亞"),   ("6492","生華科"),  ("6712","長聖"),
-]
+
+def load_companies():
+    """自動從 date.json 載入公司清單（上市 + 興櫃合併）
+    這樣未來新增公司時，千張大戶範圍會自動同步。
+    """
+    with open(DATE_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    companies = []
+    for section in data:
+        for c in section["companies"]:
+            companies.append((c["code"], c["name"]))
+    return companies
+
+
+COMPANIES = load_companies()
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
@@ -120,13 +135,15 @@ def main():
     print(f"本週日期：{curr_date}（{curr_date_raw}）")
     print(f"上週日期：{prev_date}（{prev_date_raw}）")
 
-    # 讀取現有資料（保留 total_s）
-    existing = {}
+    # 讀取現有資料（保留 total_s + 失敗時的 fallback）
+    existing_total = {}
+    existing_rows = {}
     if os.path.exists(JSON_PATH):
         with open(JSON_PATH, "r", encoding="utf-8") as f:
             old = json.load(f)
         for r in old.get("data", []):
-            existing[r["code"]] = r.get("total_s", 0)
+            existing_total[r["code"]] = r.get("total_s", 0)
+            existing_rows[r["code"]] = r
 
     results = []
     ok, fail = 0, []
@@ -141,7 +158,7 @@ def main():
             opener3, token3 = get_page_token({})
             prev_h, prev_s = query_stock(opener3, token3, code, prev_date_raw)
 
-            total_s = existing.get(code, 0)
+            total_s = existing_total.get(code, 0)
             if total_s == 0:
                 opener4, token4 = get_page_token({})
                 total_s = get_total_shares(opener4, token4, code, curr_date_raw)
@@ -161,6 +178,16 @@ def main():
         except Exception as e:
             print(f"❌ {e}")
             fail.append(f"{name}({code})")
+            # ☆ 失敗時保留舊資料，避免該公司從 holders.json 消失
+            old_row = existing_rows.get(code)
+            if old_row:
+                results.append({
+                    "code": code, "name": name,
+                    "curr_h": old_row.get("curr_h", 0), "curr_s": old_row.get("curr_s", 0),
+                    "prev_h": old_row.get("prev_h", 0), "prev_s": old_row.get("prev_s", 0),
+                    "total_s": old_row.get("total_s", 0)
+                })
+                print(f"           ↳ 保留上次資料 (人數 {old_row.get('curr_h',0)}, 持股 {old_row.get('curr_s',0):,})")
 
     # 寫入舊格式 holders.json（向後相容）
     output = {"curr_date": curr_date, "prev_date": prev_date, "data": results}
