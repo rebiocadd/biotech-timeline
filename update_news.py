@@ -13,6 +13,13 @@ update_news.py - 每日自動掃描公司臨床進度新聞
 import json, re, sys, os, subprocess
 import urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
+
+# 強制 stdout 用 UTF-8（避開 Windows cp950 無法顯示 emoji）
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "news_status.json")
