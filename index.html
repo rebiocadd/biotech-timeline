@@ -20,11 +20,11 @@
   .legend-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-right:4px}
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);opacity:.85}
   .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-  .quarters-header{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;margin-bottom:8px;padding:0 4px}
+  .quarters-header{display:grid;grid-template-columns:125px repeat(4,1fr) 110px;gap:4px;margin-bottom:8px;padding:0 4px}
   .quarter-label{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-align:center;padding:8px 4px;border-radius:4px;letter-spacing:1px}
   .q1-label{color:var(--q1);background:rgba(14,165,233,.08)}.q2-label{color:var(--q2);background:rgba(139,92,246,.08)}.q3-label{color:var(--q3);background:rgba(16,185,129,.08)}.q4-label{color:var(--q4);background:rgba(245,158,11,.08)}.h2-label{color:var(--h2);background:rgba(239,68,68,.08)}
   .timeline-rows{display:flex;flex-direction:column;gap:6px}
-  .company-row{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;align-items:stretch;min-height:72px;cursor:default;transition:filter .15s}
+  .company-row{display:grid;grid-template-columns:125px repeat(4,1fr) 110px;gap:4px;align-items:stretch;min-height:88px;cursor:default;transition:filter .15s}
   .company-row:hover{filter:brightness(1.1)}
   .company-info{display:flex;flex-direction:column;justify-content:center;padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;gap:2px}
   .company-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -34,9 +34,9 @@
   a.company-code:hover{color:#5ee9ff;text-shadow:0 0 6px rgba(0,212,255,.4)}
   .company-market{font-size:10px;padding:1px 5px;border-radius:3px;display:inline-block;margin-top:2px;font-weight:500;width:fit-content}
   .listed{background:rgba(16,185,129,.15);color:var(--accent3)}.otc{background:rgba(245,158,11,.15);color:var(--accent4)}
-  .indication-row{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-family:'Noto Sans TC',sans-serif}
-  .indication-label{font-size:9px;color:#a78bfa;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .target-label{font-size:8.5px;color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .indication-row{display:flex;flex-direction:column;gap:2px;margin-top:3px;font-family:'Noto Sans TC',sans-serif}
+  .indication-label{font-size:9.5px;color:#a78bfa;font-weight:600;line-height:1.3;word-break:break-word}
+  .target-label{font-size:9px;color:var(--muted);line-height:1.3;word-break:break-word}
   .indication-label::before{content:'🎯 ';font-size:9px;opacity:.8}
   .target-label::before{content:'🧬 ';font-size:8px;opacity:.7}
   .cell{background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 4px;gap:3px;min-height:52px;position:relative;overflow:hidden}
@@ -97,7 +97,7 @@
   .h-up{color:#ef4444;font-weight:700}
   .h-dn{color:#10b981;font-weight:700}
   .h-flat{color:var(--muted)}
-  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}}
+  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:100px repeat(4,1fr) 86px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}.indication-label{font-size:8.5px}.target-label{font-size:8px}}
   .visitor-bar{display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap}
   .visitor-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
   .visitor-icon{font-size:13px;opacity:.7}
