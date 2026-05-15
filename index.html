@@ -400,7 +400,7 @@ const TAG_TO_TYPE={
 const QUARTER_LABELS={
   Q1:'2026 Q1',Q2:'2026 Q2',Q3:'2026 Q3',Q4:'2026 Q4',H2:'2026 下半年'
 };
-const DEFAULT_NOTE='實際時間可能因收案進度、統計分析或主管機關審查而調整。';
+// 註記僅在事件有自訂 note 欄位時顯示（不再使用預設文字）
 
 // 狀態標籤 → CSS class
 const STATUS_CLASS_MAP={
@@ -496,7 +496,6 @@ function buildEventCard(key){
   ].filter(r=>r[1]);
 
   const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" style="color:inherit;text-decoration:none">${c.code}</a>`;
-  const noteText=ev.note||DEFAULT_NOTE;
 
   return `
     <div class="ec-header">
@@ -509,7 +508,7 @@ function buildEventCard(key){
     </div>
     ${ev.detail?`<div class="ec-detail">${ev.detail}</div>`:''}
     ${ev.catalystReason?`<div class="ec-catalyst-reason"><strong style="color:var(--accent4)">觀察重點：</strong>${ev.catalystReason}</div>`:''}
-    <div class="ec-note">⚠️ ${noteText}</div>
+    ${ev.note?`<div class="ec-note">⚠️ ${ev.note}</div>`:''}
   `;
 }
 
