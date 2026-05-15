@@ -69,7 +69,40 @@
   .ec-value{color:var(--text);word-break:break-word}
   .ec-source-link{color:var(--accent1);text-decoration:none}
   .ec-source-link:hover{text-decoration:underline}
-  .ec-status-pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:rgba(245,158,11,.15);color:var(--accent4)}
+  .ec-status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;border:1px solid}
+  /* 5 種狀態色系 */
+  .status-published{background:rgba(16,185,129,.15);color:var(--accent3);border-color:rgba(16,185,129,.4)}
+  .status-expected{background:rgba(245,158,11,.15);color:var(--accent4);border-color:rgba(245,158,11,.4)}
+  .status-review{background:rgba(14,165,233,.15);color:var(--accent1);border-color:rgba(14,165,233,.4)}
+  .status-delayed{background:rgba(239,68,68,.15);color:#fca5a5;border-color:rgba(239,68,68,.4)}
+  .status-noprogress{background:rgba(100,116,139,.15);color:#94a3b8;border-color:rgba(100,116,139,.4)}
+  /* 催化強度 */
+  .ec-catalyst{display:flex;align-items:center;gap:6px;font-size:11px}
+  .cat-level{display:inline-block;padding:2px 8px;border-radius:3px;font-weight:700;font-family:'Space Mono',monospace;font-size:10px}
+  .cat-high{background:rgba(239,68,68,.18);color:#fca5a5}
+  .cat-mhigh{background:rgba(245,158,11,.18);color:var(--accent4)}
+  .cat-med{background:rgba(14,165,233,.15);color:var(--accent1)}
+  .cat-mlow{background:rgba(139,92,246,.15);color:#a78bfa}
+  .cat-low{background:rgba(100,116,139,.15);color:#94a3b8}
+  .ec-catalyst-reason{font-size:10.5px;color:#94a3b8;line-height:1.5;margin-top:3px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:3px}
+  /* 本週值得注意區塊 */
+  .highlights-section{margin:24px 0 32px;padding:16px 18px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(245,158,11,.06));border:1px solid rgba(245,158,11,.25);border-radius:10px}
+  .highlights-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .highlights-title{font-size:14px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
+  .highlights-subtitle{font-size:10.5px;color:var(--muted)}
+  .highlights-list{display:flex;flex-direction:column;gap:8px}
+  .highlight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:rgba(15,24,40,.6);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s}
+  .highlight-item:hover{border-color:var(--accent1);transform:translateX(2px)}
+  .highlight-num{flex-shrink:0;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--accent4);background:rgba(245,158,11,.15);width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+  .highlight-content{flex:1;line-height:1.5}
+  .highlight-company{font-weight:700;color:#fff}
+  .highlight-event{color:var(--accent1);margin:0 4px}
+  .highlight-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px}
+  .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px}
+  .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
+  /* 簡化版 footer 免責 */
+  .disclaimer-block{margin-top:32px;padding:18px;background:rgba(15,24,40,.5);border-left:3px solid var(--accent4);border-radius:6px;font-size:11.5px;color:#94a3b8;line-height:1.7}
+  .disclaimer-block strong{color:var(--accent4)}
   .ec-detail{padding:8px 0;border-top:1px solid var(--border);color:#94a3b8;line-height:1.5;font-size:11px}
   .ec-note{margin-top:8px;padding:6px 8px;background:rgba(245,158,11,.1);border-left:3px solid var(--accent4);border-radius:3px;font-size:10.5px;color:#d97706;line-height:1.4}
   .ec-confirmed{font-family:'Space Mono',monospace;color:var(--accent3)}
@@ -189,6 +222,14 @@
     <div class="quarter-label q4-label">Q4</div>
     <div class="quarter-label h2-label">下半年</div>
   </div>
+  <!-- 本週值得注意 -->
+  <div class="highlights-section" id="highlights-section">
+    <div class="highlights-header">
+      <span class="highlights-title">⭐ 本週值得注意</span>
+      <span class="highlights-subtitle">近期高催化強度 / 已標記事件 · 自動更新</span>
+    </div>
+    <div class="highlights-list" id="highlights-list"></div>
+  </div>
   <div class="timeline-rows" id="timeline"></div>
   <div class="holders-section" id="holders-section">
     <div class="holders-header">
@@ -221,7 +262,12 @@
       </table>
     </div>
   </div>
-  <footer>⚠️ 本圖表資訊整理自公開新聞、法說會及公司公告，僅供參考，不構成投資建議。臨床試驗時間表可能依收案進度、監管機關審查等因素調整，投資人應自行評估風險並以公司正式公告為準。</footer>
+  <div class="disclaimer-block">
+    <strong>⚠️ 重要說明（僅供參考，不構成投資建議）</strong><br><br>
+    本頁整理自公開資訊（包含公司法說會、新聞稿、公開資訊觀測站、主管機關資料、Google News 等），目的是協助追蹤台灣生技公司的<strong>臨床試驗、解盲、授權合作與藥證進度</strong>。<br><br>
+    這些資訊<strong>僅供研究與追蹤參考，不構成任何投資建議</strong>，也不代表事件一定會如期發生。生技公司時程常因收案進度、統計分析、主管機關審查、合作談判或公司策略而調整。<br><br>
+    實際資訊請以「<strong>公司正式公告、公開資訊觀測站、主管機關資料與公司新聞稿</strong>」為準。投資前請自行評估風險並諮詢專業人士。
+  </div>
 </div>
 <div class="tooltip" id="tooltip"></div>
 <div class="news-overlay" id="news-overlay" onclick="closeNewsPop()"></div>
@@ -353,6 +399,63 @@ const QUARTER_LABELS={
 };
 const DEFAULT_NOTE='實際時間可能因收案進度、統計分析或主管機關審查而調整，投資人應自行評估風險並以公司正式公告為準。';
 
+// 狀態標籤 → CSS class
+const STATUS_CLASS_MAP={
+  '已公布':'status-published',
+  '已核准':'status-published',
+  '已完成':'status-published',
+  '通過':'status-published',
+  '期中分析通過':'status-published',
+  '預計中':'status-expected',
+  '執行中':'status-expected',
+  '進行中':'status-expected',
+  '收案中':'status-expected',
+  '收案完成評估中':'status-review',
+  '已進入審查':'status-review',
+  '審查中':'status-review',
+  '送件審查':'status-review',
+  '延後':'status-delayed',
+  '待確認':'status-delayed',
+  '延後／待確認':'status-delayed',
+  '無新進度':'status-noprogress',
+  '無進度':'status-noprogress'
+};
+// 推測狀態：依 quarter 是否已過 + tag 類型
+const CURRENT_QUARTER='Q2'; // 2026 Q2，5月 = Q2
+const QUARTER_ORDER={Q1:1,Q2:2,Q3:3,Q4:4,H2:3.5};
+function guessStatus(ev){
+  if(ev.statusLabel) return ev.statusLabel;
+  if(ev.status) return ev.status;
+  const qOrder=QUARTER_ORDER[ev._quarter]||99;
+  const currOrder=QUARTER_ORDER[CURRENT_QUARTER];
+  if(qOrder<currOrder) return '無新進度';   // 已過去的季度
+  if(qOrder===currOrder) return '預計中';   // 當季
+  if(ev.tag==='tag-approval') return '已進入審查';
+  return '預計中';
+}
+
+// 催化強度
+const CATALYST_MAP={
+  '高':'cat-high',
+  '中高':'cat-mhigh',
+  '中':'cat-med',
+  '中低':'cat-mlow',
+  '低':'cat-low'
+};
+// 自動推測催化強度（沒有 catalystLevel 時用）
+function guessCatalyst(ev){
+  if(ev.catalystLevel) return ev.catalystLevel;
+  // 解盲、藥證 = 高
+  if(ev.tag==='tag-resolve'||ev.tag==='tag-approval') return '高';
+  // 進入新期別、授權 = 中高
+  if(ev.tag==='tag-phase'||ev.tag==='tag-license') return '中高';
+  // 數據發表 = 中
+  if(ev.tag==='tag-data') return '中';
+  // 會議 = 中低
+  if(ev.tag==='tag-conference') return '中低';
+  return null;
+}
+
 function buildEventCard(key){
   const ev=_eventCards[key];
   if(!ev)return '<div style="color:#94a3b8">資料載入失敗</div>';
@@ -367,13 +470,24 @@ function buildEventCard(key){
       return s.url?`<a class="ec-source-link" href="${s.url}" target="_blank">${s.label}</a>`:s.label;
     }).join('、');
   }
+  // 狀態（優先 statusLabel > status > 自動推測）
+  const statusText=guessStatus(ev);
+  const statusClass=STATUS_CLASS_MAP[statusText]||'status-noprogress';
+  const statusHtml=statusText?`<span class="ec-status-pill ${statusClass}">${statusText}</span>`:null;
+
+  // 催化強度
+  const catLevel=guessCatalyst(ev);
+  const catClass=CATALYST_MAP[catLevel]||'';
+  const catHtml=catLevel?`<div class="ec-catalyst"><span class="cat-level ${catClass}">${catLevel}</span><span style="color:var(--muted);font-size:10px">潛在影響</span></div>`:null;
+
   // 動態欄位（有值才顯示）
   const rows=[
     ['預估時間', time],
     ['事件類型', type],
     ['適應症', ev.eventIndication||c.indication],
     ['標的／機轉', ev.eventTarget||c.target],
-    ['目前狀態', ev.status?`<span class="ec-status-pill">${ev.status}</span>`:null],
+    ['目前狀態', statusHtml],
+    ['催化強度', catHtml],
     ['最後確認', ev.lastConfirmed?`<span class="ec-confirmed">${ev.lastConfirmed}</span>`:null],
     ['來源', sourcesHtml]
   ].filter(r=>r[1]);
@@ -391,12 +505,72 @@ function buildEventCard(key){
       ${rows.map(r=>`<span class="ec-label">${r[0]}</span><span class="ec-value">${r[1]}</span>`).join('')}
     </div>
     ${ev.detail?`<div class="ec-detail">${ev.detail}</div>`:''}
+    ${ev.catalystReason?`<div class="ec-catalyst-reason"><strong style="color:var(--accent4)">觀察重點：</strong>${ev.catalystReason}</div>`:''}
     <div class="ec-note">⚠️ ${noteText}</div>
   `;
 }
 
 function closeTooltip(){
   tooltip.classList.remove('show');
+}
+
+// 本週值得注意：自動篩選重點事件
+function renderHighlights(){
+  const list=document.getElementById('highlights-list');
+  if(!list) return;
+  const items=[];
+  const keys=Object.keys(_eventCards);
+
+  // 評分系統：highlightThisWeek=10, 催化強度高=8, 中高=6, 當季 Q2=3, 已進入審查=4, 有 lastConfirmed=2
+  const scored=keys.map(k=>{
+    const ev=_eventCards[k];
+    let score=0;
+    if(ev.highlightThisWeek) score+=10;
+    const cat=guessCatalyst(ev);
+    if(cat==='高') score+=8;
+    else if(cat==='中高') score+=5;
+    else if(cat==='中') score+=2;
+    if(ev._quarter==='Q2') score+=3;  // 當季
+    if(ev._quarter==='Q3') score+=2;  // 即將到
+    const status=guessStatus(ev);
+    if(status==='已進入審查'||status==='審查中') score+=4;
+    if(status==='延後／待確認'||status==='延後') score+=3;
+    if(ev.lastConfirmed) score+=2;
+    return {ev, score, key:k};
+  }).filter(x=>x.score>=5).sort((a,b)=>b.score-a.score).slice(0,6);
+
+  if(scored.length===0){
+    list.innerHTML='<div class="highlight-empty">本週暫無特別標記事件。</div>';
+    return;
+  }
+
+  list.innerHTML=scored.map((x,i)=>{
+    const ev=x.ev, c=ev._company;
+    const time=QUARTER_LABELS[ev._quarter]||ev._quarter;
+    const reason=ev.highlightReason||ev.catalystReason||ev.detail?.substring(0,80)+'...'||'';
+    return `<div class="highlight-item" data-event-key="${x.key}">
+      <span class="highlight-num">${i+1}</span>
+      <div class="highlight-content">
+        <span class="highlight-company">${c.name}</span>
+        <span class="highlight-event">${ev.label}</span>
+        <span class="highlight-time">[${time}]</span>
+        ${reason?`<span class="highlight-reason">${reason}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // 點擊跳到時間軸對應公司
+  list.querySelectorAll('.highlight-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const k=el.dataset.eventKey;
+      const cell=document.querySelector(`.cell.active[data-event-key="${k}"]`);
+      if(cell){
+        cell.scrollIntoView({behavior:'smooth',block:'center'});
+        cell.style.outline='2px solid var(--accent4)';
+        setTimeout(()=>{cell.style.outline='';},2000);
+      }
+    });
+  });
 }
 
 function closeNewsPop(){
@@ -487,6 +661,7 @@ function renderData(DATA){
     s.companies.forEach(c=>{const div=document.createElement('div');div.innerHTML=renderRow(c);timeline.appendChild(div.firstElementChild);});
   });
   bindTooltips();
+  renderHighlights();
 }
 function renderStatusBar(status, newsData){
   const bar=document.getElementById('scan-bar');
