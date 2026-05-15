@@ -19,6 +19,12 @@ import json, re, time, sys, os, subprocess
 import urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
+# 強制 stdout 用 UTF-8（避開 Windows cp950 無法顯示 emoji）
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 # ── 設定 ──────────────────────────────────────────────────────
 JSON_PATH    = os.path.join(os.path.dirname(__file__), "date.json")
 WARN_THRESHOLD = 3.0          # 雙來源差異超過此 % 才警告
@@ -37,27 +43,42 @@ HEADERS = {
 
 # ── 來源0：Yahoo Finance（穩定備援，全球可用）─────────────────
 def fetch_yahoo(code):
-    """從 Yahoo Finance 取收盤價（自動嘗試 .TW 和 .TWO 後綴）"""
+    """從 Yahoo Finance 取收盤價 + 近 5 日歷史
+    回傳 (close, chg, history) 其中 history = [{"date":"MM/DD","close":float}, ...] 最多 5 筆
+    """
     for suffix in ('.TW', '.TWO'):
         try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}{suffix}?interval=1d&range=5d"
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}{suffix}?interval=1d&range=10d"
             req = urllib.request.Request(url, headers=HEADERS)
             with urllib.request.urlopen(req, timeout=12) as r:
                 data = json.loads(r.read().decode("utf-8"))
             result = (data.get("chart", {}) or {}).get("result") or []
             if not result:
                 continue
+            timestamps = result[0].get("timestamp") or []
             quote = result[0].get("indicators", {}).get("quote", [{}])[0]
-            closes = [c for c in (quote.get("close") or []) if c is not None]
-            if not closes:
+            raw_closes = quote.get("close") or []
+            if not raw_closes:
                 continue
-            close = float(closes[-1])
-            prev  = float(closes[-2]) if len(closes) >= 2 else close
-            chg   = round((close - prev) / prev * 100, 2) if prev else 0.0
-            return close, chg
+            # 對齊 timestamps 和 closes，過濾掉 None
+            pairs = []
+            for ts, c in zip(timestamps, raw_closes):
+                if c is None:
+                    continue
+                dt = datetime.fromtimestamp(ts, TAIPEI_TZ)
+                pairs.append((dt.strftime("%m/%d"), round(float(c), 2)))
+            if not pairs:
+                continue
+            # 只保留最近 5 個交易日
+            pairs = pairs[-5:]
+            history = [{"date": d, "close": c} for d, c in pairs]
+            close = pairs[-1][1]
+            prev = pairs[-2][1] if len(pairs) >= 2 else close
+            chg = round((close - prev) / prev * 100, 2) if prev else 0.0
+            return close, chg, history
         except Exception:
             continue
-    return None, None
+    return None, None, None
 
 
 # ── 來源1：TWSE / TPEX 官方 API ───────────────────────────────
@@ -130,14 +151,14 @@ def fetch_wantgoo(code):
 def get_price_verified(code, market, name):
     """
     取得股價並三來源驗證（Yahoo + TWSE/TPEX + 玩股網）。
-    優先順序：1) Yahoo（最穩定）  2) TWSE/TPEX  3) 玩股網
+    優先順序：1) Yahoo（最穩定，也提供 5 日歷史）  2) TWSE/TPEX  3) 玩股網
     若有 2 個以上來源成功則交叉驗證。
-    回傳：(price, change)  或  (None, None)
+    回傳：(price, change, history)  或  (None, None, None)
     """
     src_name = "TWSE" if market == "listed" else "TPEX"
 
     # 三個來源都試
-    p_yahoo, chg_yahoo = fetch_yahoo(code)
+    p_yahoo, chg_yahoo, history_yahoo = fetch_yahoo(code)
     p_official, chg_official = fetch_official(code, market)
     p_wantgoo = fetch_wantgoo(code)
 
@@ -174,7 +195,7 @@ def get_price_verified(code, market, name):
         final_price, final_chg = None, None
 
     print(f"  [{code}] {name:<10}  {status}")
-    return final_price, final_chg
+    return final_price, final_chg, history_yahoo
 
 
 # ── 主程式 ────────────────────────────────────────────────────
@@ -199,13 +220,15 @@ def main():
             market = company["market"]
             name   = company["name"]
 
-            price, chg = get_price_verified(code, market, name)
+            price, chg, history = get_price_verified(code, market, name)
             time.sleep(REQUEST_DELAY)
 
             if price is not None:
                 company["price"]     = f"{price:.2f}"
                 company["change"]    = f"{chg:+.2f}" if chg >= 0 else f"{chg:.2f}"
                 company["priceDate"] = TODAY_STR
+                if history:
+                    company["priceHistory"] = history
                 ok_count += 1
             else:
                 fail_list.append(f"{name}({code})")

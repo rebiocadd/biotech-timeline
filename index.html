@@ -102,6 +102,16 @@
   .highlight-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px}
   .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px}
   .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
+  /* 5 日歷史收盤價 */
+  .hp-strip{margin-top:6px;display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace}
+  .hp-label{font-size:9px;color:var(--muted);white-space:nowrap;letter-spacing:.5px}
+  .hp-row{display:flex;gap:4px;flex-wrap:wrap}
+  .hp-cell{display:flex;flex-direction:column;align-items:center;padding:3px 7px;background:rgba(15,24,40,.6);border:1px solid rgba(30,45,69,.6);border-radius:3px;min-width:46px;line-height:1.25}
+  .hp-cell .hp-date{font-size:8.5px;color:var(--muted);opacity:.75}
+  .hp-cell .hp-val{font-size:10.5px;font-weight:700}
+  .hp-up{color:#ef4444}
+  .hp-dn{color:#10b981}
+  .hp-flat{color:#e2e8f0}
   /* 簡化版 footer 免責 */
   .disclaimer-block{margin-top:32px;padding:18px;background:rgba(15,24,40,.5);border-left:3px solid var(--accent4);border-radius:6px;font-size:11.5px;color:#94a3b8;line-height:1.7}
   .disclaimer-block strong{color:var(--accent4)}
@@ -570,6 +580,21 @@ function renderHighlights(){
     const ev=x.ev, c=ev._company;
     const time=QUARTER_LABELS[ev._quarter]||ev._quarter;
     const reason=ev.highlightReason||ev.catalystReason||ev.detail?.substring(0,80)+'...'||'';
+    // 近 5 日收盤價條帶（含逐日漲跌著色：紅漲綠跌）
+    const ph=c.priceHistory||[];
+    let pricesHtml='';
+    if(ph.length){
+      const cells=ph.map((p,j)=>{
+        let cls='hp-flat';
+        if(j>0){
+          const prev=ph[j-1].close;
+          if(p.close>prev) cls='hp-up';
+          else if(p.close<prev) cls='hp-dn';
+        }
+        return `<div class="hp-cell"><span class="hp-date">${p.date}</span><span class="hp-val ${cls}">${p.close}</span></div>`;
+      }).join('');
+      pricesHtml=`<div class="hp-strip"><span class="hp-label">近 5 日 ▸</span><div class="hp-row">${cells}</div></div>`;
+    }
     return `<div class="highlight-item" data-event-key="${x.key}">
       <span class="highlight-num">${i+1}</span>
       <div class="highlight-content">
@@ -577,6 +602,7 @@ function renderHighlights(){
         <span class="highlight-event">${ev.label}</span>
         <span class="highlight-time">[${time}]</span>
         ${reason?`<span class="highlight-reason">${reason}</span>`:''}
+        ${pricesHtml}
       </div>
     </div>`;
   }).join('');
