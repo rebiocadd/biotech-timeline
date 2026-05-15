@@ -103,20 +103,27 @@
   .highlight-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px}
   .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
   .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
-  /* 💡 幾個有趣的訊號（本週散戶變化） */
+  /* 💡 投資解讀（幾個有趣的訊號 - 3 欄表格樣式） */
   .signals-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(16,185,129,.04));border:1px solid rgba(0,212,255,.22);border-radius:10px}
-  .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
   .signals-title{font-size:13px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px}
   .signals-subtitle{font-size:10.5px;color:var(--muted)}
-  .signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .signal-col{display:flex;flex-direction:column;gap:5px}
-  .signal-head{font-size:10.5px;font-weight:700;letter-spacing:.5px;font-family:'Space Mono',monospace;padding:5px 9px;border-radius:4px}
-  .signal-head.up{background:rgba(239,68,68,.12);color:#fca5a5}
-  .signal-head.dn{background:rgba(16,185,129,.12);color:#86efac}
-  .signal-item{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(15,24,40,.55);border:1px solid var(--border);border-radius:4px;font-size:11.5px;gap:8px}
-  .sg-name{color:#fff;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sg-chg{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;white-space:nowrap}
-  @media(max-width:700px){.signals-grid{grid-template-columns:1fr;gap:8px}}
+  .signals-tagline{font-size:11px;color:#cbd5e1;margin-bottom:10px}
+  .signals-table{display:grid;grid-template-columns:1.3fr 1fr 2.4fr;gap:1px;background:var(--border);border-radius:5px;overflow:hidden;font-size:11.5px}
+  .signals-th{background:rgba(15,24,40,.85);padding:6px 10px;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);letter-spacing:.5px;font-weight:700}
+  .signals-td{background:rgba(15,24,40,.5);padding:8px 11px;line-height:1.4;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+  .sg-name{color:#fff;font-weight:600;font-family:'Noto Sans TC',sans-serif}
+  .sg-chg-up{color:#ef4444;font-weight:700;font-family:'Space Mono',monospace;font-size:11px}
+  .sg-chg-dn{color:#10b981;font-weight:700;font-family:'Space Mono',monospace;font-size:11px}
+  .sg-label-up{color:#fca5a5;font-weight:700;font-size:11px;font-family:'Space Mono',monospace}
+  .sg-label-dn{color:#86efac;font-weight:700;font-size:11px;font-family:'Space Mono',monospace}
+  .sg-reason{color:#cbd5e1;font-size:11px;line-height:1.45}
+  @media(max-width:700px){
+    .signals-table{grid-template-columns:1fr 1fr 2fr;font-size:10.5px}
+    .signals-th{font-size:9px;padding:5px 7px}
+    .signals-td{padding:6px 8px;font-size:10.5px}
+    .sg-reason{font-size:10px;line-height:1.4}
+  }
   /* 🏆 25 家總股東排行 */
   .ranking-section{margin:20px 0 28px;padding:14px 16px;background:rgba(15,24,40,.4);border:1px solid var(--border);border-radius:8px}
   .ranking-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
@@ -278,13 +285,14 @@
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
-  <!-- 💡 幾個有趣的訊號（散戶變化自動分析） -->
+  <!-- 💡 投資解讀（散戶人數變化 + 可能原因） -->
   <div class="signals-section" id="signals-section" style="display:none">
     <div class="signals-header">
-      <span class="signals-title">💡 幾個有趣的訊號</span>
-      <span class="signals-subtitle">本週總股東人數變化 Top 3（自動分析）</span>
+      <span class="signals-title">💡 投資解讀</span>
+      <span class="signals-subtitle">本週總股東人數變化 Top 5 · 自動分析</span>
     </div>
-    <div class="signals-grid" id="signals-grid"></div>
+    <div class="signals-tagline">幾個有趣的訊號：</div>
+    <div class="signals-table" id="signals-grid"></div>
   </div>
 
   <!-- 本週值得注意 -->
@@ -487,27 +495,44 @@ function renderRanking(){
     '<div>'+right.map((r,i)=>renderRow(r,i+mid)).join('')+'</div>';
 }
 
-// 💡 幾個有趣的訊號（自動找 Top 3 進場 + Top 3 離場）
+// 變化量分級
+function classifyChange(dth){
+  if(dth>=500) return {label:'大幅進場', dir:'up'};
+  if(dth>=100) return {label:'持續累積', dir:'up'};
+  if(dth>=10)  return {label:'緩步進場', dir:'up'};
+  if(dth<=-500) return {label:'大幅離場', dir:'dn'};
+  if(dth<=-100) return {label:'散戶離場', dir:'dn'};
+  if(dth<=-10)  return {label:'緩步減持', dir:'dn'};
+  return null;
+}
+
+// 💡 投資解讀：依絕對變化量挑 Top 5 顯示三欄表格（公司／變化／可能原因）
 function renderSignals(){
   const grid=document.getElementById('signals-grid');
   const sec=document.getElementById('signals-section');
   if(!grid||!sec) return;
-  const items=_hData.filter(r=>r.dth!==0);
+  const items=_hData
+    .filter(r=>{const c=classifyChange(r.dth); return c!==null;})
+    .map(r=>({...r, _cls:classifyChange(r.dth)}))
+    .sort((a,b)=>Math.abs(b.dth)-Math.abs(a.dth))
+    .slice(0,5);
   if(!items.length){sec.style.display='none';return;}
   sec.style.display='block';
-  const gainers=[...items].sort((a,b)=>b.dth-a.dth).slice(0,3).filter(r=>r.dth>0);
-  const losers=[...items].sort((a,b)=>a.dth-b.dth).slice(0,3).filter(r=>r.dth<0);
-  const rowG=r=>`<div class="signal-item"><span class="sg-name">${r.name} <span style="color:var(--muted);font-size:.85em">(${r.code})</span></span><span class="sg-chg h-up">▲ +${r.dth.toLocaleString()} 人</span></div>`;
-  const rowL=r=>`<div class="signal-item"><span class="sg-name">${r.name} <span style="color:var(--muted);font-size:.85em">(${r.code})</span></span><span class="sg-chg h-dn">▼ ${r.dth.toLocaleString()} 人</span></div>`;
-  grid.innerHTML=
-    `<div class="signal-col">
-      <div class="signal-head up">📈 散戶大幅進場</div>
-      ${gainers.length?gainers.map(rowG).join(''):'<div class="signal-item" style="color:var(--muted)">本週無明顯進場</div>'}
-    </div>
-    <div class="signal-col">
-      <div class="signal-head dn">📉 散戶獲利離場</div>
-      ${losers.length?losers.map(rowL).join(''):'<div class="signal-item" style="color:var(--muted)">本週無明顯離場</div>'}
-    </div>`;
+  // 表頭
+  let html=`<div class="signals-th">公司</div><div class="signals-th">變化</div><div class="signals-th">可能原因</div>`;
+  // 資料列
+  for(const r of items){
+    const cls=r._cls;
+    const meta=(window._companyMeta||{})[r.code];
+    const reason=meta&&meta.signalReason?meta.signalReason:'—';
+    const chgClass=cls.dir==='up'?'sg-chg-up':'sg-chg-dn';
+    const labelClass=cls.dir==='up'?'sg-label-up':'sg-label-dn';
+    const arrow=cls.dir==='up'?'▲ +':'▼ ';
+    html+=`<div class="signals-td"><span class="sg-name">${r.name}</span> <span class="${chgClass}">${arrow}${r.dth.toLocaleString()}</span></div>`;
+    html+=`<div class="signals-td"><span class="${labelClass}">${cls.label}</span></div>`;
+    html+=`<div class="signals-td"><span class="sg-reason">${reason}</span></div>`;
+  }
+  grid.innerHTML=html;
 }
 
 function renderLevelTabs(){
@@ -834,6 +859,9 @@ function renderRow(c){
   const mc=c.market==='listed'?'listed':'otc';
   const ml=c.market==='listed'?'上市':'興櫃';
   const ex=c.market==='listed'?'TWSE':'TPEx';
+  // 把公司 metadata 暴露給其他模組（如 renderSignals）查 signalReason
+  window._companyMeta = window._companyMeta || {};
+  window._companyMeta[c.code] = c;
   let cells='';
   ['q1','q2','q3','q4','h2'].forEach(q=>{
     const ev=c.events[q];
