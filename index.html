@@ -165,10 +165,15 @@
   .holders-week-select:hover{border-color:var(--accent1)}
   .holders-week-select:focus{border-color:var(--accent1);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
   /* 持股等級切換 tabs（類似 Excel 工作區） */
-  .holders-tabs{display:flex;gap:2px;margin:10px 0 0;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 2px}
-  .holders-tab{padding:7px 12px;font-size:clamp(9.5px,1vw,11px);color:var(--muted);background:rgba(15,24,40,.4);border:1px solid var(--border);border-bottom:none;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;font-family:'Space Mono',monospace;letter-spacing:.3px;flex-shrink:0;transition:all .15s;margin-bottom:-1px;line-height:1.2}
+  .holders-tabs{display:flex;gap:1px;margin:10px 0 0;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 2px;scrollbar-width:thin}
+  .holders-tabs::-webkit-scrollbar{height:5px}
+  .holders-tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .holders-tab{padding:6px 9px;font-size:clamp(9px,0.95vw,10.5px);color:var(--muted);background:rgba(15,24,40,.4);border:1px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;white-space:nowrap;font-family:'Space Mono',monospace;letter-spacing:.2px;flex-shrink:0;transition:all .15s;margin-bottom:-1px;line-height:1.2}
   .holders-tab:hover{color:var(--text);background:rgba(14,165,233,.08)}
   .holders-tab.active{color:var(--accent1);background:rgba(14,165,233,.16);border-color:var(--accent1);border-bottom-color:#0a0e1a;font-weight:700;box-shadow:0 -1px 0 var(--accent1) inset}
+  @media(max-width:700px){
+    .holders-tab{padding:5px 7px;font-size:9px}
+  }
   .holders-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
   .holders-table{width:100%;border-collapse:collapse;font-size:clamp(9px,1.1vw,12px);table-layout:auto}
   .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);letter-spacing:.5px;padding:clamp(5px,0.8vw,9px) clamp(5px,0.8vw,10px);text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
@@ -331,15 +336,23 @@ function diffHtml(d){
 
 let _hHistory=null, _hData=[], _sortCol='curr_h', _sortDir=-1;
 
-// 7 個持股等級工作區
+// 15 個持股等級工作區（涵蓋 TDCC 全部 1~15 級）
 const LEVEL_TABS=[
-  {key:'1000k+',    label:'≥ 1,000,001 股',     short:'≥ 1M',     desc:'持股超過 1,000 張（≥1,000,001股）'},
-  {key:'800-1000k', label:'800,001-1,000,000', short:'800k-1M',  desc:'持股 800,001-1,000,000 股'},
-  {key:'600-800k',  label:'600,001-800,000',   short:'600-800k', desc:'持股 600,001-800,000 股'},
-  {key:'400-600k',  label:'400,001-600,000',   short:'400-600k', desc:'持股 400,001-600,000 股'},
-  {key:'200-400k',  label:'200,001-400,000',   short:'200-400k', desc:'持股 200,001-400,000 股'},
-  {key:'100-200k',  label:'100,001-200,000',   short:'100-200k', desc:'持股 100,001-200,000 股'},
-  {key:'50-100k',   label:'50,001-100,000',    short:'50-100k',  desc:'持股 50,001-100,000 股'},
+  {key:'1000k+',    label:'≥ 1M',      short:'≥1M',      desc:'持股 1,000,001+ 股（千張大戶，≥1,000張）'},
+  {key:'800-1000k', label:'800k-1M',   short:'800k-1M',  desc:'持股 800,001-1,000,000 股'},
+  {key:'600-800k',  label:'600-800k',  short:'600-800k', desc:'持股 600,001-800,000 股'},
+  {key:'400-600k',  label:'400-600k',  short:'400-600k', desc:'持股 400,001-600,000 股'},
+  {key:'200-400k',  label:'200-400k',  short:'200-400k', desc:'持股 200,001-400,000 股'},
+  {key:'100-200k',  label:'100-200k',  short:'100-200k', desc:'持股 100,001-200,000 股'},
+  {key:'50-100k',   label:'50-100k',   short:'50-100k',  desc:'持股 50,001-100,000 股'},
+  {key:'40-50k',    label:'40-50k',    short:'40-50k',   desc:'持股 40,001-50,000 股'},
+  {key:'30-40k',    label:'30-40k',    short:'30-40k',   desc:'持股 30,001-40,000 股'},
+  {key:'20-30k',    label:'20-30k',    short:'20-30k',   desc:'持股 20,001-30,000 股'},
+  {key:'15-20k',    label:'15-20k',    short:'15-20k',   desc:'持股 15,001-20,000 股'},
+  {key:'10-15k',    label:'10-15k',    short:'10-15k',   desc:'持股 10,001-15,000 股'},
+  {key:'5-10k',     label:'5-10k',     short:'5-10k',    desc:'持股 5,001-10,000 股'},
+  {key:'1-5k',      label:'1k-5k',     short:'1k-5k',    desc:'持股 1,000-5,000 股'},
+  {key:'0-999',     label:'< 1k',      short:'<1k',      desc:'持股 1-999 股（不足一張）'},
 ];
 let _currentLevel='1000k+';
 
