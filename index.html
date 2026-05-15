@@ -588,16 +588,32 @@ function getAutoReason(code, name){
   }
 }
 
-// 💡 投資解讀：依絕對變化量挑 Top 5 顯示三欄表格（公司／變化／可能原因）
+// 💡 投資解讀：Top N + 固定加入的觀察清單 (PINNED)
+const PINNED_SIGNALS=['7878']; // 藥祇生醫 — 不論變化大小都納入解讀
 function renderSignals(){
   const grid=document.getElementById('signals-grid');
   const sec=document.getElementById('signals-section');
   if(!grid||!sec) return;
-  const items=_hData
-    .filter(r=>{const c=classifyChange(r.dth); return c!==null;})
-    .map(r=>({...r, _cls:classifyChange(r.dth)}))
-    .sort((a,b)=>Math.abs(b.dth)-Math.abs(a.dth))
-    .slice(0,5);
+  const all=_hData
+    .filter(r=>classifyChange(r.dth)!==null)
+    .map(r=>({...r, _cls:classifyChange(r.dth)}));
+  // 依 |dth| 取前 5
+  const sorted=[...all].sort((a,b)=>Math.abs(b.dth)-Math.abs(a.dth));
+  let items=sorted.slice(0,5);
+  // 固定觀察清單若不在 Top 5 則補進來
+  PINNED_SIGNALS.forEach(code=>{
+    if(!items.find(r=>r.code===code)){
+      const p=all.find(r=>r.code===code);
+      if(p) items.push(p);
+    }
+  });
+  // 排序：先正向變化（大→小），再負向變化（|大|→|小|）
+  items.sort((a,b)=>{
+    const aPos=a.dth>0, bPos=b.dth>0;
+    if(aPos&&!bPos) return -1;
+    if(!aPos&&bPos) return 1;
+    return aPos? b.dth-a.dth : a.dth-b.dth;
+  });
   if(!items.length){sec.style.display='none';return;}
   sec.style.display='block';
   // 表頭
