@@ -2,14 +2,10 @@ name: 自動更新（股價/新聞/千張）
 
 on:
   schedule:
-    # 股價：週一至週五 09:00 TST（開盤前）= UTC 01:00
-    - cron: '0 1 * * 1-5'
-    # 股價：週一至週五 15:00 TST（收盤後）= UTC 07:00
-    - cron: '0 7 * * 1-5'
-    # 每日新聞掃描：每天 08:00 TST = UTC 00:00
-    - cron: '0 0 * * *'
-    # 千張大戶：每週六 10:00 TST = UTC 02:00
-    - cron: '0 2 * * 6'
+    - cron: '0 1 * * 1-5'   # 09:00 TST prices
+    - cron: '0 7 * * 1-5'   # 15:00 TST prices
+    - cron: '0 0 * * *'     # 08:00 TST news
+    - cron: '0 2 * * 6'     # 10:00 TST holders (Sat)
   workflow_dispatch:
     inputs:
       task:
@@ -19,106 +15,107 @@ on:
         type: choice
         options: ['all', 'prices', 'news', 'holders']
 
-# 同時最多只能跑一個 commit job，避免 push 衝突
 concurrency:
   group: auto-update-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   update-prices:
-    if: github.event_name != 'schedule' || (github.event.schedule == '0 1 * * 1-5' || github.event.schedule == '0 7 * * 1-5') || github.event.inputs.task == 'prices' || github.event.inputs.task == 'all'
+    if: github.event_name == 'schedule' && (github.event.schedule == '0 1 * * 1-5' || github.event.schedule == '0 7 * * 1-5') || github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'prices' || github.event.inputs.task == 'all')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: { contents: write }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: 更新股價（雙來源驗證）
-        run: python update_prices.py
-      - name: Commit & push（自動處理衝突）
+        with: { python-version: '3.11' }
+      - name: Run + Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add date.json status.json
-          if git diff --staged --quiet; then
-            echo "無變更"
-          else
-            git commit -m "自動更新股價 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
-            for i in 1 2 3 4 5; do
-              git pull --rebase origin main && git push && break
-              echo "Push 衝突，重試第 $i 次..."
-              sleep 5
-            done
-          fi
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main 2>/dev/null || git pull origin main || true
+            python update_prices.py
+            git add date.json status.json
+            if git diff --staged --quiet; then
+              echo "No changes, skipping"; break
+            fi
+            MSG="自動更新股價 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
+            git commit -m "$MSG"
+            if git push 2>&1; then
+              echo "✅ Push success"; break
+            fi
+            echo "⚠️ Retry $i"
+            git reset --soft HEAD~1
+            git restore --staged .
+            sleep 3
+          done
 
   update-news:
     needs: update-prices
     if: |
       always() && (
-        github.event_name != 'schedule' ||
-        github.event.schedule == '0 0 * * *' ||
-        github.event.inputs.task == 'news' ||
-        github.event.inputs.task == 'all'
+        (github.event_name == 'schedule' && github.event.schedule == '0 0 * * *') ||
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'news' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: { contents: write }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: 每日臨床新聞掃描（Google News）
-        run: python update_news.py
-      - name: Commit & push（自動處理衝突）
+        with: { python-version: '3.11' }
+      - name: Run + Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add news_status.json status.json
-          if git diff --staged --quiet; then
-            echo "無變更"
-          else
-            git commit -m "每日新聞掃描 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
-            for i in 1 2 3 4 5; do
-              git pull --rebase origin main && git push && break
-              echo "Push 衝突，重試第 $i 次..."
-              sleep 5
-            done
-          fi
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main 2>/dev/null || git pull origin main || true
+            python update_news.py
+            git add news_status.json status.json
+            if git diff --staged --quiet; then
+              echo "No changes, skipping"; break
+            fi
+            MSG="每日新聞掃描 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
+            git commit -m "$MSG"
+            if git push 2>&1; then
+              echo "✅ Push success"; break
+            fi
+            echo "⚠️ Retry $i"
+            git reset --soft HEAD~1
+            git restore --staged .
+            sleep 3
+          done
 
   update-holders:
     needs: update-news
     if: |
       always() && (
-        github.event_name != 'schedule' ||
-        github.event.schedule == '0 2 * * 6' ||
-        github.event.inputs.task == 'holders' ||
-        github.event.inputs.task == 'all'
+        (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 6') ||
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'holders' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: { contents: write }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: 更新千張大戶統計（TDCC）
-        run: python update_holders.py
-      - name: Commit & push（自動處理衝突）
+        with: { python-version: '3.11' }
+      - name: Run + Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add holders.json holders_history.json status.json
-          if git diff --staged --quiet; then
-            echo "無變更"
-          else
-            git commit -m "自動更新千張大戶統計 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
-            for i in 1 2 3 4 5; do
-              git pull --rebase origin main && git push && break
-              echo "Push 衝突，重試第 $i 次..."
-              sleep 5
-            done
-          fi
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main 2>/dev/null || git pull origin main || true
+            python update_holders.py
+            git add holders.json holders_history.json status.json
+            if git diff --staged --quiet; then
+              echo "No changes, skipping"; break
+            fi
+            MSG="自動更新千張大戶統計 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
+            git commit -m "$MSG"
+            if git push 2>&1; then
+              echo "✅ Push success"; break
+            fi
+            echo "⚠️ Retry $i"
+            git reset --soft HEAD~1
+            git restore --staged .
+            sleep 3
+          done
