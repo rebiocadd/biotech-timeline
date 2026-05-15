@@ -30,7 +30,8 @@
   .company-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .company-ticker{display:flex;align-items:center;gap:4px;margin-top:1px}
   .ticker-exchange{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);background:rgba(100,116,139,.15);padding:1px 4px;border-radius:2px;letter-spacing:.5px}
-  .company-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--accent1);letter-spacing:1px}
+  .company-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--accent1);letter-spacing:1px;text-decoration:none;cursor:pointer;transition:color .15s,text-shadow .15s}
+  a.company-code:hover{color:#5ee9ff;text-shadow:0 0 6px rgba(0,212,255,.4)}
   .company-market{font-size:10px;padding:1px 5px;border-radius:3px;display:inline-block;margin-top:2px;font-weight:500;width:fit-content}
   .listed{background:rgba(16,185,129,.15);color:var(--accent3)}.otc{background:rgba(245,158,11,.15);color:var(--accent4)}
   .indication-row{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-family:'Noto Sans TC',sans-serif}
@@ -338,7 +339,7 @@ function renderRow(c){
   // 檢查是否有新動態
   const news=_newsStatus.companies&&_newsStatus.companies[c.code];
   const newsBadge=(news&&news.news&&news.news.length)?`<span class="news-badge" onclick="event.stopPropagation();showNews('${c.code}','${c.name}')" title="點擊查看最新動態">🆕 ${news.news[0].date}</span>`:'';
-  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${indHtml}${priceHtml}</div>${cells}</div>`;
+  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" class="company-code" title="點擊查看 Goodinfo 個股資訊">${c.code}</a></div><div class="company-market ${mc}">${ml}</div>${indHtml}${priceHtml}</div>${cells}</div>`;
 }
 function bindTooltips(){
   document.querySelectorAll('.cell.active').forEach(cell=>{
