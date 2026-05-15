@@ -194,25 +194,24 @@
   }
   .holders-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
   .holders-table{width:100%;border-collapse:collapse;font-size:clamp(9px,1.1vw,12px);table-layout:auto}
-  .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);letter-spacing:.5px;padding:clamp(5px,0.8vw,9px) clamp(5px,0.8vw,10px);text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
-  .holders-table th:first-child,.holders-table th:nth-child(2){text-align:left}
+  .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);letter-spacing:.4px;padding:clamp(4px,0.6vw,7px) clamp(4px,0.55vw,7px);text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
+  .holders-table th:first-child{text-align:left}
   .holders-table th.sortable{cursor:pointer;user-select:none;transition:background .15s}
   .holders-table th.sortable:hover{background:rgba(14,165,233,.22);color:#fff}
   .holders-table th::after{content:' ⇅';opacity:.25;font-size:9px}
   .holders-table th.sort-asc::after{content:' ▲';opacity:1;color:#ef4444}
   .holders-table th.sort-desc::after{content:' ▼';opacity:1;color:#ef4444}
-  .holders-table td{padding:clamp(4px,0.7vw,7px) clamp(5px,0.8vw,10px);border-bottom:1px solid rgba(30,45,69,.5);text-align:right;white-space:nowrap;color:var(--text)}
-  .holders-table td:first-child{text-align:left;font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);color:var(--accent1)}
-  .holders-table td:first-child a{color:var(--accent1);text-decoration:none}
-  .holders-table td:first-child a:hover{text-decoration:underline}
-  .holders-table td:nth-child(2){text-align:left;font-weight:600}
+  .holders-table td{padding:clamp(3px,0.5vw,6px) clamp(4px,0.55vw,7px);border-bottom:1px solid rgba(30,45,69,.5);text-align:right;white-space:nowrap;color:var(--text)}
+  .holders-table td:first-child{text-align:left;line-height:1.2;padding-top:6px;padding-bottom:6px}
+  .holders-table td:first-child .h-code{display:block;font-family:'Space Mono',monospace;font-size:clamp(8.5px,0.95vw,10px);color:var(--accent1);text-decoration:none;letter-spacing:.5px}
+  .holders-table td:first-child .h-code:hover{text-decoration:underline}
+  .holders-table td:first-child .h-name{display:block;font-family:'Noto Sans TC',sans-serif;font-size:clamp(10px,1.15vw,12px);color:#fff;font-weight:600;margin-top:1px}
   .holders-table tr:last-child td{border-bottom:none}
   .holders-table tbody tr:hover td{background:rgba(14,165,233,.05)}
-  /* 前兩欄黏性定位（橫向捲動時保持可見） */
-  .holders-table th:nth-child(1),.holders-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a0e1a;min-width:55px}
-  .holders-table th:nth-child(2),.holders-table td:nth-child(2){position:sticky;left:55px;z-index:2;background:#0a0e1a;min-width:80px;box-shadow:2px 0 4px rgba(0,0,0,.4)}
-  .holders-table thead th:nth-child(1),.holders-table thead th:nth-child(2){z-index:3;background:#0f1d2e}
-  .holders-table tbody tr:hover td:nth-child(1),.holders-table tbody tr:hover td:nth-child(2){background:#0c1525}
+  /* 第一欄黏性定位（代號+公司合併兩列） */
+  .holders-table th:nth-child(1),.holders-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a0e1a;min-width:78px;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .holders-table thead th:nth-child(1){z-index:3;background:#0f1d2e}
+  .holders-table tbody tr:hover td:nth-child(1){background:#0c1525}
   .h-up{color:#ef4444;font-weight:700}
   .h-dn{color:#10b981;font-weight:700}
   .h-flat{color:var(--muted)}
@@ -322,8 +321,7 @@
       <table class="holders-table" id="holders-table">
         <thead>
           <tr>
-            <th class="sortable" data-col="code">代號</th>
-            <th class="sortable" data-col="name">公司</th>
+            <th class="sortable" data-col="code">代號／公司</th>
             <th class="sortable" data-col="curr_h" id="th-curr-h">本週人數</th>
             <th class="sortable" data-col="prev_h" id="th-prev-h">上週人數</th>
             <th class="sortable" data-col="dh">人數變化</th>
@@ -397,9 +395,10 @@ function renderHolderRow(r){
   // 總股東 + 週變化（簡短形式）
   const thChg = r.dth===0 ? '' :
     `<span class="${r.dth>0?'h-up':'h-dn'}" style="font-size:.78em;margin-left:4px;opacity:.85">${r.dth>0?'▲':'▼'}${r.dth>0?'+':''}${r.dth.toLocaleString()}</span>`;
-  const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
+  // 第一欄合併：代號（小字, accent 色）+ 公司（白字, 較大）兩行
+  const firstCell=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" class="h-code">${r.code}</a><span class="h-name">${r.name}</span>`;
   return `<tr>
-    <td>${codeLink}</td><td>${r.name}</td>
+    <td>${firstCell}</td>
     <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
     <td>${fmt(r.curr_s)}</td><td>${fmt(r.prev_s)}</td><td>${diffHtml(r.ds)}</td>
     <td>${fmt(r.total_h)}${thChg}</td>
