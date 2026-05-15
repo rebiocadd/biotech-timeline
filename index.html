@@ -526,48 +526,66 @@ function cleanNewsTitle(title, code, name){
   return t;
 }
 
-// 自動分析「可能原因」：優先順序 1.催化新聞 2.事件 highlightReason 3.catalystReason 4.主事件 5.適應症
+// 自動分析「可能原因」：依優先順序找最有意義的描述
 function getAutoReason(code, name){
-  // 1. 找近期含催化關鍵字的新聞
-  const newsList=(window._newsStatus&&window._newsStatus.companies&&window._newsStatus.companies[code]&&window._newsStatus.companies[code].news)||[];
-  const catalystKeywords=/核准|藥證|解盲|期中分析|療效|授權|簽署|啟動|收案完成|FDA|IND|BTD|突破性|孤兒藥|MOU|首付款|里程碑/;
-  const sigNews=newsList.find(n=>catalystKeywords.test(n.title||''));
-  if(sigNews){
-    const t=cleanNewsTitle(sigNews.title, code, name);
-    if(t) return `📰 ${sigNews.date} · ${t}`;
-  }
-  // 2. 退而求其次：最新一則新聞
-  if(newsList.length>0){
-    const t=cleanNewsTitle(newsList[0].title, code, name);
-    if(t) return `📰 ${newsList[0].date} · ${t}`;
-  }
-  const meta=(window._companyMeta||{})[code];
-  if(meta&&meta.events){
-    // 3. 任何季度的 highlightReason
-    for(const q of ['q2','q3','q4','q1','h2']){
-      const ev=meta.events[q];
-      if(ev&&ev.highlightReason){
-        const r=ev.highlightReason;
-        return r.length>52?r.substring(0,52)+'…':r;
-      }
+  try {
+    // 1. 含催化關鍵字的新聞
+    const newsList=(window._newsStatus&&window._newsStatus.companies&&window._newsStatus.companies[code]&&window._newsStatus.companies[code].news)||[];
+    const catalystKeywords=/核准|藥證|解盲|期中分析|療效|授權|簽署|啟動|收案完成|FDA|IND|BTD|突破性|孤兒藥|MOU|首付款|里程碑|核可|送件|送審|數據/;
+    const sigNews=newsList.find(n=>catalystKeywords.test(n.title||''));
+    if(sigNews&&sigNews.title){
+      const t=cleanNewsTitle(sigNews.title, code, name);
+      if(t) return `📰 ${sigNews.date} · ${t}`;
     }
-    // 4. catalystReason 的第一句
-    for(const q of ['q2','q3','q4','q1','h2']){
-      const ev=meta.events[q];
-      if(ev&&ev.catalystReason){
-        const first=ev.catalystReason.split(/[；;。]/)[0];
-        return first.length>55?first.substring(0,55)+'…':first;
-      }
+    // 2. 退而求其次：最新一則新聞
+    if(newsList.length>0 && newsList[0].title){
+      const t=cleanNewsTitle(newsList[0].title, code, name);
+      if(t) return `📰 ${newsList[0].date} · ${t}`;
     }
-    // 5. 事件 label + 藥名
-    for(const q of ['q2','q3','q4','q1','h2']){
-      const ev=meta.events[q];
-      if(ev&&ev.label){
-        return `${ev.label}${ev.drug?'（'+ev.drug+'）':''}`;
+    const meta=(window._companyMeta||{})[code];
+    if(meta){
+      const events=meta.events||{};
+      // 3. 任何季度的 highlightReason
+      for(const q of ['q2','q3','q4','q1','h2']){
+        const ev=events[q];
+        if(ev&&ev.highlightReason){
+          const r=ev.highlightReason;
+          return r.length>52?r.substring(0,52)+'…':r;
+        }
       }
+      // 4. catalystReason 第一句
+      for(const q of ['q2','q3','q4','q1','h2']){
+        const ev=events[q];
+        if(ev&&ev.catalystReason){
+          const first=ev.catalystReason.split(/[；;。]/)[0];
+          return first.length>55?first.substring(0,55)+'…':first;
+        }
+      }
+      // 5. 事件 detail 截短
+      for(const q of ['q2','q3','q4','q1','h2']){
+        const ev=events[q];
+        if(ev&&ev.detail){
+          const first=ev.detail.split(/[。;；]/)[0];
+          return first.length>55?first.substring(0,55)+'…':first;
+        }
+      }
+      // 6. 事件 label + 藥名
+      for(const q of ['q2','q3','q4','q1','h2']){
+        const ev=events[q];
+        if(ev&&ev.label){
+          return `${ev.label}${ev.drug?'（'+ev.drug+'）':''}`;
+        }
+      }
+      // 7. 適應症
+      if(meta.indication) return meta.indication;
+      if(meta.target) return meta.target;
     }
+    // 8. 連 meta 都沒有 → 至少顯示「待分析」而非空白
+    return '資料載入中…';
+  } catch(e) {
+    console.warn('getAutoReason 例外',code,e);
+    return '—';
   }
-  return meta&&meta.indication?meta.indication:'—';
 }
 
 // 💡 投資解讀：依絕對變化量挑 Top 5 顯示三欄表格（公司／變化／可能原因）
@@ -988,6 +1006,9 @@ function bindTooltips(){
   tooltip.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
 }
 function renderData(DATA){
+  // ★ 先建立 code → company 對應（讓 renderSignals 等元件立刻可查 meta）
+  window._companyMeta = window._companyMeta || {};
+  DATA.forEach(s => s.companies.forEach(c => { window._companyMeta[c.code] = c; }));
   DATA.forEach(s=>{
     const d=document.createElement('div');
     d.className='section-title-row';
