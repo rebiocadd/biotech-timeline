@@ -83,6 +83,11 @@
   .holders-table td:nth-child(2){text-align:left;font-weight:600}
   .holders-table tr:last-child td{border-bottom:none}
   .holders-table tbody tr:hover td{background:rgba(14,165,233,.05)}
+  /* 前兩欄黏性定位（橫向捲動時保持可見） */
+  .holders-table th:nth-child(1),.holders-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a0e1a;min-width:55px}
+  .holders-table th:nth-child(2),.holders-table td:nth-child(2){position:sticky;left:55px;z-index:2;background:#0a0e1a;min-width:80px;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .holders-table thead th:nth-child(1),.holders-table thead th:nth-child(2){z-index:3;background:#0f1d2e}
+  .holders-table tbody tr:hover td:nth-child(1),.holders-table tbody tr:hover td:nth-child(2){background:#0c1525}
   .h-up{color:#ef4444;font-weight:700}
   .h-dn{color:#10b981;font-weight:700}
   .h-flat{color:var(--muted)}
