@@ -273,9 +273,9 @@ def main():
         "data": [
             {
                 "code": r["code"], "name": r["name"],
-                "h": r["curr_h"], "s": r["curr_s"],  # 向後相容（千張）
+                "h": r["curr_h"], "s": r["curr_s"],
                 "total_s": r["total_s"],
-                "total_h": r.get("total_h", 0),       # 全公司總股東人數
+                "total_h": r.get("total_h", 0),
                 "levels": {
                     key: {"h": lv["curr_h"], "s": lv["curr_s"]}
                     for key, lv in (r.get("levels") or {}).items()
@@ -284,11 +284,32 @@ def main():
             for r in results
         ],
     }
+    # 上週 snapshot（用 prev_h/prev_s/prev_total_h/levels[*].prev_*）
+    prev_snapshot = {
+        "date": prev_date,
+        "rawDate": prev_date_raw,
+        "data": [
+            {
+                "code": r["code"], "name": r["name"],
+                "h": r["prev_h"], "s": r["prev_s"],
+                "total_s": r["total_s"],
+                "total_h": r.get("prev_total_h", 0),
+                "levels": {
+                    key: {"h": lv["prev_h"], "s": lv["prev_s"]}
+                    for key, lv in (r.get("levels") or {}).items()
+                },
+            }
+            for r in results
+        ],
+    }
 
-    # 移除同日期的舊紀錄（若已存在），再插入到最前
-    weeks = [w for w in history.get("weeks", []) if w.get("date") != curr_date]
+    # 移除同日期的舊紀錄，插入新的兩週
+    weeks = [w for w in history.get("weeks", []) if w.get("date") not in (curr_date, prev_date)]
+    weeks.insert(0, prev_snapshot)
     weeks.insert(0, new_snapshot)
-    history["weeks"] = weeks[:MAX_WEEKS]  # 限制歷史長度
+    # 依 rawDate 由新到舊排序
+    weeks.sort(key=lambda w: w.get("rawDate") or w["date"], reverse=True)
+    history["weeks"] = weeks[:MAX_WEEKS]
 
     with open(HISTORY_PATH, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, separators=(",", ":"))

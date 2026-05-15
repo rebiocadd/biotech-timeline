@@ -103,6 +103,32 @@
   .highlight-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px}
   .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
   .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
+  /* 💡 幾個有趣的訊號（本週散戶變化） */
+  .signals-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(16,185,129,.04));border:1px solid rgba(0,212,255,.22);border-radius:10px}
+  .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .signals-title{font-size:13px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px}
+  .signals-subtitle{font-size:10.5px;color:var(--muted)}
+  .signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .signal-col{display:flex;flex-direction:column;gap:5px}
+  .signal-head{font-size:10.5px;font-weight:700;letter-spacing:.5px;font-family:'Space Mono',monospace;padding:5px 9px;border-radius:4px}
+  .signal-head.up{background:rgba(239,68,68,.12);color:#fca5a5}
+  .signal-head.dn{background:rgba(16,185,129,.12);color:#86efac}
+  .signal-item{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(15,24,40,.55);border:1px solid var(--border);border-radius:4px;font-size:11.5px;gap:8px}
+  .sg-name{color:#fff;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sg-chg{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;white-space:nowrap}
+  @media(max-width:700px){.signals-grid{grid-template-columns:1fr;gap:8px}}
+  /* 🏆 25 家總股東排行 */
+  .ranking-section{margin:20px 0 28px;padding:14px 16px;background:rgba(15,24,40,.4);border:1px solid var(--border);border-radius:8px}
+  .ranking-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .ranking-title{font-size:13px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
+  .ranking-subtitle{font-size:10.5px;color:var(--muted)}
+  .ranking-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .ranking-row{display:grid;grid-template-columns:24px 1fr auto auto;align-items:center;gap:8px;padding:5px 9px;background:rgba(15,24,40,.55);border:1px solid rgba(30,45,69,.5);border-radius:3px;font-family:'Space Mono',monospace;font-size:10.5px}
+  .rk-rank{color:var(--muted);font-weight:700;text-align:right}
+  .rk-name{color:#fff;font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rk-num{color:var(--accent1);font-weight:700}
+  .rk-chg{font-size:10px;font-weight:700;min-width:55px;text-align:right}
+  @media(max-width:700px){.ranking-grid{grid-template-columns:1fr;gap:4px}}
   /* 近 5 日收盤價條帶：放在右側 */
   .hp-strip{display:flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;flex-shrink:0}
   .hp-cell{display:flex;flex-direction:column;align-items:center;padding:3px 6px;background:rgba(15,24,40,.7);border:1px solid rgba(30,45,69,.7);border-radius:3px;line-height:1.2;min-width:42px}
@@ -253,6 +279,15 @@
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
+  <!-- 💡 幾個有趣的訊號（散戶變化自動分析） -->
+  <div class="signals-section" id="signals-section" style="display:none">
+    <div class="signals-header">
+      <span class="signals-title">💡 幾個有趣的訊號</span>
+      <span class="signals-subtitle">本週總股東人數變化 Top 3（自動分析）</span>
+    </div>
+    <div class="signals-grid" id="signals-grid"></div>
+  </div>
+
   <!-- 本週值得注意 -->
   <div class="highlights-section" id="highlights-section">
     <div class="highlights-header">
@@ -302,6 +337,14 @@
         </thead>
         <tbody id="holders-body"></tbody>
       </table>
+    </div>
+    <!-- 🏆 25 家總股東排行（依本週 total_h 由大到小） -->
+    <div class="ranking-section" id="ranking-section" style="display:none">
+      <div class="ranking-header">
+        <span class="ranking-title">🏆 25 家總股東排行</span>
+        <span class="ranking-subtitle">依本週總股東人數由多到少 · 同步 TDCC 最新週次</span>
+      </div>
+      <div class="ranking-grid" id="ranking-grid"></div>
     </div>
   </div>
   <div class="disclaimer-block">
@@ -412,6 +455,60 @@ function loadWeek(idx){
   document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
 
   applySort();
+  renderRanking();
+  renderSignals();
+}
+
+// 🏆 25 家總股東排行（依當前 _hData 的 total_h）
+function renderRanking(){
+  const grid=document.getElementById('ranking-grid');
+  const sec=document.getElementById('ranking-section');
+  if(!grid||!sec) return;
+  const sorted=[..._hData].filter(r=>r.total_h>0).sort((a,b)=>b.total_h-a.total_h);
+  if(!sorted.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  // 兩欄：左 1~13，右 14~25
+  const mid=Math.ceil(sorted.length/2);
+  const left=sorted.slice(0,mid);
+  const right=sorted.slice(mid);
+  const renderRow=(r,idx)=>{
+    let chg='';
+    if(r.dth>0) chg=`<span class="h-up rk-chg">▲+${r.dth.toLocaleString()}</span>`;
+    else if(r.dth<0) chg=`<span class="h-dn rk-chg">▼${r.dth.toLocaleString()}</span>`;
+    else chg=`<span class="rk-chg" style="color:var(--muted)">＝</span>`;
+    return `<div class="ranking-row">
+      <span class="rk-rank">${idx+1}</span>
+      <span class="rk-name">${r.name}</span>
+      <span class="rk-num">${fmt(r.total_h)}</span>
+      ${chg}
+    </div>`;
+  };
+  grid.innerHTML=
+    '<div>'+left.map((r,i)=>renderRow(r,i)).join('')+'</div>'+
+    '<div>'+right.map((r,i)=>renderRow(r,i+mid)).join('')+'</div>';
+}
+
+// 💡 幾個有趣的訊號（自動找 Top 3 進場 + Top 3 離場）
+function renderSignals(){
+  const grid=document.getElementById('signals-grid');
+  const sec=document.getElementById('signals-section');
+  if(!grid||!sec) return;
+  const items=_hData.filter(r=>r.dth!==0);
+  if(!items.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  const gainers=[...items].sort((a,b)=>b.dth-a.dth).slice(0,3).filter(r=>r.dth>0);
+  const losers=[...items].sort((a,b)=>a.dth-b.dth).slice(0,3).filter(r=>r.dth<0);
+  const rowG=r=>`<div class="signal-item"><span class="sg-name">${r.name} <span style="color:var(--muted);font-size:.85em">(${r.code})</span></span><span class="sg-chg h-up">▲ +${r.dth.toLocaleString()} 人</span></div>`;
+  const rowL=r=>`<div class="signal-item"><span class="sg-name">${r.name} <span style="color:var(--muted);font-size:.85em">(${r.code})</span></span><span class="sg-chg h-dn">▼ ${r.dth.toLocaleString()} 人</span></div>`;
+  grid.innerHTML=
+    `<div class="signal-col">
+      <div class="signal-head up">📈 散戶大幅進場</div>
+      ${gainers.length?gainers.map(rowG).join(''):'<div class="signal-item" style="color:var(--muted)">本週無明顯進場</div>'}
+    </div>
+    <div class="signal-col">
+      <div class="signal-head dn">📉 散戶獲利離場</div>
+      ${losers.length?losers.map(rowL).join(''):'<div class="signal-item" style="color:var(--muted)">本週無明顯離場</div>'}
+    </div>`;
 }
 
 function renderLevelTabs(){
