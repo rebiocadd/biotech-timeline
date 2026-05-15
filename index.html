@@ -164,6 +164,11 @@
   .holders-week-select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:clamp(10px,1.1vw,12px);font-family:'Space Mono',monospace;cursor:pointer;outline:none}
   .holders-week-select:hover{border-color:var(--accent1)}
   .holders-week-select:focus{border-color:var(--accent1);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+  /* 持股等級切換 tabs（類似 Excel 工作區） */
+  .holders-tabs{display:flex;gap:2px;margin:10px 0 0;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 2px}
+  .holders-tab{padding:7px 12px;font-size:clamp(9.5px,1vw,11px);color:var(--muted);background:rgba(15,24,40,.4);border:1px solid var(--border);border-bottom:none;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;font-family:'Space Mono',monospace;letter-spacing:.3px;flex-shrink:0;transition:all .15s;margin-bottom:-1px;line-height:1.2}
+  .holders-tab:hover{color:var(--text);background:rgba(14,165,233,.08)}
+  .holders-tab.active{color:var(--accent1);background:rgba(14,165,233,.16);border-color:var(--accent1);border-bottom-color:#0a0e1a;font-weight:700;box-shadow:0 -1px 0 var(--accent1) inset}
   .holders-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
   .holders-table{width:100%;border-collapse:collapse;font-size:clamp(9px,1.1vw,12px);table-layout:auto}
   .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);letter-spacing:.5px;padding:clamp(5px,0.8vw,9px) clamp(5px,0.8vw,10px);text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
@@ -271,8 +276,8 @@
   <div class="timeline-rows" id="timeline"></div>
   <div class="holders-section" id="holders-section">
     <div class="holders-header">
-      <span class="holders-title">🏦 千張大戶統計</span>
-      <span class="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
+      <span class="holders-title">🏦 集保戶持股統計</span>
+      <span class="holders-subtitle" id="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
       <span class="holders-updated" id="holders-updated"></span>
     </div>
     <div class="holders-controls">
@@ -280,6 +285,7 @@
       <select id="holders-week" class="holders-week-select"></select>
       <span class="holders-subtitle" id="holders-compare-info"></span>
     </div>
+    <div class="holders-tabs" id="holders-tabs"></div>
     <div class="holders-wrap">
       <table class="holders-table" id="holders-table">
         <thead>
@@ -325,6 +331,18 @@ function diffHtml(d){
 
 let _hHistory=null, _hData=[], _sortCol='curr_h', _sortDir=-1;
 
+// 7 個持股等級工作區
+const LEVEL_TABS=[
+  {key:'1000k+',    label:'≥ 1,000,001 股',     short:'≥ 1M',     desc:'持股超過 1,000 張（≥1,000,001股）'},
+  {key:'800-1000k', label:'800,001-1,000,000', short:'800k-1M',  desc:'持股 800,001-1,000,000 股'},
+  {key:'600-800k',  label:'600,001-800,000',   short:'600-800k', desc:'持股 600,001-800,000 股'},
+  {key:'400-600k',  label:'400,001-600,000',   short:'400-600k', desc:'持股 400,001-600,000 股'},
+  {key:'200-400k',  label:'200,001-400,000',   short:'200-400k', desc:'持股 200,001-400,000 股'},
+  {key:'100-200k',  label:'100,001-200,000',   short:'100-200k', desc:'持股 100,001-200,000 股'},
+  {key:'50-100k',   label:'50,001-100,000',    short:'50-100k',  desc:'持股 50,001-100,000 股'},
+];
+let _currentLevel='1000k+';
+
 function renderHolderRow(r){
   const chText=r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`;
   const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
@@ -353,14 +371,18 @@ function loadWeek(idx){
   if(prev) prev.data.forEach(r=>prevMap[r.code]=r);
 
   _hData=curr.data.map(r=>{
-    const p=prevMap[r.code]||{h:r.h,s:r.s};
+    const p=prevMap[r.code]||r;
+    // 取當前等級的資料；若該等級不存在則 fallback 到頂層 h/s（向後相容舊 snapshot）
+    const cLv=(r.levels && r.levels[_currentLevel])||{h:(_currentLevel==='1000k+'?r.h:0), s:(_currentLevel==='1000k+'?r.s:0)};
+    const pLv=(p.levels && p.levels[_currentLevel])||{h:(_currentLevel==='1000k+'?p.h:0), s:(_currentLevel==='1000k+'?p.s:0)};
+    const ch=cLv.h||0, cs=cLv.s||0, ph=pLv.h||0, ps=pLv.s||0;
     return {
       code:r.code, name:r.name,
-      curr_h:r.h, curr_s:r.s,
-      prev_h:p.h, prev_s:p.s,
+      curr_h:ch, curr_s:cs,
+      prev_h:ph, prev_s:ps,
       total_s:r.total_s,
-      dh:r.h-p.h, ds:r.s-p.s,
-      pct:r.s/r.total_s*100
+      dh:ch-ph, ds:cs-ps,
+      pct: r.total_s ? (cs/r.total_s*100) : 0
     };
   });
 
@@ -369,10 +391,35 @@ function loadWeek(idx){
   document.getElementById('th-prev-h').textContent=(prev?prev.date:'-')+' 人數';
   document.getElementById('th-curr-s').textContent=curr.date+' 持股(股)';
   document.getElementById('th-prev-s').textContent=(prev?prev.date:'-')+' 持股(股)';
+  // 動態調整佔比欄位標題
+  const pctTh=document.querySelector('.holders-table th[data-col="pct"]');
+  if(pctTh) pctTh.textContent=(LEVEL_TABS.find(t=>t.key===_currentLevel)?.short||'')+' 佔比%';
   document.getElementById('holders-updated').textContent='共 '+weeks.length+' 週資料';
   document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
 
   applySort();
+}
+
+function renderLevelTabs(){
+  const tabs=document.getElementById('holders-tabs');
+  if(!tabs) return;
+  tabs.innerHTML=LEVEL_TABS.map(t=>
+    `<button class="holders-tab ${t.key===_currentLevel?'active':''}" data-level="${t.key}" title="${t.desc}">${t.label}</button>`
+  ).join('');
+  tabs.querySelectorAll('.holders-tab').forEach(b=>{
+    b.addEventListener('click',()=>{
+      _currentLevel=b.dataset.level;
+      // 更新 tab 視覺
+      tabs.querySelectorAll('.holders-tab').forEach(x=>x.classList.toggle('active',x.dataset.level===_currentLevel));
+      // 更新副標題
+      const meta=LEVEL_TABS.find(t=>t.key===_currentLevel);
+      const sub=document.getElementById('holders-subtitle');
+      if(sub) sub.textContent=meta.desc+' · 資料來源：TDCC 集保（雙驗證）';
+      // 重新載入當週資料
+      const sel=document.getElementById('holders-week');
+      loadWeek(parseInt(sel.value||'0'));
+    });
+  });
 }
 
 function renderHolders(H){
@@ -398,6 +445,9 @@ function renderHolders(H){
   // 預設排序
   const defTh=document.querySelector('.holders-table th[data-col="curr_h"]');
   if(defTh) defTh.classList.add('sort-desc');
+
+  // 渲染等級切換 tabs
+  renderLevelTabs();
 
   loadWeek(0); // 預設顯示最新一週
 }

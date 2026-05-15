@@ -42,6 +42,18 @@ def load_companies():
 
 COMPANIES = load_companies()
 
+# 7 個持股等級（依股數區間）— 從 1,000,001+ 一路到 50,001-100,000
+LEVEL_DEFS = [
+    # (level_key, html_marker_text,    display_label)
+    ("1000k+",    "1,000,001",  "1,000,001+ 股"),
+    ("800-1000k", "800,001",    "800,001-1,000,000"),
+    ("600-800k",  "600,001",    "600,001-800,000"),
+    ("400-600k",  "400,001",    "400,001-600,000"),
+    ("200-400k",  "200,001",    "200,001-400,000"),
+    ("100-200k",  "100,001",    "100,001-200,000"),
+    ("50-100k",   "50,001",     "50,001-100,000"),
+]
+
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
 def get_page_token(session_cookies):
@@ -56,7 +68,13 @@ def get_page_token(session_cookies):
     return opener, token
 
 def query_stock(opener, token, code, date):
-    """查詢個股特定週的千張大戶資料（Level 15：1,000,001股以上）"""
+    """向後相容：只回 1,000,001+ 等級的 (人數, 股數)"""
+    levels = query_stock_all_levels(opener, token, code, date)
+    return levels.get("1000k+", (0, 0))
+
+
+def query_stock_all_levels(opener, token, code, date):
+    """一次 HTML 響應抓 7 個等級。回傳 {level_key: (holders, shares), ...}"""
     params = {
         "SYNCHRONIZER_TOKEN": token, "SYNCHRONIZER_URI": "/portal/zh/smWeb/qryStock",
         "method": "submit", "firDate": date, "scaDate": date,
@@ -69,17 +87,28 @@ def query_stock(opener, token, code, date):
                              "Referer": "https://www.tdcc.com.tw/portal/zh/smWeb/qryStock"}
     )
     html = opener.open(req, timeout=15).read().decode("utf-8", errors="ignore")
-    # 解析 Level 15（1,000,001以上）
+
+    levels = {}
     rows = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL)
     for row in rows:
-        cells = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL)
-        cells = [re.sub(r'<[^>]+>','',c).replace(',','').strip() for c in cells]
-        if len(cells) >= 4 and '1,000,001' in row.replace(',','').replace('1000001','1,000,001'):
-            try:
-                return int(cells[2]), int(cells[3])  # 人數, 股數
-            except:
-                pass
-    return 0, 0
+        cell_html = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL)
+        # 保留逗號以辨識範圍字串
+        cells = [re.sub(r'<[^>]+>', '', c).strip() for c in cell_html]
+        if len(cells) < 4:
+            continue
+        range_label = cells[1]  # 例如 "1,000,001以上" 或 "50,001-100,000"
+        for key, marker, _ in LEVEL_DEFS:
+            if key in levels:
+                continue
+            if marker in range_label:
+                try:
+                    h = int(cells[2].replace(',', ''))
+                    s = int(cells[3].replace(',', ''))
+                    levels[key] = (h, s)
+                except:
+                    pass
+                break
+    return levels
 
 def get_total_shares(opener, token, code, date):
     """取得總發行股數（Level 16 合計行）"""
@@ -153,41 +182,52 @@ def main():
         try:
             # 重新取 token（每次查詢需要新 token）
             opener2, token2 = get_page_token({})
-            curr_h, curr_s = query_stock(opener2, token2, code, curr_date_raw)
+            curr_levels = query_stock_all_levels(opener2, token2, code, curr_date_raw)
 
             opener3, token3 = get_page_token({})
-            prev_h, prev_s = query_stock(opener3, token3, code, prev_date_raw)
+            prev_levels = query_stock_all_levels(opener3, token3, code, prev_date_raw)
 
             total_s = existing_total.get(code, 0)
             if total_s == 0:
                 opener4, token4 = get_page_token({})
                 total_s = get_total_shares(opener4, token4, code, curr_date_raw)
 
+            # 組合每個等級的 curr/prev 資料
+            levels_data = {}
+            for key, _, _ in LEVEL_DEFS:
+                ch, cs = curr_levels.get(key, (0, 0))
+                ph, ps = prev_levels.get(key, (0, 0))
+                levels_data[key] = {
+                    "curr_h": ch, "curr_s": cs,
+                    "prev_h": ph, "prev_s": ps,
+                }
+
+            # 千張資料（向後相容：頂層平鋪欄位）
+            top = levels_data.get("1000k+", {"curr_h": 0, "curr_s": 0, "prev_h": 0, "prev_s": 0})
             results.append({
                 "code": code, "name": name,
-                "curr_h": curr_h, "curr_s": curr_s,
-                "prev_h": prev_h, "prev_s": prev_s,
-                "total_s": total_s
+                "curr_h": top["curr_h"], "curr_s": top["curr_s"],
+                "prev_h": top["prev_h"], "prev_s": top["prev_s"],
+                "total_s": total_s,
+                "levels": levels_data,
             })
-            dh = curr_h - prev_h
-            ds = curr_s - prev_s
-            dh_str = f"+{dh}" if dh > 0 else str(dh) if dh < 0 else "="
-            ds_str = f"+{ds:,}" if ds > 0 else f"{ds:,}" if ds < 0 else "="
-            print(f"人數{dh_str} 持股{ds_str}")
+            # 列印 7 個等級的人數變化（簡短版）
+            level_brief = []
+            for key, _, label in LEVEL_DEFS:
+                lv = levels_data[key]
+                dh = lv["curr_h"] - lv["prev_h"]
+                sign = f"+{dh}" if dh > 0 else (str(dh) if dh < 0 else "=")
+                level_brief.append(f"{key.split('-')[0]}:{lv['curr_h']}({sign})")
+            print(" | ".join(level_brief))
             ok += 1
         except Exception as e:
             print(f"❌ {e}")
             fail.append(f"{name}({code})")
-            # ☆ 失敗時保留舊資料，避免該公司從 holders.json 消失
+            # ☆ 失敗時保留舊資料
             old_row = existing_rows.get(code)
             if old_row:
-                results.append({
-                    "code": code, "name": name,
-                    "curr_h": old_row.get("curr_h", 0), "curr_s": old_row.get("curr_s", 0),
-                    "prev_h": old_row.get("prev_h", 0), "prev_s": old_row.get("prev_s", 0),
-                    "total_s": old_row.get("total_s", 0)
-                })
-                print(f"           ↳ 保留上次資料 (人數 {old_row.get('curr_h',0)}, 持股 {old_row.get('curr_s',0):,})")
+                results.append(old_row)
+                print(f"           ↳ 保留上次資料")
 
     # 寫入舊格式 holders.json（向後相容）
     output = {"curr_date": curr_date, "prev_date": prev_date, "data": results}
@@ -203,13 +243,20 @@ def main():
         except Exception:
             history = {"weeks": []}
 
-    # 本週 snapshot
+    # 本週 snapshot（包含千張 + 全部 7 個等級）
     new_snapshot = {
         "date": curr_date,
         "rawDate": curr_date_raw,
         "data": [
-            {"code": r["code"], "name": r["name"],
-             "h": r["curr_h"], "s": r["curr_s"], "total_s": r["total_s"]}
+            {
+                "code": r["code"], "name": r["name"],
+                "h": r["curr_h"], "s": r["curr_s"],  # 向後相容（千張）
+                "total_s": r["total_s"],
+                "levels": {
+                    key: {"h": lv["curr_h"], "s": lv["curr_s"]}
+                    for key, lv in (r.get("levels") or {}).items()
+                },
+            }
             for r in results
         ],
     }
