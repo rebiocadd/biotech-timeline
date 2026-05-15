@@ -14,6 +14,8 @@ import json, re, sys, os, subprocess, urllib.request, urllib.error
 from datetime import datetime, timedelta
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "holders.json")
+HISTORY_PATH = os.path.join(os.path.dirname(__file__), "holders_history.json")
+MAX_WEEKS = 52  # 保留最多一年（52週）的歷史資料
 
 COMPANIES = [
     ("4147","中裕新藥"), ("6919","康霈生技"), ("6535","順藥"),   ("6576","逸達生技"),
@@ -159,14 +161,44 @@ def main():
             print(f"❌ {e}")
             fail.append(f"{name}({code})")
 
+    # 寫入舊格式 holders.json（向後相容）
     output = {"curr_date": curr_date, "prev_date": prev_date, "data": results}
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 更新歷史檔 holders_history.json：將本週 snapshot 加入歷史前端
+    history = {"weeks": []}
+    if os.path.exists(HISTORY_PATH):
+        try:
+            with open(HISTORY_PATH, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            history = {"weeks": []}
+
+    # 本週 snapshot
+    new_snapshot = {
+        "date": curr_date,
+        "rawDate": curr_date_raw,
+        "data": [
+            {"code": r["code"], "name": r["name"],
+             "h": r["curr_h"], "s": r["curr_s"], "total_s": r["total_s"]}
+            for r in results
+        ],
+    }
+
+    # 移除同日期的舊紀錄（若已存在），再插入到最前
+    weeks = [w for w in history.get("weeks", []) if w.get("date") != curr_date]
+    weeks.insert(0, new_snapshot)
+    history["weeks"] = weeks[:MAX_WEEKS]  # 限制歷史長度
+
+    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, separators=(",", ":"))
+
     print(f"\n{'='*55}")
     print(f" ✅ 成功：{ok}/{len(COMPANIES)} 家")
     if fail: print(f" ❌ 失敗：{', '.join(fail)}")
-    print(f" 📁 已寫入 {JSON_PATH}")
+    print(f" 📁 holders.json 已更新")
+    print(f" 📚 holders_history.json 共 {len(history['weeks'])} 週歷史")
     print("=" * 55)
 
     if auto_push:

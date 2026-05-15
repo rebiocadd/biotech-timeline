@@ -58,28 +58,35 @@
   .price-date{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);margin-left:2px;opacity:.7}
   /* 千張大戶表格 */
   .holders-section{margin-top:48px;padding:0 4px}
-  .holders-header{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
-  .holders-title{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent1);letter-spacing:2px}
-  .holders-subtitle{font-size:11px;color:var(--muted)}
-  .holders-updated{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto}
+  .holders-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .holders-title{font-family:'Space Mono',monospace;font-size:clamp(11px,1.4vw,13px);font-weight:700;color:var(--accent1);letter-spacing:2px}
+  .holders-subtitle{font-size:clamp(10px,1.1vw,11px);color:var(--muted)}
+  .holders-updated{font-family:'Space Mono',monospace;font-size:clamp(9px,1vw,10px);color:var(--accent4);margin-left:auto}
+  .holders-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .holders-controls label{font-size:clamp(10px,1.1vw,11px);color:var(--muted);font-family:'Space Mono',monospace}
+  .holders-week-select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:clamp(10px,1.1vw,12px);font-family:'Space Mono',monospace;cursor:pointer;outline:none}
+  .holders-week-select:hover{border-color:var(--accent1)}
+  .holders-week-select:focus{border-color:var(--accent1);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
   .holders-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
-  .holders-table{width:100%;border-collapse:collapse;font-size:12px}
-  .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;padding:9px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
+  .holders-table{width:100%;border-collapse:collapse;font-size:clamp(9px,1.1vw,12px);table-layout:auto}
+  .holders-table th{background:rgba(14,165,233,.10);color:var(--accent1);font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);letter-spacing:.5px;padding:clamp(5px,0.8vw,9px) clamp(5px,0.8vw,10px);text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0}
   .holders-table th:first-child,.holders-table th:nth-child(2){text-align:left}
   .holders-table th.sortable{cursor:pointer;user-select:none;transition:background .15s}
   .holders-table th.sortable:hover{background:rgba(14,165,233,.22);color:#fff}
   .holders-table th::after{content:' ⇅';opacity:.25;font-size:9px}
   .holders-table th.sort-asc::after{content:' ▲';opacity:1;color:#ef4444}
   .holders-table th.sort-desc::after{content:' ▼';opacity:1;color:#ef4444}
-  .holders-table td{padding:7px 10px;border-bottom:1px solid rgba(30,45,69,.5);text-align:right;white-space:nowrap;color:var(--text)}
-  .holders-table td:first-child{text-align:left;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1)}
+  .holders-table td{padding:clamp(4px,0.7vw,7px) clamp(5px,0.8vw,10px);border-bottom:1px solid rgba(30,45,69,.5);text-align:right;white-space:nowrap;color:var(--text)}
+  .holders-table td:first-child{text-align:left;font-family:'Space Mono',monospace;font-size:clamp(8px,0.95vw,10px);color:var(--accent1)}
+  .holders-table td:first-child a{color:var(--accent1);text-decoration:none}
+  .holders-table td:first-child a:hover{text-decoration:underline}
   .holders-table td:nth-child(2){text-align:left;font-weight:600}
   .holders-table tr:last-child td{border-bottom:none}
   .holders-table tbody tr:hover td{background:rgba(14,165,233,.05)}
   .h-up{color:#ef4444;font-weight:700}
   .h-dn{color:#10b981;font-weight:700}
   .h-flat{color:var(--muted)}
-  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}.holders-table{font-size:10px}}
+  @media(max-width:700px){.quarters-header,.company-row{grid-template-columns:76px repeat(4,1fr) 76px}.company-name{font-size:10px}.company-code{font-size:10px}.ticker-exchange{display:none}.event-tag{font-size:8px}.drug-name{display:none}h1{font-size:18px}.price-val{font-size:10px}.price-chg{font-size:8px}}
   .visitor-bar{display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap}
   .visitor-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
   .visitor-icon{font-size:13px;opacity:.7}
@@ -122,6 +129,11 @@
       <span class="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
       <span class="holders-updated" id="holders-updated"></span>
     </div>
+    <div class="holders-controls">
+      <label for="holders-week">查看週次：</label>
+      <select id="holders-week" class="holders-week-select"></select>
+      <span class="holders-subtitle" id="holders-compare-info"></span>
+    </div>
     <div class="holders-wrap">
       <table class="holders-table" id="holders-table">
         <thead>
@@ -154,11 +166,11 @@ function diffHtml(d){
   return `<span class="${cls}">${arrow} ${s}${fmt(Math.abs(d))}</span>`;
 }
 
-let _hData=[], _sortCol='curr_h', _sortDir=-1;
+let _hHistory=null, _hData=[], _sortCol='curr_h', _sortDir=-1;
 
 function renderHolderRow(r){
   const chText=r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`;
-  const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" style="color:var(--accent1);text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${r.code}</a>`;
+  const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
   return `<tr>
     <td>${codeLink}</td><td>${r.name}</td>
     <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
@@ -176,14 +188,47 @@ function applySort(){
   document.getElementById('holders-body').innerHTML=sorted.map(renderHolderRow).join('');
 }
 
+function loadWeek(idx){
+  const weeks=_hHistory.weeks;
+  const curr=weeks[idx];
+  const prev=weeks[idx+1]; // 一週前；若沒有則 prev = curr（變化全為0）
+  const prevMap={};
+  if(prev) prev.data.forEach(r=>prevMap[r.code]=r);
+
+  _hData=curr.data.map(r=>{
+    const p=prevMap[r.code]||{h:r.h,s:r.s};
+    return {
+      code:r.code, name:r.name,
+      curr_h:r.h, curr_s:r.s,
+      prev_h:p.h, prev_s:p.s,
+      total_s:r.total_s,
+      dh:r.h-p.h, ds:r.s-p.s,
+      pct:r.s/r.total_s*100
+    };
+  });
+
+  // 更新表頭日期
+  document.getElementById('th-curr-h').textContent=curr.date+' 人數';
+  document.getElementById('th-prev-h').textContent=(prev?prev.date:'-')+' 人數';
+  document.getElementById('th-curr-s').textContent=curr.date+' 持股(股)';
+  document.getElementById('th-prev-s').textContent=(prev?prev.date:'-')+' 持股(股)';
+  document.getElementById('holders-updated').textContent='共 '+weeks.length+' 週資料';
+  document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
+
+  applySort();
+}
+
 function renderHolders(H){
-  document.getElementById('th-curr-h').textContent=H.curr_date+' 人數';
-  document.getElementById('th-prev-h').textContent=H.prev_date+' 人數';
-  document.getElementById('th-curr-s').textContent=H.curr_date+' 持股(股)';
-  document.getElementById('th-prev-s').textContent=H.prev_date+' 持股(股)';
-  document.getElementById('holders-updated').textContent='更新：'+H.curr_date+' vs '+H.prev_date;
-  _hData=H.data.map(r=>({...r, dh:r.curr_h-r.prev_h, ds:r.curr_s-r.prev_s, pct:r.curr_s/r.total_s*100}));
-  // 綁定排序點擊
+  _hHistory=H;
+  // 填入週次選擇器
+  const sel=document.getElementById('holders-week');
+  sel.innerHTML=H.weeks.map((w,i)=>{
+    const tag=i===0?'最新 ':i===1?'上週 ':(i+'週前 ');
+    return `<option value="${i}">${tag}${w.date}</option>`;
+  }).join('');
+  sel.addEventListener('change',e=>loadWeek(parseInt(e.target.value)));
+
+  // 綁定排序點擊（只綁一次）
   document.querySelectorAll('.holders-table th.sortable').forEach(th=>{
     th.addEventListener('click',()=>{
       const col=th.dataset.col;
@@ -193,14 +238,26 @@ function renderHolders(H){
       applySort();
     });
   });
-  // 預設按本週人數排序（降冪）
+  // 預設排序
   const defTh=document.querySelector('.holders-table th[data-col="curr_h"]');
   if(defTh) defTh.classList.add('sort-desc');
-  applySort();
+
+  loadWeek(0); // 預設顯示最新一週
 }
-fetch('holders.json?v='+Date.now())
+// 優先載入歷史；失敗則嘗試舊格式
+fetch('holders_history.json?v='+Date.now())
   .then(r=>r.json()).then(renderHolders)
-  .catch(()=>document.getElementById('holders-section').style.display='none');
+  .catch(()=>{
+    // 後備：用舊的 holders.json
+    fetch('holders.json?v='+Date.now())
+      .then(r=>r.json()).then(old=>{
+        renderHolders({weeks:[
+          {date:old.curr_date, data:old.data.map(r=>({code:r.code,name:r.name,h:r.curr_h,s:r.curr_s,total_s:r.total_s}))},
+          {date:old.prev_date, data:old.data.map(r=>({code:r.code,name:r.name,h:r.prev_h,s:r.prev_s,total_s:r.total_s}))}
+        ]});
+      })
+      .catch(()=>document.getElementById('holders-section').style.display='none');
+  });
 </script>
 <script>
 const tooltip=document.getElementById('tooltip');
