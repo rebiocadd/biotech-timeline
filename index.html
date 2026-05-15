@@ -506,20 +506,22 @@ function classifyChange(dth){
   return null;
 }
 
+// 將正規表達式特殊字元跳脫（避免公司名含括號等造成 regex 解析失敗）
+function escRe(s){return (s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
 // 清理新聞標題：去掉公司名/代號前綴 + 發佈媒體尾巴
 function cleanNewsTitle(title, code, name){
   if(!title) return '';
   let t=title;
-  t=t.replace(/^(個股[:：]\s*|公告[:：]\s*|準上櫃[:：]\s*|興櫃[:：]\s*)/, '');
-  // 去掉「公司名(代號)」
-  t=t.replace(new RegExp(`${name}\\s*\\(${code}\\)\\s*[-－]?\\s*`, 'g'), '');
-  // 去掉「代號 公司名 -」開頭
-  t=t.replace(new RegExp(`^${code}\\s*${name}\\s*[-－]?\\s*`), '');
-  // 去掉單獨開頭「公司名-」
-  t=t.replace(new RegExp(`^${name}\\s*[-－]\\s*`), '');
-  // 去掉尾端「 - 媒體名」
-  t=t.replace(/\s*[-－]\s*[^-－]+$/, '');
-  t=t.replace(/\s+/g,' ').trim();
+  const escName=escRe(name), escCode=escRe(code);
+  try {
+    t=t.replace(/^(個股[:：]\s*|公告[:：]\s*|準上櫃[:：]\s*|興櫃[:：]\s*)/, '');
+    t=t.replace(new RegExp(escName+'\\s*\\('+escCode+'\\)\\s*[-－]?\\s*', 'g'), '');
+    t=t.replace(new RegExp('^'+escCode+'\\s*'+escName+'\\s*[-－]?\\s*'), '');
+    t=t.replace(new RegExp('^'+escName+'\\s*[-－]\\s*'), '');
+    t=t.replace(/\s*[-－]\s*[^-－]+$/, '');
+    t=t.replace(/\s+/g,' ').trim();
+  } catch(e) { /* fallback to raw title */ }
   if(t.length>38) t=t.substring(0,38)+'…';
   return t;
 }
@@ -585,7 +587,8 @@ function renderSignals(){
   // 資料列
   for(const r of items){
     const cls=r._cls;
-    const reason=getAutoReason(r.code, r.name);
+    let reason='—';
+    try { reason=getAutoReason(r.code, r.name)||'—'; } catch(e){ console.warn('autoReason fail',r.code,e); }
     const chgClass=cls.dir==='up'?'sg-chg-up':'sg-chg-dn';
     const labelClass=cls.dir==='up'?'sg-label-up':'sg-label-dn';
     const arrow=cls.dir==='up'?'▲ +':'▼ ';
@@ -1037,6 +1040,12 @@ Promise.all([
   window._statusData = statusData;
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
+  // 主要 meta 載入完成後，若千張資料已就緒則重新渲染 signals/ranking
+  // 解決 race condition：holders_history 載入比主要資料早時，autoReason 抓不到 news/meta
+  if(_hHistory){
+    const sel=document.getElementById('holders-week');
+    loadWeek(parseInt((sel&&sel.value)||'0'));
+  }
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
 </script>
 </body>
