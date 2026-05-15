@@ -1,12 +1,14 @@
-name: 每日自動更新股價 + 每週千張大戶統計
+name: 自動更新（股價/新聞/千張）
 
 on:
   schedule:
-    # 股價更新：週一至週五 09:00 TST = UTC 01:00
+    # 股價：週一至週五 09:00 TST（開盤前）= UTC 01:00
     - cron: '0 1 * * 1-5'
-    # 股價更新：週一至週五 15:00 TST = UTC 07:00
+    # 股價：週一至週五 15:00 TST（收盤後）= UTC 07:00
     - cron: '0 7 * * 1-5'
-    # 千張大戶：每週六 10:00 TST = UTC 02:00（TDCC 週六發布前週資料）
+    # 每日新聞掃描：每天 08:00 TST = UTC 00:00
+    - cron: '0 0 * * *'
+    # 千張大戶：每週六 10:00 TST = UTC 02:00
     - cron: '0 2 * * 6'
   workflow_dispatch:
     inputs:
@@ -15,7 +17,7 @@ on:
         required: false
         default: 'all'
         type: choice
-        options: ['all', 'prices', 'holders']
+        options: ['all', 'prices', 'news', 'holders']
 
 jobs:
   update-prices:
@@ -24,27 +26,45 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: 更新股價（雙來源驗證）
         run: python update_prices.py
-
       - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add date.json
           if git diff --staged --quiet; then
-            echo "無變更，跳過 commit"
+            echo "無變更"
           else
-            TAIPEI_TIME=$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')
-            git commit -m "自動更新股價 ${TAIPEI_TIME}"
+            git commit -m "自動更新股價 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
+            git push
+          fi
+
+  update-news:
+    if: github.event_name != 'schedule' || github.event.schedule == '0 0 * * *' || github.event.inputs.task == 'news' || github.event.inputs.task == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 每日臨床新聞掃描（Google News）
+        run: python update_news.py
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add news_status.json
+          if git diff --staged --quiet; then
+            echo "無變更"
+          else
+            git commit -m "每日新聞掃描 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
             git push
           fi
 
@@ -54,26 +74,20 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: 更新千張大戶統計（TDCC）
         run: python update_holders.py
-
       - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add holders.json holders_history.json
           if git diff --staged --quiet; then
-            echo "無變更，跳過 commit"
+            echo "無變更"
           else
-            TAIPEI_TIME=$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')
-            git commit -m "自動更新千張大戶統計 ${TAIPEI_TIME}"
+            git commit -m "自動更新千張大戶統計 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
             git push
           fi

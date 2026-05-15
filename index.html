@@ -96,6 +96,25 @@
   .visitor-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
   .visitor-icon{font-size:13px;opacity:.7}
   .visitor-num{color:var(--accent1);font-weight:700;font-size:12px}
+  /* 每日掃描狀態 */
+  .scan-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;background:linear-gradient(90deg,rgba(16,185,129,.15),rgba(0,212,255,.1));border:1px solid rgba(16,185,129,.3);border-radius:20px;font-family:'Space Mono',monospace;font-size:11px;color:var(--accent3)}
+  .scan-badge .dot{width:6px;height:6px;background:var(--accent3);border-radius:50%;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .news-badge{display:inline-block;background:rgba(245,158,11,.18);color:var(--accent4);font-family:'Space Mono',monospace;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;margin-left:3px;cursor:pointer}
+  .news-badge:hover{background:rgba(245,158,11,.3)}
+  /* 新聞彈窗 */
+  .news-pop{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--accent4);border-radius:10px;padding:20px 24px;max-width:480px;width:90%;max-height:70vh;overflow-y:auto;z-index:999;box-shadow:0 16px 48px rgba(0,0,0,.6)}
+  .news-pop.show{display:block}
+  .news-pop h3{font-size:14px;color:var(--accent4);margin-bottom:12px;font-family:'Space Mono',monospace}
+  .news-pop .news-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+  .news-pop .news-item:last-child{border-bottom:none}
+  .news-pop .news-title{color:var(--text);line-height:1.5;margin-bottom:4px}
+  .news-pop .news-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)}
+  .news-pop .news-meta a{color:var(--accent1);text-decoration:none}
+  .news-pop .news-meta a:hover{text-decoration:underline}
+  .news-pop .close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+  .news-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998}
+  .news-overlay.show{display:block}
 </style>
 </head>
 <body>
@@ -108,6 +127,10 @@
       <div class="visitor-item"><span class="visitor-icon">👁</span>本頁瀏覽：<span class="visitor-num" id="busuanzi_value_page_pv">--</span> 次</div>
       <div class="visitor-item"><span class="visitor-icon">🌐</span>累計訪客：<span class="visitor-num" id="busuanzi_value_site_uv">--</span> 人</div>
       <div class="visitor-item"><span class="visitor-icon">📊</span>總瀏覽數：<span class="visitor-num" id="busuanzi_value_site_pv">--</span> 次</div>
+    </div>
+    <div id="scan-status" class="scan-badge" style="display:none">
+      <span class="dot"></span>
+      <span id="scan-text">每日自動掃描臨床新聞</span>
     </div>
   </header>
   <div class="legend">
@@ -162,6 +185,12 @@
   <footer>⚠️ 本圖表資訊整理自公開新聞、法說會及公司公告，僅供參考，不構成投資建議。臨床試驗時間表可能依收案進度、監管機關審查等因素調整，投資人應自行評估風險並以公司正式公告為準。</footer>
 </div>
 <div class="tooltip" id="tooltip"></div>
+<div class="news-overlay" id="news-overlay" onclick="closeNewsPop()"></div>
+<div class="news-pop" id="news-pop">
+  <button class="close" onclick="closeNewsPop()">✕</button>
+  <h3 id="news-pop-title">最新動態</h3>
+  <div id="news-pop-body"></div>
+</div>
 <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <script>
 function fmt(n){return Number(n).toLocaleString();}
@@ -267,6 +296,22 @@ fetch('holders_history.json?v='+Date.now())
 <script>
 const tooltip=document.getElementById('tooltip');
 const timeline=document.getElementById('timeline');
+let _newsStatus={companies:{}};
+
+function closeNewsPop(){
+  document.getElementById('news-pop').classList.remove('show');
+  document.getElementById('news-overlay').classList.remove('show');
+}
+function showNews(code,name){
+  const data=_newsStatus.companies[code];
+  if(!data||!data.news||!data.news.length){return;}
+  document.getElementById('news-pop-title').innerHTML='📰 '+name+' ('+code+') 最新動態';
+  document.getElementById('news-pop-body').innerHTML=data.news.map(n=>
+    `<div class="news-item"><div class="news-title">${n.title}</div><div class="news-meta">📅 ${n.date} · <a href="${n.link}" target="_blank">查看完整新聞 ↗</a></div></div>`
+  ).join('');
+  document.getElementById('news-pop').classList.add('show');
+  document.getElementById('news-overlay').classList.add('show');
+}
 function renderRow(c){
   const mc=c.market==='listed'?'listed':'otc';
   const ml=c.market==='listed'?'上市':'興櫃';
@@ -279,7 +324,10 @@ function renderRow(c){
   });
   const chg=parseFloat(c.change||0);
   const priceHtml=c.price?`<div class="price-row"><span class="price-val">${c.price}</span><span class="price-chg ${chg>=0?'price-up':'price-dn'}">${chg>=0?'+':''}${c.change}%</span>${c.priceDate?`<span class="price-date">${c.priceDate}</span>`:''}</div>`:'';
-  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${priceHtml}</div>${cells}</div>`;
+  // 檢查是否有新動態
+  const news=_newsStatus.companies&&_newsStatus.companies[c.code];
+  const newsBadge=(news&&news.news&&news.news.length)?`<span class="news-badge" onclick="event.stopPropagation();showNews('${c.code}','${c.name}')" title="點擊查看最新動態">🆕 ${news.news[0].date}</span>`:'';
+  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${priceHtml}</div>${cells}</div>`;
 }
 function bindTooltips(){
   document.querySelectorAll('.cell.active').forEach(cell=>{
@@ -298,10 +346,24 @@ function renderData(DATA){
   });
   bindTooltips();
 }
-fetch('date.json?v=' + Date.now())
-  .then(r=>r.json())
-  .then(renderData)
-  .catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
+// 先載入新聞掃描狀態，再渲染時間表
+Promise.all([
+  fetch('news_status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
+  fetch('date.json?v='+Date.now()).then(r=>r.json())
+]).then(([newsData, timelineData])=>{
+  _newsStatus = newsData;
+  // 顯示掃描狀態徽章
+  if(newsData && newsData.lastRun){
+    const badge=document.getElementById('scan-status');
+    const txt=document.getElementById('scan-text');
+    if(badge && txt){
+      const newsCount=Object.values(newsData.companies||{}).filter(c=>c.news&&c.news.length).length;
+      txt.textContent='每日自動掃描臨床新聞 · 最後掃描：'+newsData.lastRun+(newsCount?' · 🆕 '+newsCount+' 家有新動態':'');
+      badge.style.display='inline-flex';
+    }
+  }
+  renderData(timelineData);
+}).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
 </script>
 </body>
 </html>
