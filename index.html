@@ -56,11 +56,23 @@
   .event-tag{font-size:9.5px;font-weight:600;padding:2px 5px;border-radius:3px;text-align:center;line-height:1.3;width:100%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
   .tag-resolve{background:rgba(0,212,255,.15);color:var(--accent1)}.tag-data{background:rgba(124,58,237,.2);color:#a78bfa}.tag-license{background:rgba(16,185,129,.15);color:var(--accent3)}.tag-phase{background:rgba(245,158,11,.15);color:var(--accent4)}.tag-approval{background:rgba(239,68,68,.15);color:#fca5a5}.tag-conference{background:rgba(236,72,153,.15);color:#f9a8d4}
   .drug-name{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .tooltip{display:none;position:fixed;background:#1e2d45;border:1px solid var(--accent1);border-radius:8px;padding:12px 14px;font-size:12px;max-width:260px;z-index:1000;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+  /* 可查證事件卡 */
+  .tooltip{display:none;position:fixed;background:#0f1828;border:1px solid var(--accent1);border-radius:10px;padding:14px 16px;font-size:12px;max-width:400px;width:90vw;z-index:1000;pointer-events:auto;box-shadow:0 16px 48px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto}
   .tooltip.show{display:block}
-  .tooltip-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
-  .tooltip-drug{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);margin-bottom:6px}
-  .tooltip-desc{color:#94a3b8;line-height:1.5;font-size:11px}
+  .ec-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .ec-company-name{font-size:14px;font-weight:700;color:#fff}
+  .ec-code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent1);background:rgba(14,165,233,.12);padding:2px 8px;border-radius:4px;letter-spacing:.5px}
+  .ec-title{font-size:13px;font-weight:600;color:var(--accent1);margin-bottom:10px;line-height:1.4}
+  .ec-title .ec-drug{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-left:6px}
+  .ec-grid{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:5px;font-size:11px;margin-bottom:10px}
+  .ec-label{color:var(--muted);white-space:nowrap}
+  .ec-value{color:var(--text);word-break:break-word}
+  .ec-source-link{color:var(--accent1);text-decoration:none}
+  .ec-source-link:hover{text-decoration:underline}
+  .ec-status-pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:rgba(245,158,11,.15);color:var(--accent4)}
+  .ec-detail{padding:8px 0;border-top:1px solid var(--border);color:#94a3b8;line-height:1.5;font-size:11px}
+  .ec-note{margin-top:8px;padding:6px 8px;background:rgba(245,158,11,.1);border-left:3px solid var(--accent4);border-radius:3px;font-size:10.5px;color:#d97706;line-height:1.4}
+  .ec-confirmed{font-family:'Space Mono',monospace;color:var(--accent3)}
   .section-title-row{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
   .section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
   .section-line{flex:1;height:1px;background:var(--border)}
@@ -324,6 +336,68 @@ fetch('holders_history.json?v='+Date.now())
 const tooltip=document.getElementById('tooltip');
 const timeline=document.getElementById('timeline');
 let _newsStatus={companies:{}};
+let _eventCards={};  // 儲存所有事件卡完整資料
+
+// 事件類型對應
+const TAG_TO_TYPE={
+  'tag-resolve':'🔵 解盲／數據讀出',
+  'tag-data':'🟣 臨床數據發表',
+  'tag-license':'🟢 授權／合作',
+  'tag-phase':'🟡 進入新期別',
+  'tag-approval':'🔴 藥證申請／核准',
+  'tag-conference':'🌸 國際會議發表'
+};
+// 季度時間對應
+const QUARTER_LABELS={
+  Q1:'2026 Q1',Q2:'2026 Q2',Q3:'2026 Q3',Q4:'2026 Q4',H2:'2026 下半年'
+};
+const DEFAULT_NOTE='實際時間可能因收案進度、統計分析或主管機關審查而調整，投資人應自行評估風險並以公司正式公告為準。';
+
+function buildEventCard(key){
+  const ev=_eventCards[key];
+  if(!ev)return '<div style="color:#94a3b8">資料載入失敗</div>';
+  const c=ev._company;
+  const time=QUARTER_LABELS[ev._quarter]||ev._quarter;
+  const type=TAG_TO_TYPE[ev.tag]||'事件';
+  // 來源處理
+  let sourcesHtml='';
+  if(Array.isArray(ev.sources)&&ev.sources.length){
+    sourcesHtml=ev.sources.map(s=>{
+      if(typeof s==='string')return s;
+      return s.url?`<a class="ec-source-link" href="${s.url}" target="_blank">${s.label}</a>`:s.label;
+    }).join('、');
+  }
+  // 動態欄位（有值才顯示）
+  const rows=[
+    ['預估時間', time],
+    ['事件類型', type],
+    ['適應症', ev.eventIndication||c.indication],
+    ['標的／機轉', ev.eventTarget||c.target],
+    ['目前狀態', ev.status?`<span class="ec-status-pill">${ev.status}</span>`:null],
+    ['最後確認', ev.lastConfirmed?`<span class="ec-confirmed">${ev.lastConfirmed}</span>`:null],
+    ['來源', sourcesHtml]
+  ].filter(r=>r[1]);
+
+  const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" style="color:inherit;text-decoration:none">${c.code}</a>`;
+  const noteText=ev.note||DEFAULT_NOTE;
+
+  return `
+    <div class="ec-header">
+      <span class="ec-company-name">${c.name}</span>
+      <span class="ec-code">${codeLink}</span>
+    </div>
+    <div class="ec-title">${ev.label}${ev.drug?`<span class="ec-drug">${ev.drug}</span>`:''}</div>
+    <div class="ec-grid">
+      ${rows.map(r=>`<span class="ec-label">${r[0]}</span><span class="ec-value">${r[1]}</span>`).join('')}
+    </div>
+    ${ev.detail?`<div class="ec-detail">${ev.detail}</div>`:''}
+    <div class="ec-note">⚠️ ${noteText}</div>
+  `;
+}
+
+function closeTooltip(){
+  tooltip.classList.remove('show');
+}
 
 function closeNewsPop(){
   document.getElementById('news-pop').classList.remove('show');
@@ -346,8 +420,14 @@ function renderRow(c){
   let cells='';
   ['q1','q2','q3','q4','h2'].forEach(q=>{
     const ev=c.events[q];
-    if(ev)cells+=`<div class="cell ${q} active" data-company="${c.name}" data-drug="${ev.drug}" data-detail="${ev.detail}" data-quarter="${q.toUpperCase()}"><div class="event-tag ${ev.tag}">${ev.label}</div><div class="drug-name">${ev.drug}</div></div>`;
-    else cells+=`<div class="cell empty"></div>`;
+    if(ev){
+      const key=c.code+'-'+q;
+      // 儲存完整事件資料（含公司資訊參照）到全域 map
+      _eventCards[key]=Object.assign({},ev,{_company:c,_quarter:q.toUpperCase()});
+      cells+=`<div class="cell ${q} active" data-event-key="${key}"><div class="event-tag ${ev.tag}">${ev.label}</div><div class="drug-name">${ev.drug}</div></div>`;
+    } else {
+      cells+=`<div class="cell empty"></div>`;
+    }
   });
   const chg=parseFloat(c.change||0);
   const priceHtml=c.price?`<div class="price-row"><span class="price-val">${c.price}</span><span class="price-chg ${chg>=0?'price-up':'price-dn'}">${chg>=0?'+':''}${c.change}%</span>${c.priceDate?`<span class="price-date">${c.priceDate}</span>`:''}</div>`:'';
@@ -370,11 +450,33 @@ function renderRow(c){
   return `<div class="company-row"><div class="company-info"><div class="company-name">${nameHtml}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" class="company-code" title="點擊查看 Goodinfo 個股資訊">${c.code}</a></div><div class="company-market ${mc}">${ml}</div>${indHtml}${priceHtml}</div>${cells}</div>`;
 }
 function bindTooltips(){
+  let hoverTimer=null;
   document.querySelectorAll('.cell.active').forEach(cell=>{
-    cell.addEventListener('mouseenter',()=>{tooltip.innerHTML=`<div class="tooltip-title">${cell.dataset.company} · ${cell.dataset.quarter}</div><div class="tooltip-drug">${cell.dataset.drug}</div><div class="tooltip-desc">${cell.dataset.detail}</div>`;tooltip.classList.add('show');});
-    cell.addEventListener('mousemove',e=>{tooltip.style.left=Math.min(e.clientX+16,window.innerWidth-280)+'px';tooltip.style.top=Math.min(e.clientY+16,window.innerHeight-160)+'px';});
-    cell.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
+    cell.addEventListener('mouseenter',()=>{
+      clearTimeout(hoverTimer);
+      tooltip.innerHTML=buildEventCard(cell.dataset.eventKey);
+      tooltip.classList.add('show');
+    });
+    cell.addEventListener('mousemove',e=>{
+      // 卡片較大，需依照視窗位置動態調整
+      const rect=tooltip.getBoundingClientRect();
+      const w=rect.width||400;
+      const h=rect.height||200;
+      let left=e.clientX+16;
+      let top=e.clientY+16;
+      if(left+w>window.innerWidth) left=Math.max(8, e.clientX-w-16);
+      if(top+h>window.innerHeight) top=Math.max(8, window.innerHeight-h-8);
+      tooltip.style.left=left+'px';
+      tooltip.style.top=top+'px';
+    });
+    cell.addEventListener('mouseleave',()=>{
+      // 延遲關閉，讓使用者有機會移到 tooltip 上點擊連結
+      hoverTimer=setTimeout(()=>tooltip.classList.remove('show'),200);
+    });
   });
+  // 滑鼠進到 tooltip 上時不要關閉
+  tooltip.addEventListener('mouseenter',()=>clearTimeout(hoverTimer));
+  tooltip.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
 }
 function renderData(DATA){
   DATA.forEach(s=>{
