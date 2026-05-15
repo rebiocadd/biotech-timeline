@@ -685,13 +685,25 @@ function renderData(DATA){
   bindTooltips();
   renderHighlights();
 }
-function renderStatusBar(status, newsData){
+function renderStatusBar(status, newsData, timelineData){
   const bar=document.getElementById('scan-bar');
   if(!bar) return;
   const pills=[];
   const tzTag='<span style="opacity:.55;font-size:.85em;margin-left:3px">UTC+8</span>';
   if(status && status.prices && status.prices.lastRun){
-    pills.push(`<span class="scan-pill scan-prices" title="台灣時區 UTC+8"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}${tzTag}</span>`);
+    // 計算本批次股價更新到的公司家數（priceDate == status.prices.lastRunDate）
+    let priceCount=0, totalCount=0;
+    if(timelineData && status.prices.lastRunDate){
+      const target=status.prices.lastRunDate;
+      timelineData.forEach(sec=>{
+        (sec.companies||[]).forEach(c=>{
+          totalCount++;
+          if(c.priceDate===target) priceCount++;
+        });
+      });
+    }
+    const cntTag=priceCount?` · 💹 ${priceCount}/${totalCount} 家`:'';
+    pills.push(`<span class="scan-pill scan-prices" title="台灣時區 UTC+8"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}${tzTag}${cntTag}</span>`);
   }
   if(status && status.news && status.news.lastRun){
     const newsCount=Object.values((newsData||{}).companies||{}).filter(c=>c.news&&c.news.length).length;
@@ -712,7 +724,7 @@ Promise.all([
 ]).then(([statusData, newsData, timelineData])=>{
   _newsStatus = newsData;
   window._statusData = statusData;
-  renderStatusBar(statusData, newsData);
+  renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
 </script>
