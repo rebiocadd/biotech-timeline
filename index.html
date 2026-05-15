@@ -24,7 +24,7 @@
   .quarter-label{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-align:center;padding:8px 4px;border-radius:4px;letter-spacing:1px}
   .q1-label{color:var(--q1);background:rgba(14,165,233,.08)}.q2-label{color:var(--q2);background:rgba(139,92,246,.08)}.q3-label{color:var(--q3);background:rgba(16,185,129,.08)}.q4-label{color:var(--q4);background:rgba(245,158,11,.08)}.h2-label{color:var(--h2);background:rgba(239,68,68,.08)}
   .timeline-rows{display:flex;flex-direction:column;gap:6px}
-  .company-row{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;align-items:stretch;min-height:52px;cursor:default;transition:filter .15s}
+  .company-row{display:grid;grid-template-columns:100px repeat(4,1fr) 100px;gap:4px;align-items:stretch;min-height:72px;cursor:default;transition:filter .15s}
   .company-row:hover{filter:brightness(1.1)}
   .company-info{display:flex;flex-direction:column;justify-content:center;padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;gap:2px}
   .company-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -33,6 +33,11 @@
   .company-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--accent1);letter-spacing:1px}
   .company-market{font-size:10px;padding:1px 5px;border-radius:3px;display:inline-block;margin-top:2px;font-weight:500;width:fit-content}
   .listed{background:rgba(16,185,129,.15);color:var(--accent3)}.otc{background:rgba(245,158,11,.15);color:var(--accent4)}
+  .indication-row{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-family:'Noto Sans TC',sans-serif}
+  .indication-label{font-size:9px;color:#a78bfa;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .target-label{font-size:8.5px;color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .indication-label::before{content:'🎯 ';font-size:9px;opacity:.8}
+  .target-label::before{content:'🧬 ';font-size:8px;opacity:.7}
   .cell{background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 4px;gap:3px;min-height:52px;position:relative;overflow:hidden}
   .cell.empty{background:rgba(21,29,46,.4);border-color:rgba(30,45,69,.4)}
   .cell.q1{border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.05)}.cell.q2{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.05)}.cell.q3{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.05)}.cell.q4{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.05)}.cell.h2{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.05)}
@@ -328,10 +333,12 @@ function renderRow(c){
   });
   const chg=parseFloat(c.change||0);
   const priceHtml=c.price?`<div class="price-row"><span class="price-val">${c.price}</span><span class="price-chg ${chg>=0?'price-up':'price-dn'}">${chg>=0?'+':''}${c.change}%</span>${c.priceDate?`<span class="price-date">${c.priceDate}</span>`:''}</div>`:'';
+  // 適應症與標的
+  const indHtml=(c.indication||c.target)?`<div class="indication-row">${c.indication?`<span class="indication-label" title="適應症">${c.indication}</span>`:''}${c.target?`<span class="target-label" title="標的/機轉">${c.target}</span>`:''}</div>`:'';
   // 檢查是否有新動態
   const news=_newsStatus.companies&&_newsStatus.companies[c.code];
   const newsBadge=(news&&news.news&&news.news.length)?`<span class="news-badge" onclick="event.stopPropagation();showNews('${c.code}','${c.name}')" title="點擊查看最新動態">🆕 ${news.news[0].date}</span>`:'';
-  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${priceHtml}</div>${cells}</div>`;
+  return `<div class="company-row"><div class="company-info"><div class="company-name">${c.name}${newsBadge}</div><div class="company-ticker"><span class="ticker-exchange">${ex}</span><span class="company-code">${c.code}</span></div><div class="company-market ${mc}">${ml}</div>${indHtml}${priceHtml}</div>${cells}</div>`;
 }
 function bindTooltips(){
   document.querySelectorAll('.cell.active').forEach(cell=>{
