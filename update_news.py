@@ -13,6 +13,7 @@ update_news.py - 每日自動掃描公司臨床進度新聞
 import json, re, sys, os, subprocess
 import urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
+TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "news_status.json")
 DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
@@ -105,10 +106,12 @@ def scan_company(code, name):
             continue
         if not is_clinical(it["title"]):
             continue
+        # 將 UTC 新聞時間轉為 UTC+8 顯示
+        pub_taipei = pub.astimezone(TAIPEI_TZ)
         fresh_news.append({
             "title": it["title"][:120],
             "link": it["link"],
-            "date": pub.strftime("%m/%d"),
+            "date": pub_taipei.strftime("%m/%d"),
             "ts": int(pub.timestamp()),
         })
 
@@ -117,7 +120,7 @@ def scan_company(code, name):
 
 def main():
     auto_push = "--push" in sys.argv
-    now = datetime.now()
+    now = datetime.now(TAIPEI_TZ)
     today_str = now.strftime("%Y/%m/%d")
     today_short = now.strftime("%m/%d")
     run_time = now.strftime("%Y/%m/%d %H:%M")

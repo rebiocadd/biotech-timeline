@@ -11,7 +11,8 @@ update_holders.py - 每週自動更新千張大戶統計
 """
 
 import json, re, sys, os, subprocess, urllib.request, urllib.error
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "holders.json")
 HISTORY_PATH = os.path.join(os.path.dirname(__file__), "holders_history.json")
@@ -98,7 +99,7 @@ def get_available_dates(opener, token):
 def main():
     import urllib.parse
     auto_push = "--push" in sys.argv
-    now = datetime.now()
+    now = datetime.now(TAIPEI_TZ)
 
     print("=" * 55)
     print(" 千張大戶週統計更新腳本")

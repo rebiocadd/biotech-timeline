@@ -17,14 +17,15 @@ update_prices.py
 
 import json, re, time, sys, os, subprocess
 import urllib.request, urllib.error
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # ── 設定 ──────────────────────────────────────────────────────
 JSON_PATH    = os.path.join(os.path.dirname(__file__), "date.json")
 WARN_THRESHOLD = 3.0          # 雙來源差異超過此 % 才警告
 REQUEST_DELAY  = 0.8          # 每次請求間隔（秒），避免被封鎖
+TAIPEI_TZ      = timezone(timedelta(hours=8))   # UTC+8
 
-now       = datetime.now()
+now       = datetime.now(TAIPEI_TZ)
 ROC_DATE  = f"{now.year - 1911}/{now.month:02d}/{now.day:02d}"
 TODAY_STR = f"{now.month:02d}/{now.day:02d}"
 

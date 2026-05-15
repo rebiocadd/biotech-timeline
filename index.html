@@ -365,16 +365,17 @@ function renderStatusBar(status, newsData){
   const bar=document.getElementById('scan-bar');
   if(!bar) return;
   const pills=[];
+  const tzTag='<span style="opacity:.55;font-size:.85em;margin-left:3px">UTC+8</span>';
   if(status && status.prices && status.prices.lastRun){
-    pills.push(`<span class="scan-pill scan-prices"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}</span>`);
+    pills.push(`<span class="scan-pill scan-prices" title="台灣時區 UTC+8"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}${tzTag}</span>`);
   }
   if(status && status.news && status.news.lastRun){
     const newsCount=Object.values((newsData||{}).companies||{}).filter(c=>c.news&&c.news.length).length;
-    pills.push(`<span class="scan-pill scan-news"><span class="dot"></span>📡 新聞掃描：${status.news.lastRun}${newsCount?' · 🆕 '+newsCount+' 家':''}</span>`);
+    pills.push(`<span class="scan-pill scan-news" title="台灣時區 UTC+8"><span class="dot"></span>📡 新聞掃描：${status.news.lastRun}${tzTag}${newsCount?' · 🆕 '+newsCount+' 家':''}</span>`);
   }
   if(status && status.holders && status.holders.lastRun){
     const dd=status.holders.dataDate?' · 資料：'+status.holders.dataDate:'';
-    pills.push(`<span class="scan-pill scan-holders"><span class="dot"></span>🏦 千張統計：${status.holders.lastRun}${dd}</span>`);
+    pills.push(`<span class="scan-pill scan-holders" title="台灣時區 UTC+8"><span class="dot"></span>🏦 千張統計：${status.holders.lastRun}${tzTag}${dd}</span>`);
   }
   bar.innerHTML=pills.join('');
 }

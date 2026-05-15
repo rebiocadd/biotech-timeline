@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""共用模組：更新 status.json 中各任務的最後執行時間"""
+"""共用模組：更新 status.json 中各任務的最後執行時間（一律使用 UTC+8 台灣時間）"""
 import json, os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 STATUS_PATH = os.path.join(os.path.dirname(__file__), "status.json")
+TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
+
+def now_taipei():
+    """回傳 UTC+8 的當前時間"""
+    return datetime.now(TAIPEI_TZ)
 
 def update_status(task, extra=None):
     """
     task: 'prices' | 'holders' | 'news'
     extra: 額外要記錄的欄位 dict（例如 holders 的 dataDate）
     """
-    now = datetime.now()
+    now = now_taipei()
     data = {}
     if os.path.exists(STATUS_PATH):
         try:
@@ -22,6 +27,7 @@ def update_status(task, extra=None):
     entry = {
         "lastRun": now.strftime("%Y/%m/%d %H:%M"),
         "lastRunDate": now.strftime("%m/%d"),
+        "tz": "UTC+8",
     }
     if extra:
         entry.update(extra)
