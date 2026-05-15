@@ -194,6 +194,13 @@ def main():
     with open(HISTORY_PATH, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 更新狀態
+    try:
+        from _status_helper import update_status
+        update_status("holders", {"dataDate": curr_date})
+    except Exception as e:
+        print(f"⚠️ 狀態更新失敗：{e}")
+
     print(f"\n{'='*55}")
     print(f" ✅ 成功：{ok}/{len(COMPANIES)} 家")
     if fail: print(f" ❌ 失敗：{', '.join(fail)}")

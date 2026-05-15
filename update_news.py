@@ -174,6 +174,13 @@ def main():
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 更新狀態
+    try:
+        from _status_helper import update_status
+        update_status("news")
+    except Exception as e:
+        print(f"⚠️ 狀態更新失敗：{e}")
+
     print(f"\n{'='*55}")
     print(f" ✅ 掃描完成")
     print(f" 🆕 {has_news_count} 家公司有 {DAYS_FRESH} 天內新聞")

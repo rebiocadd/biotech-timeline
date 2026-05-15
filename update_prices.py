@@ -175,6 +175,13 @@ def main():
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 更新狀態
+    try:
+        from _status_helper import update_status
+        update_status("prices")
+    except Exception as e:
+        print(f"⚠️ 狀態更新失敗：{e}")
+
     print("\n" + "=" * 55)
     print(f" ✅ 成功更新：{ok_count} 家公司")
     if fail_list:

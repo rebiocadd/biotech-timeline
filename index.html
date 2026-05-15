@@ -97,8 +97,15 @@
   .visitor-icon{font-size:13px;opacity:.7}
   .visitor-num{color:var(--accent1);font-weight:700;font-size:12px}
   /* 每日掃描狀態 */
-  .scan-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;background:linear-gradient(90deg,rgba(16,185,129,.15),rgba(0,212,255,.1));border:1px solid rgba(16,185,129,.3);border-radius:20px;font-family:'Space Mono',monospace;font-size:11px;color:var(--accent3)}
-  .scan-badge .dot{width:6px;height:6px;background:var(--accent3);border-radius:50%;animation:pulse 2s infinite}
+  .scan-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .scan-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;font-family:'Space Mono',monospace;font-size:11px;border:1px solid;white-space:nowrap}
+  .scan-pill .dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite}
+  .scan-news{background:linear-gradient(90deg,rgba(16,185,129,.15),rgba(0,212,255,.1));border-color:rgba(16,185,129,.3);color:var(--accent3)}
+  .scan-news .dot{background:var(--accent3)}
+  .scan-prices{background:linear-gradient(90deg,rgba(0,212,255,.15),rgba(139,92,246,.1));border-color:rgba(0,212,255,.3);color:var(--accent1)}
+  .scan-prices .dot{background:var(--accent1)}
+  .scan-holders{background:linear-gradient(90deg,rgba(245,158,11,.15),rgba(239,68,68,.1));border-color:rgba(245,158,11,.3);color:var(--accent4)}
+  .scan-holders .dot{background:var(--accent4)}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .news-badge{display:inline-block;background:rgba(245,158,11,.18);color:var(--accent4);font-family:'Space Mono',monospace;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;margin-left:3px;cursor:pointer}
   .news-badge:hover{background:rgba(245,158,11,.3)}
@@ -128,10 +135,7 @@
       <div class="visitor-item"><span class="visitor-icon">🌐</span>累計訪客：<span class="visitor-num" id="busuanzi_value_site_uv">--</span> 人</div>
       <div class="visitor-item"><span class="visitor-icon">📊</span>總瀏覽數：<span class="visitor-num" id="busuanzi_value_site_pv">--</span> 次</div>
     </div>
-    <div id="scan-status" class="scan-badge" style="display:none">
-      <span class="dot"></span>
-      <span id="scan-text">每日自動掃描臨床新聞</span>
-    </div>
+    <div id="scan-bar" class="scan-bar"></div>
   </header>
   <div class="legend">
     <span class="legend-label">類型</span>
@@ -346,22 +350,32 @@ function renderData(DATA){
   });
   bindTooltips();
 }
-// 先載入新聞掃描狀態，再渲染時間表
+function renderStatusBar(status, newsData){
+  const bar=document.getElementById('scan-bar');
+  if(!bar) return;
+  const pills=[];
+  if(status && status.prices && status.prices.lastRun){
+    pills.push(`<span class="scan-pill scan-prices"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}</span>`);
+  }
+  if(status && status.news && status.news.lastRun){
+    const newsCount=Object.values((newsData||{}).companies||{}).filter(c=>c.news&&c.news.length).length;
+    pills.push(`<span class="scan-pill scan-news"><span class="dot"></span>📡 新聞掃描：${status.news.lastRun}${newsCount?' · 🆕 '+newsCount+' 家':''}</span>`);
+  }
+  if(status && status.holders && status.holders.lastRun){
+    const dd=status.holders.dataDate?' · 資料：'+status.holders.dataDate:'';
+    pills.push(`<span class="scan-pill scan-holders"><span class="dot"></span>🏦 千張統計：${status.holders.lastRun}${dd}</span>`);
+  }
+  bar.innerHTML=pills.join('');
+}
+
+// 並行載入所有資料，再渲染時間表
 Promise.all([
+  fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
   fetch('news_status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('date.json?v='+Date.now()).then(r=>r.json())
-]).then(([newsData, timelineData])=>{
+]).then(([statusData, newsData, timelineData])=>{
   _newsStatus = newsData;
-  // 顯示掃描狀態徽章
-  if(newsData && newsData.lastRun){
-    const badge=document.getElementById('scan-status');
-    const txt=document.getElementById('scan-text');
-    if(badge && txt){
-      const newsCount=Object.values(newsData.companies||{}).filter(c=>c.news&&c.news.length).length;
-      txt.textContent='每日自動掃描臨床新聞 · 最後掃描：'+newsData.lastRun+(newsCount?' · 🆕 '+newsCount+' 家有新動態':'');
-      badge.style.display='inline-flex';
-    }
-  }
+  renderStatusBar(statusData, newsData);
   renderData(timelineData);
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
 </script>
