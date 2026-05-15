@@ -35,6 +35,31 @@ HEADERS = {
     "Accept-Language": "zh-TW,zh;q=0.9",
 }
 
+# ── 來源0：Yahoo Finance（穩定備援，全球可用）─────────────────
+def fetch_yahoo(code):
+    """從 Yahoo Finance 取收盤價（自動嘗試 .TW 和 .TWO 後綴）"""
+    for suffix in ('.TW', '.TWO'):
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}{suffix}?interval=1d&range=5d"
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=12) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            result = (data.get("chart", {}) or {}).get("result") or []
+            if not result:
+                continue
+            quote = result[0].get("indicators", {}).get("quote", [{}])[0]
+            closes = [c for c in (quote.get("close") or []) if c is not None]
+            if not closes:
+                continue
+            close = float(closes[-1])
+            prev  = float(closes[-2]) if len(closes) >= 2 else close
+            chg   = round((close - prev) / prev * 100, 2) if prev else 0.0
+            return close, chg
+        except Exception:
+            continue
+    return None, None
+
+
 # ── 來源1：TWSE / TPEX 官方 API ───────────────────────────────
 def fetch_official(code, market):
     """
@@ -101,35 +126,48 @@ def fetch_wantgoo(code):
     return None
 
 
-# ── 雙來源驗證 ────────────────────────────────────────────────
+# ── 三來源驗證 ────────────────────────────────────────────────
 def get_price_verified(code, market, name):
     """
-    取得股價並雙來源交叉驗證。
-    回傳：(price_str, change_str)  或  (None, None)
+    取得股價並三來源驗證（Yahoo + TWSE/TPEX + 玩股網）。
+    優先順序：1) Yahoo（最穩定）  2) TWSE/TPEX  3) 玩股網
+    若有 2 個以上來源成功則交叉驗證。
+    回傳：(price, change)  或  (None, None)
     """
     src_name = "TWSE" if market == "listed" else "TPEX"
 
-    p1, chg = fetch_official(code, market)
-    p2      = fetch_wantgoo(code)
+    # 三個來源都試
+    p_yahoo, chg_yahoo = fetch_yahoo(code)
+    p_official, chg_official = fetch_official(code, market)
+    p_wantgoo = fetch_wantgoo(code)
+
+    # 收集成功的來源
+    sources = []
+    if p_yahoo is not None:    sources.append(("Yahoo", p_yahoo, chg_yahoo))
+    if p_official is not None: sources.append((src_name, p_official, chg_official))
+    if p_wantgoo is not None:  sources.append(("玩股網", p_wantgoo, None))
 
     status = ""
 
-    if p1 is not None and p2 is not None:
-        diff = abs(p1 - p2) / p1 * 100
-        if diff > WARN_THRESHOLD:
-            status = (f"⚠️  差異 {diff:.1f}%  "
-                      f"{src_name}={p1:.2f}  玩股網={p2:.2f}  → 採用{src_name}")
+    if len(sources) >= 2:
+        # 多來源交叉驗證
+        prices = [s[1] for s in sources]
+        max_diff = (max(prices) - min(prices)) / min(prices) * 100
+        # 優先採用有漲跌%的（Yahoo 或 TWSE/TPEX）
+        primary = next((s for s in sources if s[2] is not None), sources[0])
+        if max_diff > WARN_THRESHOLD:
+            status = f"⚠️  {primary[1]:.2f} 多源差異 {max_diff:.1f}% → 採用 {primary[0]}"
         else:
-            status = f"✅  {p1:.2f} ({chg:+.2f}%)  雙源一致 Δ{diff:.1f}%"
-        final_price, final_chg = p1, chg
+            srcs = "/".join(s[0] for s in sources)
+            status = f"✅  {primary[1]:.2f} ({primary[2]:+.2f}%) {srcs} 一致"
+        final_price = primary[1]
+        final_chg   = primary[2] if primary[2] is not None else 0.0
 
-    elif p1 is not None:
-        status = f"⚠️  {p1:.2f} ({chg:+.2f}%)  僅{src_name}（玩股網失敗）"
-        final_price, final_chg = p1, chg
-
-    elif p2 is not None:
-        status = f"⚠️  {p2:.2f}  僅玩股網（{src_name}失敗，無漲跌%）"
-        final_price, final_chg = p2, 0.0
+    elif len(sources) == 1:
+        s = sources[0]
+        status = f"⚠️  {s[1]:.2f} 僅 {s[0]} 成功"
+        final_price = s[1]
+        final_chg   = s[2] if s[2] is not None else 0.0
 
     else:
         status = "❌  所有來源失敗"
@@ -202,8 +240,12 @@ def main():
     else:
         print("\n👉 下一步：git add date.json && git commit -m '更新股價' && git push")
 
-    if fail_list:
+    # 即使部分失敗，只要有任何成功就視為 OK（避免整個 GitHub Actions step 失敗）
+    if fail_list and ok_count == 0:
+        print("\n❌ 全部失敗，視為錯誤")
         sys.exit(1)
+    elif fail_list:
+        print(f"\n⚠️ 部分成功（{ok_count} 成功 / {len(fail_list)} 失敗），失敗的公司保留原資料")
 
 
 if __name__ == "__main__":
