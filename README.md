@@ -416,44 +416,73 @@ C:\Users\TKCPC\AppData\Roaming\Microsoft\Windows\
 
 ### 用途
 
-讓你在手機 Telegram 傳訊息 → 自動貼到電腦上的 Claude Code 視窗。
+讓你在手機 Telegram 傳訊息 → 自動貼到電腦上的 Claude Code 視窗（執行於 Claude Desktop App 內）。
+
+### 目前版本：**v9** ✅（2026/05/16 起穩定運作）
 
 ### 設定
 
 - **Bot**: `@tsaiP_biotech_bot`
-- **Token**: 寫死在 `telegram_bridge.ps1`
+- **Token**: 寫死在 `telegram_bridge_v9.ps1`
 - **Chat ID**: `1070699046`
-- **核心技術**: PowerShell + Win32 API (SetForegroundWindow + AttachThreadInput) + SendKeys
-- **腳本位置**: `D:\AI-agent\AI-claude\BioStock\telegram_bridge.ps1`
+- **核心技術**: PowerShell + Win32 API (SetForegroundWindow + AttachThreadInput + Alt-key 焦點重置) + wscript.shell SendKeys
+- **腳本位置**: `D:\AI-agent\AI-claude\BioStock\telegram_bridge_v9.ps1`
+- **Log 檔**: `D:\AI-agent\AI-claude\BioStock\bridge_log.txt`
+
+### 🔑 關鍵設計決策（v9 確認）
+
+| 議題 | 答案 |
+|------|------|
+| Claude Code 跑在哪？ | **Claude Desktop App 內建的 xterm.js 終端**（不是獨立的 Windows Terminal） |
+| 貼上按鍵 | **`Ctrl+Shift+V`** (xterm.js 標準)，不是 Ctrl+V！ |
+| 目標視窗 | `claude.exe` PID with MainWindowTitle `Claude` |
+| 視窗狀態 | **絕對不可最小化**（否則 SendKeys 鍵盤事件無法抵達） |
 
 ### 自動啟動
 
 | 檔案 | 位置 | 作用 |
 |------|------|------|
-| `start_bridge.bat` | `D:\AI-agent\AI-claude\BioStock\` | 啟動腳本（殺舊→啟新） |
+| `start_bridge.bat` | `D:\AI-agent\AI-claude\BioStock\` | 啟動腳本（殺舊→啟新，視窗 NORMAL 不縮小） |
 | `TelegramBridge.bat` | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\` | Windows 開機自動執行 |
+
+### Telegram 指令
+
+| 指令 | 作用 |
+|------|------|
+| `/status` | 顯示 bot 線上 + 目標視窗 |
+| `/help` | 列出所有指令 |
+| `/log` | 顯示最近 25 行 bridge log（手機就能 debug） |
+| 任何其他文字 | 自動注入到 Claude Code |
 
 ### 手動操作
 
 ```cmd
-# 立即重啟橋接
+# 立即重啟橋接（會殺舊→啟新）
 D:\AI-agent\AI-claude\BioStock\start_bridge.bat
 
 # 檢查是否在跑
 Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
-  Where-Object { $_.CommandLine -like "*telegram_bridge*" }
+  Where-Object { $_.CommandLine -like '*telegram_bridge_v9*' -and $_.CommandLine -notlike '*-NonInteractive*' }
 
 # 停止橋接
 Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
-  Where-Object { $_.CommandLine -like "*telegram_bridge*" } |
+  Where-Object { $_.CommandLine -like '*telegram_bridge*' -and $_.CommandLine -notlike '*Stop-Process*' } |
   ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+
+# 讀 log
+Get-Content D:\AI-agent\AI-claude\BioStock\bridge_log.txt -Tail 30
 ```
 
-### 已知陷阱
+### ⚠️ 已知陷阱
 
-- ⚠️ PowerShell 腳本內**不可有中文字元**（cp950 編碼問題）→ 用 `[char]0x5B8C` 等 Unicode code point
-- ⚠️ Bot online 訊息透過 `Send-TG` 在啟動時自動發送
-- ⚠️ 如果 Claude Code 視窗找不到，橋接會回傳 `ERROR: Claude Code window not found`
+- **絕對不能最小化視窗**：`wscript.shell SendKeys` 從最小化的 PowerShell 視窗送出時，鍵盤事件無法抵達目標
+  - ✅ 正常視窗（可被遮蓋）
+  - ❌ `/MIN` 啟動或按最小化按鈕
+- **xterm.js 貼上必須用 Ctrl+Shift+V**：標準 Ctrl+V 在 xterm.js 視為輸入字元 `^V`，不會貼上
+- **PowerShell 腳本內不可有中文字元**（cp950 編碼問題）→ 用 `[char]0x5B8C` 等 Unicode code point
+- **不能有兩個 bridge 同時跑**（會競爭 Telegram getUpdates，造成行為錯亂）
+- **Claude Desktop App ≠ Claude Code**：兩者共用 `claude.exe` 程序名，但桌面 App 主視窗才是注入目標（CLI 跑在裡面的 xterm.js panel）
+- 完整 debug 歷程參見 `D:\AI-agent\AI-claude\BioStock\TELEGRAM_BRIDGE.md`
 
 ---
 
