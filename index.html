@@ -134,8 +134,8 @@
   .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
   .ranking-meta:hover{background:rgba(245,158,11,.18)}
   .ranking-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;max-width:100%}
-  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:720px;font-family:'Space Mono',monospace;font-size:11.5px}
-  .ranking-tbl th,.ranking-tbl td{padding:7px 11px;border-bottom:1px solid rgba(30,45,69,.5);white-space:nowrap;text-align:right;vertical-align:middle}
+  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:700px;font-family:'Space Mono',monospace;font-size:11px}
+  .ranking-tbl th,.ranking-tbl td{padding:5px 8px;border-bottom:1px solid rgba(30,45,69,.5);white-space:nowrap;text-align:right;vertical-align:middle}
   .ranking-tbl thead th{background:#0a1124;color:var(--accent4);font-size:10.5px;letter-spacing:.5px;font-weight:700;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
   .ranking-tbl thead th:hover{background:rgba(245,158,11,.15);color:#fff}
   .ranking-tbl thead th::after{content:' ⇅';opacity:.3;font-size:9px}
@@ -148,17 +148,20 @@
   .ranking-tbl th.sticky-col,.ranking-tbl td.sticky-col{position:sticky;background:#0a1124}
   .ranking-tbl tbody td.sticky-col{background:#0f1828}
   .ranking-tbl tbody tr:hover td.sticky-col{background:#13243f}
-  .ranking-tbl .sticky-1{left:0;min-width:44px;z-index:2}
-  .ranking-tbl .sticky-2{left:44px;min-width:64px;z-index:2}
-  .ranking-tbl .sticky-3{left:108px;min-width:115px;z-index:2;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .ranking-tbl .sticky-1{left:0;min-width:36px;width:36px;z-index:2}
+  .ranking-tbl .sticky-2{left:36px;min-width:56px;width:56px;z-index:2}
+  .ranking-tbl .sticky-3{left:92px;min-width:95px;width:95px;z-index:2;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.4)}
   .ranking-tbl thead .sticky-col{z-index:3}
   /* 各欄樣式 */
   .ranking-tbl .col-rank{color:var(--muted);font-weight:700;text-align:right}
   .ranking-tbl .col-code{color:var(--accent1);font-weight:700;text-align:right}
   .ranking-tbl .col-code a{color:var(--accent1);text-decoration:none}
   .ranking-tbl .col-code a:hover{text-decoration:underline}
-  .ranking-tbl .col-name{font-family:'Noto Sans TC',sans-serif;color:#fff;font-weight:600;font-size:12.5px;text-align:left;min-width:115px}
-  .ranking-tbl .col-h{color:var(--accent1);font-weight:700;min-width:140px}
+  .ranking-tbl .col-name{font-family:'Noto Sans TC',sans-serif;color:#fff;font-weight:600;font-size:11.5px;text-align:left;letter-spacing:0}
+  .ranking-tbl .col-name a{color:#fff;text-decoration:none}
+  .ranking-tbl .col-name a:hover{text-decoration:underline;color:var(--accent1)}
+  .ranking-tbl .col-h{color:var(--accent1);font-weight:700;min-width:80px}
+  .ranking-tbl .col-chg{font-weight:700;min-width:80px;font-size:10.5px}
   .ranking-tbl .col-cf{font-weight:700;min-width:115px}
   .rk-cf-pos{color:#ef4444}
   .rk-cf-neg{color:#10b981}
@@ -166,14 +169,13 @@
   .rk-cf-year{font-size:8.5px;color:var(--muted);opacity:.7;margin-left:3px;font-weight:normal}
   .rk-chg-inline{margin-left:6px;font-size:10px}
   @media(max-width:700px){
-    .ranking-tbl{font-size:10.5px;min-width:600px}
-    .ranking-tbl th,.ranking-tbl td{padding:5px 7px}
-    .ranking-tbl .col-name{font-size:11px;min-width:90px}
-    .ranking-tbl .sticky-1{min-width:32px}
-    .ranking-tbl .sticky-2{left:32px;min-width:50px}
-    .ranking-tbl .sticky-3{left:82px;min-width:95px}
+    .ranking-tbl{font-size:10px;min-width:580px}
+    .ranking-tbl th,.ranking-tbl td{padding:4px 6px}
+    .ranking-tbl .col-name{font-size:10.5px}
+    .ranking-tbl .sticky-1{min-width:28px;width:28px}
+    .ranking-tbl .sticky-2{left:28px;min-width:48px;width:48px}
+    .ranking-tbl .sticky-3{left:76px;min-width:85px;width:85px}
     .rk-cf-year{font-size:7.5px}
-    .rk-chg-inline{font-size:9px}
   }
   /* 近 5 日收盤價條帶：放在右側 */
   .hp-strip{display:flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;flex-shrink:0}
@@ -551,15 +553,15 @@ function renderRanking(){
   const cfData=(window._cashflowData||{}).companies||{};
   const rows=_hData.filter(r=>r.total_h>0).map(r=>{
     const cf=cfData[r.code]||{};
-    const cf25=cf.cf_2025||{};
-    const cf26=cf.cf_2026||{};
+    const c25=cf.cash_2025||{};
+    const c26=cf.cash_2026||{};
     return {
       code:r.code, name:r.name,
       total_h:r.total_h, dth:r.dth,
-      cf_2025: cf25.operating_cf===undefined?null:cf25.operating_cf,
-      cf_2025_period: cf25.period||'',
-      cf_2026: cf26.operating_cf===undefined?null:cf26.operating_cf,
-      cf_2026_period: cf26.period||'',
+      cash_2025: c25.value===undefined?null:c25.value,
+      cash_2025_period: c25.period||'',
+      cash_2026: c26.value===undefined?null:c26.value,
+      cash_2026_period: c26.period||'',
     };
   });
   if(!rows.length){sec.style.display='none';return;}
@@ -586,23 +588,21 @@ function renderRanking(){
     return _rankSortDir*(va>vb?1:va<vb?-1:0);
   });
 
-  // 表頭定義
+  // 表頭定義（7 欄：拆開總股東/週變化 + 改現金餘額）
   const cols=[
-    {key:'total_h', label:'#',          stickyClass:'sticky-col sticky-1'},
-    {key:'code',    label:'代號',        stickyClass:'sticky-col sticky-2'},
-    {key:'name',    label:'公司',        stickyClass:'sticky-col sticky-3'},
-    {key:'total_h', label:'總股東+週變化', stickyClass:''},
-    {key:'cf_2025', label:'2025 現金流',  stickyClass:''},
-    {key:'cf_2026', label:'2026 現金流',  stickyClass:''},
+    {key:'total_h',    label:'#',           stickyClass:'sticky-col sticky-1'},
+    {key:'code',       label:'代號',         stickyClass:'sticky-col sticky-2'},
+    {key:'name',       label:'公司',         stickyClass:'sticky-col sticky-3'},
+    {key:'total_h',    label:'總股東',       stickyClass:''},
+    {key:'dth',        label:'週變化',       stickyClass:''},
+    {key:'cash_2025',  label:'2025 現金餘額', stickyClass:''},
+    {key:'cash_2026',  label:'2026 現金餘額', stickyClass:''},
   ];
 
   // 渲染表頭
   let theadHtml='<tr>';
-  cols.forEach((c,i)=>{
-    // 第一欄「#」和第四欄「總股東+週變化」都對應 total_h 排序，但要區分點擊
-    const dataCol = (i===0) ? 'rank' : c.key;
-    const cls=(_rankSortCol===c.key && (i===0?_rankSortCol==='total_h':true))?
-              (_rankSortDir===1?'sort-asc':'sort-desc'):'';
+  cols.forEach((c)=>{
+    const cls=(_rankSortCol===c.key)?(_rankSortDir===1?'sort-asc':'sort-desc'):'';
     theadHtml+=`<th class="${c.stickyClass} ${cls}" data-col="${c.key}">${c.label}</th>`;
   });
   theadHtml+='</tr>';
@@ -612,27 +612,31 @@ function renderRanking(){
   let tbodyHtml='';
   for(const r of rows){
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
-    // 週變化內嵌在總股東後面
-    let chgInline;
-    if(r.dth>0) chgInline=`<span class="h-up rk-chg-inline">▲+${r.dth.toLocaleString()}</span>`;
-    else if(r.dth<0) chgInline=`<span class="h-dn rk-chg-inline">▼${r.dth.toLocaleString()}</span>`;
-    else chgInline=`<span style="color:var(--muted)" class="rk-chg-inline">＝</span>`;
+    // 週變化獨立欄
+    let chgHtml;
+    if(r.dth>0) chgHtml=`<span class="h-up">▲+${r.dth.toLocaleString()}</span>`;
+    else if(r.dth<0) chgHtml=`<span class="h-dn">▼${r.dth.toLocaleString()}</span>`;
+    else chgHtml=`<span style="color:var(--muted)">＝</span>`;
 
-    const cfCell = (v, period) => {
-      if(v===null||v===undefined) return `<span class="rk-cf-na">—</span>`;
-      const cfStr=fmtCashflow(v);
-      const cls=v>=0?'rk-cf-pos':'rk-cf-neg';
+    // 現金餘額（無論正負都用藍色，因為是餘額不是現金流）
+    const cashCell = (v, period) => {
+      if(v===null||v===undefined){
+        // 興櫃無資料：附 Goodinfo 連結方便手動查
+        return `<span class="rk-cf-na">—<a href="https://goodinfo.tw/tw/StockBzPerformance.asp?STOCK_ID=${r.code}" target="_blank" title="到 Goodinfo 查詢" style="margin-left:4px;color:var(--accent1);text-decoration:none;font-size:9px">↗</a></span>`;
+      }
+      const cfStr=fmtCashflow(v).replace(/^\+/,'');  // 餘額不顯示 +
       const yr=period?` <span class="rk-cf-year">(${period})</span>`:'';
-      return `<span class="${cls}">${cfStr}${yr}</span>`;
+      return `<span class="rk-cf-pos">${cfStr}${yr}</span>`;
     };
 
     tbodyHtml+=`<tr>
       <td class="sticky-col sticky-1 col-rank">${rankByTotal[r.code]}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
       <td class="sticky-col sticky-3 col-name">${r.name}</td>
-      <td class="col-h">${fmt(r.total_h)}${chgInline}</td>
-      <td class="col-cf">${cfCell(r.cf_2025, r.cf_2025_period)}</td>
-      <td class="col-cf">${cfCell(r.cf_2026, r.cf_2026_period)}</td>
+      <td class="col-h">${fmt(r.total_h)}</td>
+      <td class="col-chg">${chgHtml}</td>
+      <td class="col-cf">${cashCell(r.cash_2025, r.cash_2025_period)}</td>
+      <td class="col-cf">${cashCell(r.cash_2026, r.cash_2026_period)}</td>
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;

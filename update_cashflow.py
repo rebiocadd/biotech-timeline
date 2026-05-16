@@ -126,31 +126,70 @@ def fetch_yf(code):
                             "operating_cf": total
                         }
 
-            # 現金部位（最新一季）
-            cash = None
+            # 現金餘額（分 2025 年底 + 2026 最新）
+            cash_2025 = None
+            cash_2026 = None
+            cash_keys = ('Cash And Cash Equivalents', 'Cash',
+                         'Cash Cash Equivalents And Short Term Investments')
             try:
-                bs = t.quarterly_balance_sheet
-                if bs is not None and not bs.empty:
-                    bcol = bs.columns[0]
-                    for k in ('Cash And Cash Equivalents', 'Cash',
-                              'Cash Cash Equivalents And Short Term Investments'):
-                        if k in bs.index:
-                            v = bs.loc[k, bcol]
-                            try:
-                                v = float(v)
-                                if v == v:
-                                    cash = v
-                                    break
-                            except Exception:
-                                pass
+                # 年度 balance sheet → 取 2025-12-31
+                y_bs = t.balance_sheet
+                if y_bs is not None and not y_bs.empty:
+                    for col in y_bs.columns:
+                        if hasattr(col, 'year') and col.year == 2025:
+                            for k in cash_keys:
+                                if k in y_bs.index:
+                                    v = y_bs.loc[k, col]
+                                    try:
+                                        v = float(v)
+                                        if v == v:
+                                            cash_2025 = {"period": "2025年底", "value": v}
+                                            break
+                                    except Exception:
+                                        pass
+                            break
+                # 季度 balance sheet → 取最新的 2026 季
+                q_bs = t.quarterly_balance_sheet
+                if q_bs is not None and not q_bs.empty:
+                    qs_2026 = sorted([c for c in q_bs.columns if hasattr(c, 'year') and c.year == 2026], reverse=True)
+                    if qs_2026:
+                        col = qs_2026[0]
+                        for k in cash_keys:
+                            if k in q_bs.index:
+                                v = q_bs.loc[k, col]
+                                try:
+                                    v = float(v)
+                                    if v == v:
+                                        q_num = (col.month - 1) // 3 + 1
+                                        cash_2026 = {"period": f"2026 Q{q_num}底", "value": v}
+                                        break
+                                except Exception:
+                                    pass
+                # 若 2025 沒從年度 BS 拿到，從季度找 2025 Q4
+                if cash_2025 is None and q_bs is not None and not q_bs.empty:
+                    qs_2025 = sorted([c for c in q_bs.columns if hasattr(c, 'year') and c.year == 2025], reverse=True)
+                    if qs_2025:
+                        col = qs_2025[0]
+                        for k in cash_keys:
+                            if k in q_bs.index:
+                                v = q_bs.loc[k, col]
+                                try:
+                                    v = float(v)
+                                    if v == v:
+                                        q_num = (col.month - 1) // 3 + 1
+                                        cash_2025 = {"period": f"2025 Q{q_num}底", "value": v}
+                                        break
+                                except Exception:
+                                    pass
             except Exception:
                 pass
 
-            if cf_2025 or cf_2026:
+            if cf_2025 or cf_2026 or cash_2025 or cash_2026:
                 return {
                     "cf_2025": cf_2025,
                     "cf_2026": cf_2026,
-                    "cash_position": cash,
+                    "cash_2025": cash_2025,
+                    "cash_2026": cash_2026,
                     "source": "yfinance",
                     "suffix": suffix,
                 }
@@ -196,14 +235,13 @@ def main():
 
         if cf:
             result["companies"][code] = cf
-            ocf25 = (cf.get("cf_2025") or {}).get("operating_cf")
-            ocf26 = (cf.get("cf_2026") or {}).get("operating_cf")
-            s25 = f"{ocf25/1e8:.2f}億" if ocf25 else "—"
-            s26 = f"{ocf26/1e8:.2f}億" if ocf26 else "—"
-            print(f"✅ 2025={s25} 2026={s26}")
+            ca25 = (cf.get("cash_2025") or {}).get("value")
+            ca26 = (cf.get("cash_2026") or {}).get("value")
+            s25 = f"{ca25/1e8:.2f}億" if ca25 else "—"
+            s26 = f"{ca26/1e8:.2f}億" if ca26 else "—"
+            print(f"✅ 2025現金={s25} 2026現金={s26}")
             auto_ok += 1
-        elif code in existing and (existing[code].get("cf_2025") or existing[code].get("cf_2026")):
-            # 沿用手動資料
+        elif code in existing and (existing[code].get("cash_2025") or existing[code].get("cash_2026")):
             result["companies"][code] = existing[code]
             print(f"📝 沿用手動")
             manual_kept += 1
@@ -211,7 +249,8 @@ def main():
             result["companies"][code] = {
                 "cf_2025": None,
                 "cf_2026": None,
-                "cash_position": None,
+                "cash_2025": None,
+                "cash_2026": None,
                 "source": "manual_pending",
             }
             no_data.append(f"{code} {name}")
