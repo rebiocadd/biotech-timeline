@@ -167,7 +167,7 @@
   .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
   .ranking-meta:hover{background:rgba(245,158,11,.18)}
   .ranking-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;max-width:100%}
-  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:380px;font-family:'Space Mono',monospace;font-size:11px;table-layout:fixed}
+  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:440px;font-family:'Space Mono',monospace;font-size:11px;table-layout:fixed}
   .ranking-tbl th,.ranking-tbl td{padding:5px 8px;border-bottom:1px solid rgba(30,45,69,.5);white-space:nowrap;text-align:right;vertical-align:middle}
   .ranking-tbl thead th{background:#0a1124;color:var(--accent4);font-size:10.5px;letter-spacing:.5px;font-weight:700;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
   .ranking-tbl thead th:hover{background:rgba(245,158,11,.15);color:#fff}
@@ -203,7 +203,7 @@
   .rk-cf-year{font-size:8.5px;color:var(--muted);opacity:.7;margin-left:3px;font-weight:normal}
   .rk-chg-inline{margin-left:6px;font-size:10px}
   @media(max-width:700px){
-    .ranking-tbl{font-size:9.5px;min-width:340px}
+    .ranking-tbl{font-size:9.5px;min-width:360px}
     .ranking-tbl th,.ranking-tbl td{padding:3px 4px}
     .ranking-tbl thead th{font-size:9px;letter-spacing:0}
     .ranking-tbl thead th::after{font-size:7px}
@@ -596,22 +596,32 @@ function fmtCashflow(v){
 }
 
 // 兩個排行表獨立的排序狀態
-let _rankSortColA='total_h', _rankSortDirA=-1;       // 總股東排行
+let _rankSortColA='w0_h', _rankSortDirA=-1;          // 總股東排行（預設最新週由大到小）
 let _rankSortColB='cash_2026', _rankSortDirB=-1;     // 現金餘額排行（預設 2026 排序）
 
-// 共用：把 _hData + cashflow.json 整理成 row 陣列
+// 共用：把 _hData + cashflow.json + 三週歷史 整理成 row 陣列
 // 全部公司都納入（即使 total_h=0 也保留，會以 — 顯示）
 function _buildRankingRows(){
   const cfData=(window._cashflowData||{}).companies||{};
+  // 取最近三週 total_h（w0=最新, w1=上週, w2=上上週）
+  const weeks=(_hHistory&&_hHistory.weeks)||[];
+  const w0=weeks[0], w1=weeks[1], w2=weeks[2];
+  const _mapByCode=(w)=>{const m={};if(w&&w.data){w.data.forEach(r=>{m[r.code]=r;});}return m;};
+  const m0=_mapByCode(w0), m1=_mapByCode(w1), m2=_mapByCode(w2);
   return _hData.map(r=>{
     const cf=cfData[r.code]||{};
     const c23=cf.cash_2023||{};
     const c24=cf.cash_2024||{};
     const c25=cf.cash_2025||{};
     const c26=cf.cash_2026||{};
+    const r0=m0[r.code]||{}, r1=m1[r.code]||{}, r2=m2[r.code]||{};
     return {
       code:r.code, name:r.name,
       total_h:r.total_h, dth:r.dth,
+      // 三週總股東快照（用於排行表 A）
+      w0_h: r0.total_h||0, w0_date: (w0&&w0.date)||'',
+      w1_h: r1.total_h||0, w1_date: (w1&&w1.date)||'',
+      w2_h: r2.total_h||0, w2_date: (w2&&w2.date)||'',
       cash_2023: c23.value===undefined?null:c23.value,
       cash_2023_period: c23.period||'',
       cash_2024: c24.value===undefined?null:c24.value,
@@ -742,7 +752,7 @@ function renderScores(){
 }
 
 // =========================================
-// 🏆 表 A：25 家總股東排行（5 欄）
+// 🏆 表 A：26 家總股東排行（6 欄，三週快照由新到舊）
 // =========================================
 function renderHolderRanking(){
   const thead=document.getElementById('ranking-thead');
@@ -771,18 +781,31 @@ function renderHolderRanking(){
   const titleEl=document.getElementById('ranking-title-A');
   if(titleEl) titleEl.textContent=`🏆 ${rows.length} 家總股東排行`;
 
-  // 排名固定依 total_h 由大到小
+  // 排名固定依最新一週 (w0_h) 由大到小（沒資料排最後）
   const rankBy={};
-  [...rows].sort((a,b)=>b.total_h-a.total_h).forEach((r,i)=>{rankBy[r.code]=i+1;});
+  [...rows].sort((a,b)=>{
+    if(!a.w0_h && !b.w0_h) return 0;
+    if(!a.w0_h) return 1;
+    if(!b.w0_h) return -1;
+    return b.w0_h-a.w0_h;
+  }).forEach((r,i)=>{rankBy[r.code]=i+1;});
 
+  // 預設排序：w0_h（最新週）由大到小
+  if(_rankSortColA==='total_h') _rankSortColA='w0_h';
   _sortRows(rows, _rankSortColA, _rankSortDirA);
 
+  // 三週日期標籤（若資料缺則用 fallback）
+  const dW0=(rows[0]&&rows[0].w0_date)||'最新';
+  const dW1=(rows[0]&&rows[0].w1_date)||'上週';
+  const dW2=(rows[0]&&rows[0].w2_date)||'兩週前';
+
   const cols=[
-    {key:'total_h', label:'#',     stickyClass:'sticky-col sticky-1'},
-    {key:'code',    label:'代號',   stickyClass:'sticky-col sticky-2'},
-    {key:'name',    label:'公司',   stickyClass:'sticky-col sticky-3'},
-    {key:'total_h', label:'總股東', stickyClass:''},
-    {key:'dth',     label:'週變化', stickyClass:''},
+    {key:'w0_h',  label:'#',           stickyClass:'sticky-col sticky-1'},
+    {key:'code',  label:'代號',         stickyClass:'sticky-col sticky-2'},
+    {key:'name',  label:'公司',         stickyClass:'sticky-col sticky-3'},
+    {key:'w0_h',  label:dW0+' 總股東',  stickyClass:''},
+    {key:'w1_h',  label:dW1+' 總股東',  stickyClass:''},
+    {key:'w2_h',  label:dW2+' 總股東',  stickyClass:''},
   ];
 
   let theadHtml='<tr>';
@@ -793,23 +816,28 @@ function renderHolderRanking(){
   theadHtml+='</tr>';
   thead.innerHTML=theadHtml;
 
+  // 把單一週快照渲染成 cell（含與前一週的差異徽章）
+  const hCell=(curr, prev)=>{
+    if(!curr) return `<span class="rk-cf-na">—</span>`;
+    const main=fmt(curr);
+    if(prev){
+      const d=curr-prev;
+      if(d>0)  return `${main} <span class="h-up" style="font-size:10px">▲+${d.toLocaleString()}</span>`;
+      if(d<0)  return `${main} <span class="h-dn" style="font-size:10px">▼${d.toLocaleString()}</span>`;
+    }
+    return main;
+  };
+
   let tbodyHtml='';
   for(const r of rows){
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
-    // 沒資料時顯示 — 而非 0
-    const hasData = r.total_h > 0;
-    const totalHtml = hasData ? fmt(r.total_h) : `<span class="rk-cf-na">—</span>`;
-    let chgHtml;
-    if(!hasData) chgHtml=`<span class="rk-cf-na">—</span>`;
-    else if(r.dth>0) chgHtml=`<span class="h-up">▲+${r.dth.toLocaleString()}</span>`;
-    else if(r.dth<0) chgHtml=`<span class="h-dn">▼${r.dth.toLocaleString()}</span>`;
-    else chgHtml=`<span style="color:var(--muted)">＝</span>`;
     tbodyHtml+=`<tr>
-      <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]}</td>
+      <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]||'—'}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
       <td class="sticky-col sticky-3 col-name">${r.name}</td>
-      <td class="col-h">${totalHtml}</td>
-      <td class="col-chg">${chgHtml}</td>
+      <td class="col-h">${hCell(r.w0_h, r.w1_h)}</td>
+      <td class="col-h">${hCell(r.w1_h, r.w2_h)}</td>
+      <td class="col-h">${hCell(r.w2_h, null)}</td>
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;
