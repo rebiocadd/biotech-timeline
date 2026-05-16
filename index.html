@@ -131,6 +131,8 @@
   .ranking-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .ranking-title{font-size:13px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
   .ranking-subtitle{font-size:10.5px;color:var(--muted)}
+  .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
+  .ranking-meta:hover{background:rgba(245,158,11,.18)}
   .ranking-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .ranking-row{display:grid;grid-template-columns:24px 1fr auto auto;align-items:center;gap:8px;padding:5px 9px;background:rgba(15,24,40,.55);border:1px solid rgba(30,45,69,.5);border-radius:3px;font-family:'Space Mono',monospace;font-size:10.5px}
   .rk-rank{color:var(--muted);font-weight:700;text-align:right}
@@ -352,6 +354,7 @@
       <div class="ranking-header">
         <span class="ranking-title">🏆 25 家總股東排行</span>
         <span class="ranking-subtitle">依本週總股東人數由多到少 · 同步 TDCC 最新週次</span>
+        <span class="ranking-meta" id="ranking-meta" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
       </div>
       <div class="ranking-grid" id="ranking-grid"></div>
     </div>
@@ -477,6 +480,19 @@ function renderRanking(){
   const sorted=[..._hData].filter(r=>r.total_h>0).sort((a,b)=>b.total_h-a.total_h);
   if(!sorted.length){sec.style.display='none';return;}
   sec.style.display='block';
+  // 更新右上角抓取時間徽章
+  const meta=document.getElementById('ranking-meta');
+  if(meta){
+    const s=window._statusData||{};
+    const hRun=s.holders&&s.holders.lastRun;
+    const dataDate=s.holders&&s.holders.dataDate;
+    if(hRun){
+      const dd=dataDate?' · 資料：'+dataDate:'';
+      meta.innerHTML='⏱ 抓取：'+hRun+dd+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+    } else {
+      meta.textContent='⏱ 尚未抓取';
+    }
+  }
   // 兩欄：左 1~13，右 14~25
   const mid=Math.ceil(sorted.length/2);
   const left=sorted.slice(0,mid);
