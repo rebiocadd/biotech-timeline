@@ -170,14 +170,18 @@
   .rk-cf-year{font-size:8.5px;color:var(--muted);opacity:.7;margin-left:3px;font-weight:normal}
   .rk-chg-inline{margin-left:6px;font-size:10px}
   @media(max-width:700px){
-    .ranking-tbl{font-size:10px;min-width:420px}
-    .ranking-tbl th,.ranking-tbl td{padding:4px 6px}
-    .ranking-tbl .col-name{font-size:10.5px}
-    .ranking-tbl .sticky-1{min-width:28px;width:28px}
-    .ranking-tbl .sticky-2{left:28px;min-width:46px;width:46px}
-    /* 手機第三欄：4 中文字 × 10.5 = 42 + padding 8 ≈ 50px */
-    .ranking-tbl .sticky-3{left:74px;min-width:50px;width:50px;overflow:hidden}
-    .rk-cf-year{font-size:7.5px}
+    .ranking-tbl{font-size:9.5px;min-width:340px}
+    .ranking-tbl th,.ranking-tbl td{padding:3px 4px}
+    .ranking-tbl thead th{font-size:9px;letter-spacing:0}
+    .ranking-tbl thead th::after{font-size:7px}
+    .ranking-tbl .col-name{font-size:10px;letter-spacing:-.3px}
+    .ranking-tbl .col-h,.ranking-tbl .col-chg,.ranking-tbl .col-cf{font-size:9.5px;min-width:0}
+    .ranking-tbl .sticky-1{min-width:24px;width:24px}
+    .ranking-tbl .sticky-2{left:24px;min-width:40px;width:40px}
+    /* 手機第三欄：4 中文字 × 10px = 40 + padding 6 ≈ 46px */
+    .ranking-tbl .sticky-3{left:64px;min-width:46px;width:46px;overflow:hidden}
+    .rk-cf-year{font-size:7px;margin-left:1px}
+    .rk-chg-inline{font-size:8px}
   }
   /* 近 5 日收盤價條帶：放在右側 */
   .hp-strip{display:flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;flex-shrink:0}
