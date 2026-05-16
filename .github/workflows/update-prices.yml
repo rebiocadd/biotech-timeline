@@ -71,7 +71,8 @@ jobs:
             git pull --rebase origin main 2>/dev/null || git pull origin main || true
             python update_news.py
             python update_highlights.py || echo "⚠️ highlights step failed, continue"
-            git add news_status.json date.json status.json
+            python update_scores.py || echo "⚠️ scores step failed, continue"
+            git add news_status.json date.json status.json scores.json
             if git diff --staged --quiet; then
               echo "No changes, skipping"; break
             fi

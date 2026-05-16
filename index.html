@@ -103,6 +103,39 @@
   .highlight-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px}
   .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
   .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
+  /* 🎯 動態投資評分引擎 */
+  .score-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(16,185,129,.05));border:1px solid rgba(139,92,246,.25);border-radius:10px}
+  .score-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .score-title{font-size:13px;font-weight:700;color:var(--q2);font-family:'Space Mono',monospace;letter-spacing:1px}
+  .score-subtitle{font-size:10.5px;color:var(--muted)}
+  .score-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--q2);margin-left:auto;background:rgba(139,92,246,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(139,92,246,.22);white-space:nowrap}
+  .score-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .score-tag{font-size:9.5px;padding:3px 8px;background:rgba(15,24,40,.6);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:.3px}
+  .score-tag:hover{border-color:var(--accent1);color:#fff}
+  .score-tag.active{background:rgba(14,165,233,.18);border-color:var(--accent1);color:#fff;font-weight:700}
+  .score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+  .score-card{padding:9px 11px;background:rgba(15,24,40,.55);border:1px solid var(--border);border-left-width:3px;border-radius:5px;display:flex;flex-direction:column;gap:5px;transition:transform .15s,border-color .15s}
+  .score-card:hover{transform:translateX(2px);border-color:var(--accent1)}
+  .sc-head{display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .sc-name{font-family:'Noto Sans TC',sans-serif;font-weight:700;color:#fff;font-size:12px}
+  .sc-name a{color:#fff;text-decoration:none}
+  .sc-name a:hover{color:var(--accent1)}
+  .sc-code{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1)}
+  .sc-total{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;letter-spacing:.5px}
+  .sc-band{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:8px;font-family:'Space Mono',monospace;letter-spacing:.5px}
+  .sc-bars{display:grid;grid-template-columns:38px 1fr 28px;column-gap:5px;row-gap:1px;font-size:9px;font-family:'Space Mono',monospace;align-items:center}
+  .sc-bar-label{color:var(--muted);text-align:right}
+  .sc-bar-track{height:6px;background:rgba(30,45,69,.5);border-radius:3px;overflow:hidden}
+  .sc-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+  .sc-bar-val{color:#cbd5e1;text-align:right;font-size:8.5px}
+  .sc-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+  .sc-flag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700}
+  .sc-flag-high{background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+  .sc-flag-medium{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+  @media(max-width:700px){
+    .score-grid{grid-template-columns:1fr}
+    .sc-total{font-size:16px}
+  }
   /* 💡 AI 全自動投資解讀（幾個有趣的訊號 - 3 欄表格樣式） */
   .signals-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(16,185,129,.04));border:1px solid rgba(0,212,255,.22);border-radius:10px}
   .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
@@ -332,6 +365,17 @@
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
+  <!-- 🎯 動態投資評分引擎 -->
+  <div class="score-section" id="score-section" style="display:none">
+    <div class="score-header">
+      <span class="score-title">🎯 動態投資評分引擎</span>
+      <span class="score-subtitle">7 維度加權 0~100 · 不是投資建議，僅供研究與風險排序</span>
+      <span class="score-meta" id="score-meta">⏱ 載入中…</span>
+    </div>
+    <div class="score-tags" id="score-tags"></div>
+    <div class="score-grid" id="score-grid"></div>
+  </div>
+
   <!-- 💡 AI 全自動投資解讀（散戶人數變化 + 可能原因） -->
   <div class="signals-section" id="signals-section" style="display:none">
     <div class="signals-header">
@@ -584,6 +628,96 @@ function _sortRows(rows, col, dir){
 function renderRanking(){
   renderHolderRanking();
   renderCashRanking();
+}
+
+// =========================================
+// 🎯 動態投資評分引擎 dashboard
+// =========================================
+let _scoreFilter = 'all';
+
+function renderScores(){
+  const sec=document.getElementById('score-section');
+  const grid=document.getElementById('score-grid');
+  const meta=document.getElementById('score-meta');
+  const tags=document.getElementById('score-tags');
+  const sd=window._scoresData;
+  if(!sec||!grid||!sd||!sd.companies){return;}
+  sec.style.display='block';
+
+  if(meta){
+    meta.innerHTML=`⏱ 計算：${sd.lastRun} <span style="opacity:.55;font-size:.85em;margin-left:2px">${sd.tz||'UTC+8'}</span>`;
+  }
+
+  const companies=Object.values(sd.companies);
+
+  // 過濾標籤
+  const tagDefs=[
+    {key:'all',           label:`全部 (${companies.length})`},
+    {key:'top80',         label:'高度研究 ≥80'},
+    {key:'top65',         label:'可觀察 ≥65'},
+    {key:'risk_funding',  label:'⚠️ 高增資風險'},
+    {key:'risk_overheat', label:'⚠️ 短線過熱'},
+  ];
+  const filterFns={
+    all:           c=>true,
+    top80:         c=>c.total>=80,
+    top65:         c=>c.total>=65,
+    risk_funding:  c=>c.riskFlags.some(f=>f.code==='high_funding_risk'),
+    risk_overheat: c=>c.riskFlags.some(f=>f.code==='short_term_overheated'),
+  };
+
+  if(tags){
+    tags.innerHTML=tagDefs.map(t=>{
+      const cnt=companies.filter(filterFns[t.key]).length;
+      const active=(_scoreFilter===t.key)?'active':'';
+      return `<span class="score-tag ${active}" data-key="${t.key}">${t.label}${t.key!=='all'?' ('+cnt+')':''}</span>`;
+    }).join('');
+    tags.querySelectorAll('.score-tag').forEach(el=>{
+      el.addEventListener('click',()=>{_scoreFilter=el.dataset.key;renderScores();});
+    });
+  }
+
+  // 套用過濾並依分數排序
+  const filtered=companies
+    .filter(filterFns[_scoreFilter]||filterFns.all)
+    .sort((a,b)=>b.total-a.total);
+
+  // 元件名稱對應
+  const compLabels={
+    catalyst:'催化', cashRunway:'現金', pricePosition:'股價',
+    trend:'趨勢', shareholder:'籌碼', newsSentiment:'新聞', clinicalCredibility:'臨床'
+  };
+  const compColors={
+    catalyst:'#ef4444', cashRunway:'#10b981', pricePosition:'#0ea5e9',
+    trend:'#8b5cf6', shareholder:'#f59e0b', newsSentiment:'#22d3ee', clinicalCredibility:'#ec4899'
+  };
+
+  grid.innerHTML=filtered.map(c=>{
+    const band=c.band||{};
+    const flagsHtml=(c.riskFlags||[]).map(f=>
+      `<span class="sc-flag ${f.severity==='high'?'sc-flag-high':'sc-flag-medium'}">${f.label}</span>`
+    ).join('');
+    const barsHtml=Object.entries(c.components).map(([k,v])=>{
+      const color=compColors[k]||'#cbd5e1';
+      return `<span class="sc-bar-label">${compLabels[k]||k}</span>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${v}%;background:${color}"></div></div>
+        <span class="sc-bar-val">${v}</span>`;
+    }).join('');
+    return `<div class="score-card" style="border-left-color:${band.color||'#888'}">
+      <div class="sc-head">
+        <span>
+          <span class="sc-name"><a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank">${c.name}</a></span>
+          <span class="sc-code">${c.code}</span>
+        </span>
+        <span>
+          <span class="sc-total" style="color:${band.color||'#fff'}">${c.total}</span>
+          <span class="sc-band" style="background:${band.color}33;color:${band.color}">${band.label||''}</span>
+        </span>
+      </div>
+      <div class="sc-bars">${barsHtml}</div>
+      ${flagsHtml?`<div class="sc-flags">${flagsHtml}</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 // =========================================
@@ -1339,9 +1473,12 @@ Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
   fetch('news_status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('date.json?v='+Date.now()).then(r=>r.json()),
-  fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}}))
-]).then(([statusData, newsData, timelineData, cashflowData])=>{
+  fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
+  fetch('scores.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}}))
+]).then(([statusData, newsData, timelineData, cashflowData, scoresData])=>{
   window._cashflowData = cashflowData;
+  window._scoresData = scoresData;
+  setTimeout(()=>{ try { renderScores(); } catch(e){ console.warn('renderScores fail', e); } }, 0);
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;

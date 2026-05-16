@@ -1,0 +1,133 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-16",
+  "totalWeights": {
+    "catalyst":         0.25,
+    "cashRunway":       0.20,
+    "pricePosition":    0.15,
+    "trend":            0.10,
+    "shareholder":      0.10,
+    "newsSentiment":    0.10,
+    "clinicalCredibility": 0.10
+  },
+  "catalyst": {
+    "eventTypeWeights": {
+      "tag-approval":   100,
+      "tag-resolve":     95,
+      "tag-license":     80,
+      "tag-data":        70,
+      "tag-phase":       60,
+      "tag-conference":  45
+    },
+    "timeProximityBoost": {
+      "within7d":     1.30,
+      "within30d":    1.15,
+      "within90d":    1.00,
+      "within180d":   0.80,
+      "beyond180d":   0.55
+    },
+    "clinicalStageBoost": {
+      "3期":          1.20,
+      "2b期":         1.10,
+      "2期":          1.00,
+      "1b期":         0.90,
+      "1期":          0.75,
+      "前臨床":        0.50
+    },
+    "statusMultiplier": {
+      "已公布":       1.10,
+      "已進入審查":    1.05,
+      "預計中":       1.00,
+      "延後待確認":    0.70,
+      "無新進度":     0.50
+    },
+    "highlightThisWeekBoost": 1.10
+  },
+  "cashRunway": {
+    "monthThresholds": {
+      "excellent":    36,
+      "good":         24,
+      "moderate":     18,
+      "warning":      12,
+      "critical":      6
+    },
+    "scoreMap": {
+      "excellent":   100,
+      "good":         85,
+      "moderate":     65,
+      "warning":      40,
+      "critical":     15
+    },
+    "positiveOCFBonus": 15
+  },
+  "pricePosition": {
+    "distFromHigh_scoreMap": {
+      "withinPct5":    50,
+      "withinPct15":   70,
+      "withinPct30":   90,
+      "withinPct50":   75,
+      "beyondPct50":   55
+    },
+    "shortTermSurge_penalty": {
+      "gain20d_gt40":  -25,
+      "gain20d_gt25":  -10,
+      "gain20d_lt5":   5
+    }
+  },
+  "trend": {
+    "maAlignment_perfect_bull":    100,
+    "maAlignment_above_ma60":       75,
+    "maAlignment_below_ma60":       50,
+    "maAlignment_below_ma120":      35,
+    "maAlignment_perfect_bear":     15,
+    "volumeSurgeBonus":             10
+  },
+  "shareholder": {
+    "bigHolderHolders_increase":    15,
+    "bigHolderHolders_decrease":   -15,
+    "bigHolderShares_increase":     10,
+    "bigHolderShares_decrease":    -10,
+    "totalShareholder_increase":    10,
+    "totalShareholder_decrease":   -10,
+    "shareDilution_penalty_per5":  -15
+  },
+  "newsSentiment": {
+    "catalystNewsBonus":            30,
+    "neutralNewsBaseline":          50,
+    "negativeNewsPenalty":         -30,
+    "newsRecencyBoost_within7d":   1.20,
+    "newsRecencyBoost_within14d":  1.00,
+    "noNewsScore":                  40
+  },
+  "clinicalCredibility": {
+    "stagePoints": {
+      "藥證":   100,
+      "3期":    85,
+      "2b期":   75,
+      "2期":    65,
+      "1b期":   55,
+      "1期":    45,
+      "前臨床":  25
+    },
+    "delayPenalty_per_event":      -15,
+    "internationalPartnerBonus":   10,
+    "orphanDrugBonus":             8,
+    "btdBonus":                    12
+  },
+  "riskGates": {
+    "cashRunwayMonthsThreshold":   12,
+    "shortTermSurgePct":           40,
+    "shortTermSurgeDays":          20,
+    "catalystTooFarDays":          180,
+    "catalystTooFarPriceRisePct":   60,
+    "clinicalDelayCountThreshold":  2,
+    "annualDilutionThresholdPct":   15
+  },
+  "scoreBands": [
+    {"min": 80, "max": 100, "label": "高度研究名單", "color": "#10b981"},
+    {"min": 65, "max": 79,  "label": "可觀察進場",   "color": "#22d3ee"},
+    {"min": 50, "max": 64,  "label": "觀察",         "color": "#f59e0b"},
+    {"min": 35, "max": 49,  "label": "風險升高",     "color": "#f97316"},
+    {"min":  0, "max": 34,  "label": "暫不考慮",     "color": "#ef4444"}
+  ]
+}
