@@ -154,7 +154,7 @@ def calculate_cash_runway_score(company, cashflow_entry, weights):
 
 
 def calculate_price_position_score(company, weights):
-    """A3: 股價位置分數"""
+    """A3: 股價位置分數（用 240 日高點與精確 20 日漲幅）"""
     cfg = weights["pricePosition"]
     hist = company.get("priceHistory", []) or []
     if len(hist) < 2:
@@ -165,7 +165,7 @@ def calculate_price_position_score(company, weights):
         return 50, {"reason": "no closes"}
 
     curr = closes[-1]
-    high_240d = max(closes)  # 我們目前只有 5 日歷史，未來擴充
+    high_240d = max(closes)  # 全部資料的最大值 = 240 日高點（若有 240 筆）
     pct_below_high = (high_240d - curr) / high_240d * 100 if high_240d > 0 else 0
 
     # 距離高點分數
@@ -176,18 +176,25 @@ def calculate_price_position_score(company, weights):
     elif pct_below_high < 50: score = cfg["distFromHigh_scoreMap"]["withinPct50"]
     else:                     score = cfg["distFromHigh_scoreMap"]["beyondPct50"]
 
-    # 短期漲幅修正
-    if len(closes) >= 2:
-        gain_20d = (curr - closes[0]) / closes[0] * 100
+    # 精確 20 日漲幅（若資料 ≥ 21 筆，取 -21 位的價格做基準）
+    if len(closes) >= 21:
+        base_20d = closes[-21]
+        gain_20d = (curr - base_20d) / base_20d * 100 if base_20d else 0
+    elif len(closes) >= 2:
+        gain_20d = (curr - closes[0]) / closes[0] * 100 if closes[0] else 0
+    else:
+        gain_20d = None
+
+    if gain_20d is not None:
         sp = cfg["shortTermSurge_penalty"]
         if gain_20d > 40:    score += sp["gain20d_gt40"]
         elif gain_20d > 25:  score += sp["gain20d_gt25"]
         elif gain_20d < 5:   score += sp["gain20d_lt5"]
-        meta = {"gain_20d": gain_20d, "pct_below_high": pct_below_high}
-    else:
-        meta = {"pct_below_high": pct_below_high}
 
-    return clamp(score), meta
+    return clamp(score), {
+        "gain_20d": gain_20d, "pct_below_high": pct_below_high,
+        "data_points": len(closes), "high_240d": high_240d
+    }
 
 
 def calculate_trend_score(company, weights):

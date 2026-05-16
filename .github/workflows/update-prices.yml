@@ -107,11 +107,14 @@ jobs:
           for i in 1 2 3 4 5; do
             git pull --rebase origin main 2>/dev/null || git pull origin main || true
             python update_holders.py
-            git add holders.json holders_history.json status.json
+            pip install yfinance --quiet || true
+            python update_cashflow.py || echo "⚠️ cashflow step failed, continue"
+            python update_scores.py || echo "⚠️ scores step failed, continue"
+            git add holders.json holders_history.json cashflow.json scores.json status.json
             if git diff --staged --quiet; then
               echo "No changes, skipping"; break
             fi
-            MSG="自動更新千張大戶統計 $(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
+            MSG="週六自動更新（千張+現金+評分）$(TZ='Asia/Taipei' date '+%Y/%m/%d %H:%M')"
             git commit -m "$MSG"
             if git push 2>&1; then
               echo "✅ Push success"; break

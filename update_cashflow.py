@@ -233,17 +233,31 @@ def main():
             cf = fetch_yf(code)
             time.sleep(0.3)
 
+        existing_entry = existing.get(code, {})
         if cf:
-            result["companies"][code] = cf
-            ca25 = (cf.get("cash_2025") or {}).get("value")
-            ca26 = (cf.get("cash_2026") or {}).get("value")
+            # 合併策略：yfinance 為主，但保留現有 Goodinfo cash_* 若 yfinance 沒抓到
+            merged = dict(cf)
+            if not (merged.get("cash_2025") or {}).get("value") and (existing_entry.get("cash_2025") or {}).get("value"):
+                merged["cash_2025"] = existing_entry["cash_2025"]
+            if not (merged.get("cash_2026") or {}).get("value") and (existing_entry.get("cash_2026") or {}).get("value"):
+                merged["cash_2026"] = existing_entry["cash_2026"]
+            # 標註多元來源
+            if merged.get("cash_2025") and (existing_entry.get("cash_2025") or {}).get("period") and not (cf.get("cash_2025") or {}).get("value"):
+                merged["source"] = "yfinance+goodinfo"
+            result["companies"][code] = merged
+            ca25 = (merged.get("cash_2025") or {}).get("value")
+            ca26 = (merged.get("cash_2026") or {}).get("value")
             s25 = f"{ca25/1e8:.2f}億" if ca25 else "—"
             s26 = f"{ca26/1e8:.2f}億" if ca26 else "—"
             print(f"✅ 2025現金={s25} 2026現金={s26}")
             auto_ok += 1
-        elif code in existing and (existing[code].get("cash_2025") or existing[code].get("cash_2026")):
-            result["companies"][code] = existing[code]
-            print(f"📝 沿用手動")
+        elif (existing_entry.get("cf_2025") or existing_entry.get("cf_2026")
+              or existing_entry.get("cash_2025") or existing_entry.get("cash_2026")):
+            # 沿用既有手動/Goodinfo 資料
+            result["companies"][code] = existing_entry
+            ca25 = (existing_entry.get("cash_2025") or {}).get("value")
+            s25 = f"{ca25/1e8:.2f}億" if ca25 else "?"
+            print(f"📝 沿用既有資料 (cash_2025={s25})")
             manual_kept += 1
         else:
             result["companies"][code] = {

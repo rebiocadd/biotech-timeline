@@ -43,14 +43,15 @@ HEADERS = {
 
 # ── 來源0：Yahoo Finance（穩定備援，全球可用）─────────────────
 def fetch_yahoo(code):
-    """從 Yahoo Finance 取收盤價 + 近 5 日歷史
-    回傳 (close, chg, history) 其中 history = [{"date":"MM/DD","close":float}, ...] 最多 5 筆
+    """從 Yahoo Finance 取收盤價 + 近 240 個交易日歷史
+    回傳 (close, chg, history) 其中 history = [{"date":"MM/DD","close":float}, ...] 最多 240 筆
     """
     for suffix in ('.TW', '.TWO'):
         try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}{suffix}?interval=1d&range=10d"
+            # range=1y → 約 240 個交易日（用來計算 MA60/120/240 與 240 日高低點）
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}{suffix}?interval=1d&range=1y"
             req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=12) as r:
+            with urllib.request.urlopen(req, timeout=15) as r:
                 data = json.loads(r.read().decode("utf-8"))
             result = (data.get("chart", {}) or {}).get("result") or []
             if not result:
@@ -69,8 +70,8 @@ def fetch_yahoo(code):
                 pairs.append((dt.strftime("%m/%d"), round(float(c), 2)))
             if not pairs:
                 continue
-            # 只保留最近 5 個交易日
-            pairs = pairs[-5:]
+            # 保留最多 240 個交易日
+            pairs = pairs[-240:]
             history = [{"date": d, "close": c} for d, c in pairs]
             close = pairs[-1][1]
             prev = pairs[-2][1] if len(pairs) >= 2 else close

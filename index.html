@@ -1323,7 +1323,9 @@ function renderHighlights(){
     const reason=ev.highlightReason||ev.catalystReason||ev.detail?.substring(0,80)+'...'||'';
     // 近 5 日收盤價條帶（含逐日漲跌著色：紅漲綠跌）
     // 桌面：5 格全顯；手機：用 .hp-hide-mobile 隱藏前 2 格，只剩最近 3 格
-    const ph=c.priceHistory||[];
+    // priceHistory 可能有 240 筆，只取最後 5 筆顯示
+    const phFull=c.priceHistory||[];
+    const ph=phFull.slice(-5);
     let pricesHtml='';
     if(ph.length){
       const total=ph.length;
