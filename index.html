@@ -174,6 +174,9 @@
   .ranking-tbl thead th::after{content:' ⇅';opacity:.3;font-size:9px}
   .ranking-tbl thead th.sort-asc::after{content:' ▲';opacity:1;color:#ef4444}
   .ranking-tbl thead th.sort-desc::after{content:' ▼';opacity:1;color:#ef4444}
+  .ranking-tbl thead th.no-sort{cursor:default}
+  .ranking-tbl thead th.no-sort::after{content:''}
+  .ranking-tbl thead th.no-sort:hover{background:#0a1124;color:var(--accent4)}
   .ranking-tbl tbody td{background:#0f1828;color:var(--text)}
   .ranking-tbl tbody tr:last-child td{border-bottom:none}
   .ranking-tbl tbody tr:hover td{background:#13243f}
@@ -799,19 +802,23 @@ function renderHolderRanking(){
   const dW1=(rows[0]&&rows[0].w1_date)||'上週';
   const dW2=(rows[0]&&rows[0].w2_date)||'兩週前';
 
+  // 注意：# 欄使用獨立 key='rank' 不可排序，避免與 w0_h 衝突
+  // 每個週度欄位各自綁定 w0_h / w1_h / w2_h，可獨立排序
   const cols=[
-    {key:'w0_h',  label:'#',           stickyClass:'sticky-col sticky-1'},
-    {key:'code',  label:'代號',         stickyClass:'sticky-col sticky-2'},
-    {key:'name',  label:'公司',         stickyClass:'sticky-col sticky-3'},
-    {key:'w0_h',  label:dW0+' 總股東',  stickyClass:''},
-    {key:'w1_h',  label:dW1+' 總股東',  stickyClass:''},
-    {key:'w2_h',  label:dW2+' 總股東',  stickyClass:''},
+    {key:'rank', label:'#',           stickyClass:'sticky-col sticky-1', noSort:true},
+    {key:'code', label:'代號',         stickyClass:'sticky-col sticky-2'},
+    {key:'name', label:'公司',         stickyClass:'sticky-col sticky-3'},
+    {key:'w0_h', label:dW0+' 總股東',  stickyClass:''},
+    {key:'w1_h', label:dW1+' 總股東',  stickyClass:''},
+    {key:'w2_h', label:dW2+' 總股東',  stickyClass:''},
   ];
 
   let theadHtml='<tr>';
   cols.forEach((c)=>{
-    const cls=(_rankSortColA===c.key)?(_rankSortDirA===1?'sort-asc':'sort-desc'):'';
-    theadHtml+=`<th class="${c.stickyClass} ${cls}" data-col="${c.key}">${c.label}</th>`;
+    const isActive=(!c.noSort && _rankSortColA===c.key);
+    const cls=isActive?(_rankSortDirA===1?'sort-asc':'sort-desc'):'';
+    const noSortCls=c.noSort?'no-sort':'';
+    theadHtml+=`<th class="${c.stickyClass} ${cls} ${noSortCls}" data-col="${c.key}">${c.label}</th>`;
   });
   theadHtml+='</tr>';
   thead.innerHTML=theadHtml;
@@ -843,6 +850,7 @@ function renderHolderRanking(){
   tbody.innerHTML=tbodyHtml;
 
   thead.querySelectorAll('th').forEach(th=>{
+    if(th.classList.contains('no-sort')) return;  // # 欄不參與排序
     th.addEventListener('click',()=>{
       const col=th.dataset.col;
       if(_rankSortColA===col) _rankSortDirA*=-1;
