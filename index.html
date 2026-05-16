@@ -199,7 +199,10 @@
   .ranking-tbl .col-name a:hover{text-decoration:underline;color:var(--accent1)}
   .ranking-tbl .col-h{color:var(--accent1);font-weight:700;min-width:80px}
   .ranking-tbl .col-chg{font-weight:700;min-width:80px;font-size:10.5px}
-  .ranking-tbl .col-cf{font-weight:700;min-width:115px}
+  .ranking-tbl .col-cf{font-weight:700;min-width:140px}
+  /* 現金流表格（B）需要 4 欄年度資料，獨立加寬 */
+  #cash-rank-tbl{min-width:760px}
+  #cash-rank-tbl .col-cf{min-width:150px}
   .rk-cf-pos{color:#ef4444}
   .rk-cf-neg{color:#10b981}
   .rk-cf-na{color:var(--muted);opacity:.55}
@@ -211,12 +214,16 @@
     .ranking-tbl thead th{font-size:9px;letter-spacing:0}
     .ranking-tbl thead th::after{font-size:7px}
     .ranking-tbl .col-name{font-size:10px;letter-spacing:-.3px}
-    .ranking-tbl .col-h,.ranking-tbl .col-chg,.ranking-tbl .col-cf{font-size:9.5px;min-width:0}
+    .ranking-tbl .col-h,.ranking-tbl .col-chg{font-size:9.5px;min-width:0}
+    .ranking-tbl .col-cf{font-size:9.5px;min-width:110px}
+    /* 手機現金流表格：4 欄年度資料，總寬 ~550px，啟用橫向捲動 */
+    #cash-rank-tbl{min-width:560px}
+    #cash-rank-tbl .col-cf{min-width:120px}
     .ranking-tbl .sticky-1{min-width:24px;width:24px}
     .ranking-tbl .sticky-2{left:24px;min-width:40px;width:40px}
     /* 手機第三欄：5 中文字 × 10px = 50 + padding 6 ≈ 56px */
     .ranking-tbl .sticky-3{left:64px;min-width:56px;width:56px;overflow:hidden}
-    .rk-cf-year{font-size:7px;margin-left:1px}
+    .rk-cf-year{font-size:7.5px;margin-left:1px}
     .rk-chg-inline{font-size:8px}
   }
   /* 近 5 日收盤價條帶：放在右側 */
@@ -456,7 +463,7 @@
       <!-- 💰 現金流餘額排行 -->
       <div class="ranking-header" style="margin-top:18px">
         <span class="ranking-title" id="ranking-title-B" style="color:var(--accent3)">💰 現金流餘額排行</span>
-        <span class="ranking-subtitle">2025 現金為主排序 · 點欄位標題排序</span>
+        <span class="ranking-subtitle">2026 現金為主排序 · 點任一年度欄位可重新排序</span>
         <span class="ranking-meta" id="cash-rank-meta" title="2025 來自年度資產負債表&#10;興櫃資料來自 Goodinfo">⏱ 抓取中…</span>
       </div>
       <div class="ranking-wrap">
