@@ -134,7 +134,7 @@
   .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
   .ranking-meta:hover{background:rgba(245,158,11,.18)}
   .ranking-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;max-width:100%}
-  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:500px;font-family:'Space Mono',monospace;font-size:11px}
+  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:380px;font-family:'Space Mono',monospace;font-size:11px;table-layout:fixed}
   .ranking-tbl th,.ranking-tbl td{padding:5px 8px;border-bottom:1px solid rgba(30,45,69,.5);white-space:nowrap;text-align:right;vertical-align:middle}
   .ranking-tbl thead th{background:#0a1124;color:var(--accent4);font-size:10.5px;letter-spacing:.5px;font-weight:700;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
   .ranking-tbl thead th:hover{background:rgba(245,158,11,.15);color:#fff}
@@ -148,10 +148,10 @@
   .ranking-tbl th.sticky-col,.ranking-tbl td.sticky-col{position:sticky;background:#0a1124}
   .ranking-tbl tbody td.sticky-col{background:#0f1828}
   .ranking-tbl tbody tr:hover td.sticky-col{background:#13243f}
-  .ranking-tbl .sticky-1{left:0;min-width:36px;width:36px;z-index:2}
-  .ranking-tbl .sticky-2{left:36px;min-width:56px;width:56px;z-index:2}
-  /* 第三欄寬度剛好容納 4 個中文字（4×12px ≈ 48 + padding 12 = 60px）*/
-  .ranking-tbl .sticky-3{left:92px;min-width:62px;width:62px;z-index:2;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .ranking-tbl .sticky-1{left:0;min-width:34px;width:34px;z-index:2}
+  .ranking-tbl .sticky-2{left:34px;min-width:54px;width:54px;z-index:2}
+  /* 第三欄：剛好 4 中文字（4×11.5 = 46 + padding 16 = 62px） */
+  .ranking-tbl .sticky-3{left:88px;min-width:58px;width:58px;z-index:2;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.4);overflow:hidden}
   .ranking-tbl thead .sticky-col{z-index:3}
   /* 各欄樣式 */
   .ranking-tbl .col-rank{color:var(--muted);font-weight:700;text-align:right}
@@ -174,9 +174,9 @@
     .ranking-tbl th,.ranking-tbl td{padding:4px 6px}
     .ranking-tbl .col-name{font-size:10.5px}
     .ranking-tbl .sticky-1{min-width:28px;width:28px}
-    .ranking-tbl .sticky-2{left:28px;min-width:48px;width:48px}
-    /* 手機第三欄：4 中文字 × 10px = 40 + padding 12 ≈ 52px */
-    .ranking-tbl .sticky-3{left:76px;min-width:54px;width:54px}
+    .ranking-tbl .sticky-2{left:28px;min-width:46px;width:46px}
+    /* 手機第三欄：4 中文字 × 10.5 = 42 + padding 8 ≈ 50px */
+    .ranking-tbl .sticky-3{left:74px;min-width:50px;width:50px;overflow:hidden}
     .rk-cf-year{font-size:7.5px}
   }
   /* 近 5 日收盤價條帶：放在右側 */
