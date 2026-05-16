@@ -436,10 +436,10 @@
         <tbody id="holders-body"></tbody>
       </table>
     </div>
-    <!-- 🏆 25 家總股東排行 -->
+    <!-- 🏆 總股東排行 -->
     <div class="ranking-section" id="ranking-section" style="display:none">
       <div class="ranking-header">
-        <span class="ranking-title">🏆 25 家總股東排行</span>
+        <span class="ranking-title" id="ranking-title-A">🏆 總股東排行</span>
         <span class="ranking-subtitle">前 3 欄固定 · 點欄位標題排序</span>
         <span class="ranking-meta" id="ranking-meta" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
       </div>
@@ -450,9 +450,9 @@
         </table>
       </div>
 
-      <!-- 💰 25 家現金流餘額排行 -->
+      <!-- 💰 現金流餘額排行 -->
       <div class="ranking-header" style="margin-top:18px">
-        <span class="ranking-title" style="color:var(--accent3)">💰 25 家現金流餘額排行</span>
+        <span class="ranking-title" id="ranking-title-B" style="color:var(--accent3)">💰 現金流餘額排行</span>
         <span class="ranking-subtitle">2025 現金為主排序 · 點欄位標題排序</span>
         <span class="ranking-meta" id="cash-rank-meta" title="2025 來自年度資產負債表&#10;興櫃資料來自 Goodinfo">⏱ 抓取中…</span>
       </div>
@@ -510,18 +510,26 @@ const LEVEL_TABS=[
 let _currentLevel='1000k+';
 
 function renderHolderRow(r){
-  const chText=r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`;
+  const dash = `<span style="color:var(--muted);opacity:.55">—</span>`;
+  const noData = (r.total_h === 0 && r.curr_h === 0);  // 新加公司無 TDCC 資料
+  const chText = noData ? dash :
+    (r.dh===0?'<span class="h-flat">持平</span>':`<span class="${r.dh>0?'h-up':'h-dn'}">${r.dh>0?'▲':'▼'} ${r.dh>0?'+':''}${r.dh}人</span>`);
   // 總股東 + 週變化（簡短形式）
-  const thChg = r.dth===0 ? '' :
+  const thChg = (noData || r.dth===0) ? '' :
     `<span class="${r.dth>0?'h-up':'h-dn'}" style="font-size:.78em;margin-left:4px;opacity:.85">${r.dth>0?'▲':'▼'}${r.dth>0?'+':''}${r.dth.toLocaleString()}</span>`;
-  // 第一欄合併：代號（小字, accent 色）+ 公司（白字, 較大）兩行
+  // 第一欄合併：代號 + 公司
   const firstCell=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" class="h-code">${r.code}</a><span class="h-name">${r.name}</span>`;
   return `<tr>
     <td>${firstCell}</td>
-    <td>${r.curr_h}人</td><td>${r.prev_h}人</td><td>${chText}</td>
-    <td>${fmt(r.curr_s)}</td><td>${fmt(r.prev_s)}</td><td>${diffHtml(r.ds)}</td>
-    <td>${fmt(r.total_h)}${thChg}</td>
-    <td>${fmt(r.total_s)}</td><td>${r.pct.toFixed(1)}%</td>
+    <td>${noData?dash:(r.curr_h+'人')}</td>
+    <td>${noData?dash:(r.prev_h+'人')}</td>
+    <td>${chText}</td>
+    <td>${noData?dash:fmt(r.curr_s)}</td>
+    <td>${noData?dash:fmt(r.prev_s)}</td>
+    <td>${noData?dash:diffHtml(r.ds)}</td>
+    <td>${noData?dash:(fmt(r.total_h)+thChg)}</td>
+    <td>${noData?dash:fmt(r.total_s)}</td>
+    <td>${(noData||!isFinite(r.pct))?dash:(r.pct.toFixed(1)+'%')}</td>
   </tr>`;
 }
 
@@ -592,9 +600,10 @@ let _rankSortColA='total_h', _rankSortDirA=-1;       // 總股東排行
 let _rankSortColB='cash_2025', _rankSortDirB=-1;     // 現金餘額排行
 
 // 共用：把 _hData + cashflow.json 整理成 row 陣列
+// 全部公司都納入（即使 total_h=0 也保留，會以 — 顯示）
 function _buildRankingRows(){
   const cfData=(window._cashflowData||{}).companies||{};
-  return _hData.filter(r=>r.total_h>0).map(r=>{
+  return _hData.map(r=>{
     const cf=cfData[r.code]||{};
     const c25=cf.cash_2025||{};
     const c26=cf.cash_2026||{};
@@ -747,6 +756,10 @@ function renderHolderRanking(){
   if(!rows.length){sec.style.display='none';return;}
   sec.style.display='block';
 
+  // 動態更新標題
+  const titleEl=document.getElementById('ranking-title-A');
+  if(titleEl) titleEl.textContent=`🏆 ${rows.length} 家總股東排行`;
+
   // 排名固定依 total_h 由大到小
   const rankBy={};
   [...rows].sort((a,b)=>b.total_h-a.total_h).forEach((r,i)=>{rankBy[r.code]=i+1;});
@@ -772,15 +785,19 @@ function renderHolderRanking(){
   let tbodyHtml='';
   for(const r of rows){
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
+    // 沒資料時顯示 — 而非 0
+    const hasData = r.total_h > 0;
+    const totalHtml = hasData ? fmt(r.total_h) : `<span class="rk-cf-na">—</span>`;
     let chgHtml;
-    if(r.dth>0) chgHtml=`<span class="h-up">▲+${r.dth.toLocaleString()}</span>`;
+    if(!hasData) chgHtml=`<span class="rk-cf-na">—</span>`;
+    else if(r.dth>0) chgHtml=`<span class="h-up">▲+${r.dth.toLocaleString()}</span>`;
     else if(r.dth<0) chgHtml=`<span class="h-dn">▼${r.dth.toLocaleString()}</span>`;
     else chgHtml=`<span style="color:var(--muted)">＝</span>`;
     tbodyHtml+=`<tr>
       <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
       <td class="sticky-col sticky-3 col-name">${r.name}</td>
-      <td class="col-h">${fmt(r.total_h)}</td>
+      <td class="col-h">${totalHtml}</td>
       <td class="col-chg">${chgHtml}</td>
     </tr>`;
   }
@@ -817,6 +834,10 @@ function renderCashRanking(){
 
   const rows=_buildRankingRows();
   if(!rows.length) return;
+
+  // 動態更新標題
+  const titleEl=document.getElementById('ranking-title-B');
+  if(titleEl) titleEl.textContent=`💰 ${rows.length} 家現金流餘額排行`;
 
   // 排名固定依 cash_2025 由大到小（null 排最後）
   const rankBy={};
