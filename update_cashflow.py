@@ -48,8 +48,29 @@ def annual_label(dt):
     return f"{dt.year} 年報"
 
 
+OCF_KEYS = (
+    'Operating Cash Flow',
+    'Total Cash From Operating Activities',
+    'Cash Flow From Continuing Operating Activities',
+)
+
+
+def _extract_ocf(df, col):
+    """從 DataFrame 抽出指定欄位的 OCF；找不到回 None"""
+    for k in OCF_KEYS:
+        if k in df.index:
+            v = df.loc[k, col]
+            try:
+                v = float(v)
+                if v == v:  # not NaN
+                    return v
+            except Exception:
+                pass
+    return None
+
+
 def fetch_yf(code):
-    """用 yfinance 抓現金流 + 現金部位（僅上市有效）"""
+    """用 yfinance 抓 2025 年報 + 2026 YTD（累計各季）+ 現金部位"""
     try:
         import yfinance as yf
     except ImportError:
@@ -61,57 +82,78 @@ def fetch_yf(code):
             q_cf = t.quarterly_cashflow
             y_cf = t.cashflow
 
-            chosen_series = None
-            period = None
-            ptype = None
+            cf_2025 = None
+            cf_2026 = None
 
-            # 優先用季度資料
-            if q_cf is not None and not q_cf.empty:
-                latest_col = q_cf.columns[0]
-                chosen_series = q_cf[latest_col]
-                period = quarter_label(latest_col.to_pydatetime() if hasattr(latest_col, 'to_pydatetime') else None)
-                ptype = "Q"
-            elif y_cf is not None and not y_cf.empty:
-                latest_col = y_cf.columns[0]
-                chosen_series = y_cf[latest_col]
-                period = annual_label(latest_col.to_pydatetime() if hasattr(latest_col, 'to_pydatetime') else None)
-                ptype = "Y"
-            else:
-                continue
-
-            # OCF
-            ocf = None
-            for k in ('Operating Cash Flow', 'Total Cash From Operating Activities',
-                      'Cash Flow From Continuing Operating Activities'):
-                if k in chosen_series.index:
-                    v = chosen_series[k]
-                    if v is not None and not (isinstance(v, float) and (v != v)):  # NaN check
-                        ocf = float(v)
+            # 2025 年報（從年度資料）
+            if y_cf is not None and not y_cf.empty:
+                for col in y_cf.columns:
+                    if hasattr(col, 'year') and col.year == 2025:
+                        ocf = _extract_ocf(y_cf, col)
+                        if ocf is not None:
+                            cf_2025 = {"period": "2025 年報", "operating_cf": ocf}
                         break
 
-            # 現金部位（從 balance sheet）
+            # 若年報沒有，從季度合計 2025 全年
+            if cf_2025 is None and q_cf is not None and not q_cf.empty:
+                qs_2025 = [c for c in q_cf.columns if hasattr(c, 'year') and c.year == 2025]
+                if qs_2025:
+                    total = 0
+                    cnt = 0
+                    for col in qs_2025:
+                        v = _extract_ocf(q_cf, col)
+                        if v is not None:
+                            total += v
+                            cnt += 1
+                    if cnt > 0:
+                        cf_2025 = {"period": f"2025 (Q1-Q{cnt})", "operating_cf": total}
+
+            # 2026 YTD：累計可得的 2026 季度
+            if q_cf is not None and not q_cf.empty:
+                qs_2026 = sorted([c for c in q_cf.columns if hasattr(c, 'year') and c.year == 2026])
+                if qs_2026:
+                    total = 0
+                    quarters = []
+                    for col in qs_2026:
+                        v = _extract_ocf(q_cf, col)
+                        if v is not None:
+                            total += v
+                            q_num = (col.month - 1) // 3 + 1
+                            quarters.append(f"Q{q_num}")
+                    if quarters:
+                        cf_2026 = {
+                            "period": f"2026 {'-'.join(quarters) if len(quarters) > 1 else quarters[0]}",
+                            "operating_cf": total
+                        }
+
+            # 現金部位（最新一季）
             cash = None
             try:
                 bs = t.quarterly_balance_sheet
                 if bs is not None and not bs.empty:
                     bcol = bs.columns[0]
-                    for k in ('Cash And Cash Equivalents', 'Cash', 'Cash Cash Equivalents And Short Term Investments'):
+                    for k in ('Cash And Cash Equivalents', 'Cash',
+                              'Cash Cash Equivalents And Short Term Investments'):
                         if k in bs.index:
                             v = bs.loc[k, bcol]
-                            if v is not None and not (isinstance(v, float) and (v != v)):
-                                cash = float(v)
-                                break
+                            try:
+                                v = float(v)
+                                if v == v:
+                                    cash = v
+                                    break
+                            except Exception:
+                                pass
             except Exception:
                 pass
 
-            return {
-                "period": period,
-                "type": ptype,
-                "operating_cf": ocf,
-                "cash_position": cash,
-                "source": "yfinance",
-                "suffix": suffix,
-            }
+            if cf_2025 or cf_2026:
+                return {
+                    "cf_2025": cf_2025,
+                    "cf_2026": cf_2026,
+                    "cash_position": cash,
+                    "source": "yfinance",
+                    "suffix": suffix,
+                }
         except Exception:
             continue
     return None
@@ -154,23 +196,23 @@ def main():
 
         if cf:
             result["companies"][code] = cf
-            ocf_str = f"{cf['operating_cf']/1e8:.2f}億" if cf['operating_cf'] else "N/A"
-            print(f"✅ 自動 {cf['period']} OCF={ocf_str}")
+            ocf25 = (cf.get("cf_2025") or {}).get("operating_cf")
+            ocf26 = (cf.get("cf_2026") or {}).get("operating_cf")
+            s25 = f"{ocf25/1e8:.2f}億" if ocf25 else "—"
+            s26 = f"{ocf26/1e8:.2f}億" if ocf26 else "—"
+            print(f"✅ 2025={s25} 2026={s26}")
             auto_ok += 1
-        elif code in existing and existing[code].get("operating_cf") is not None:
-            # 保留現有手動資料
+        elif code in existing and (existing[code].get("cf_2025") or existing[code].get("cf_2026")):
+            # 沿用手動資料
             result["companies"][code] = existing[code]
-            print(f"📝 沿用手動: {existing[code].get('period', '?')}")
+            print(f"📝 沿用手動")
             manual_kept += 1
         else:
-            # 無資料
             result["companies"][code] = {
-                "period": None,
-                "type": None,
-                "operating_cf": None,
+                "cf_2025": None,
+                "cf_2026": None,
                 "cash_position": None,
                 "source": "manual_pending",
-                "note": "可手動編輯 cashflow.json 補資料",
             }
             no_data.append(f"{code} {name}")
             print("⏳ 待補")

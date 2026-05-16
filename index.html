@@ -126,37 +126,54 @@
     .signals-td{padding:6px 8px;font-size:10.5px}
     .sg-reason{font-size:10px;line-height:1.4}
   }
-  /* 🏆 25 家總股東排行 - 單欄全寬表格 + 表頭排序 */
+  /* 🏆 25 家總股東排行 - 真表格 + 前 3 欄黏性 + 橫向捲動 */
   .ranking-section{margin:20px 0 28px;padding:14px 16px;background:rgba(15,24,40,.4);border:1px solid var(--border);border-radius:8px}
   .ranking-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .ranking-title{font-size:13px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
   .ranking-subtitle{font-size:10.5px;color:var(--muted)}
   .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
   .ranking-meta:hover{background:rgba(245,158,11,.18)}
-  .ranking-grid{display:grid;grid-template-columns:48px 1fr 95px 105px 145px;gap:1px;background:var(--border);border-radius:5px;overflow:hidden;font-size:11.5px}
-  .ranking-th{padding:7px 10px;background:rgba(15,24,40,.85);color:var(--accent4);font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.5px;font-weight:700;cursor:pointer;user-select:none;transition:background .15s;white-space:nowrap;text-align:right}
-  .ranking-th:first-child{text-align:right}
-  .ranking-th[data-col="name"]{text-align:left}
-  .ranking-th:hover{background:rgba(245,158,11,.15);color:#fff}
-  .ranking-th::after{content:' ⇅';opacity:.3;font-size:9px}
-  .ranking-th.sort-asc::after{content:' ▲';opacity:1;color:#ef4444}
-  .ranking-th.sort-desc::after{content:' ▼';opacity:1;color:#ef4444}
-  .ranking-td{padding:6px 10px;background:rgba(15,24,40,.55);font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;justify-content:flex-end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ranking-td.rk-name{justify-content:flex-start;font-family:'Noto Sans TC',sans-serif;color:#fff;font-weight:600;font-size:11.5px}
-  .ranking-td.rk-rank{color:var(--muted);font-weight:700}
-  .ranking-td.rk-num{color:var(--accent1);font-weight:700}
-  .ranking-td.rk-chg-cell{font-weight:700;font-size:10.5px}
-  .ranking-td.rk-cf-cell{font-weight:700;font-size:10.5px}
+  .ranking-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;max-width:100%}
+  .ranking-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:720px;font-family:'Space Mono',monospace;font-size:11.5px}
+  .ranking-tbl th,.ranking-tbl td{padding:7px 11px;border-bottom:1px solid rgba(30,45,69,.5);white-space:nowrap;text-align:right;vertical-align:middle}
+  .ranking-tbl thead th{background:#0a1124;color:var(--accent4);font-size:10.5px;letter-spacing:.5px;font-weight:700;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+  .ranking-tbl thead th:hover{background:rgba(245,158,11,.15);color:#fff}
+  .ranking-tbl thead th::after{content:' ⇅';opacity:.3;font-size:9px}
+  .ranking-tbl thead th.sort-asc::after{content:' ▲';opacity:1;color:#ef4444}
+  .ranking-tbl thead th.sort-desc::after{content:' ▼';opacity:1;color:#ef4444}
+  .ranking-tbl tbody td{background:#0f1828;color:var(--text)}
+  .ranking-tbl tbody tr:last-child td{border-bottom:none}
+  .ranking-tbl tbody tr:hover td{background:#13243f}
+  /* 前 3 欄黏性定位 */
+  .ranking-tbl th.sticky-col,.ranking-tbl td.sticky-col{position:sticky;background:#0a1124}
+  .ranking-tbl tbody td.sticky-col{background:#0f1828}
+  .ranking-tbl tbody tr:hover td.sticky-col{background:#13243f}
+  .ranking-tbl .sticky-1{left:0;min-width:44px;z-index:2}
+  .ranking-tbl .sticky-2{left:44px;min-width:64px;z-index:2}
+  .ranking-tbl .sticky-3{left:108px;min-width:115px;z-index:2;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .ranking-tbl thead .sticky-col{z-index:3}
+  /* 各欄樣式 */
+  .ranking-tbl .col-rank{color:var(--muted);font-weight:700;text-align:right}
+  .ranking-tbl .col-code{color:var(--accent1);font-weight:700;text-align:right}
+  .ranking-tbl .col-code a{color:var(--accent1);text-decoration:none}
+  .ranking-tbl .col-code a:hover{text-decoration:underline}
+  .ranking-tbl .col-name{font-family:'Noto Sans TC',sans-serif;color:#fff;font-weight:600;font-size:12.5px;text-align:left;min-width:115px}
+  .ranking-tbl .col-h{color:var(--accent1);font-weight:700;min-width:140px}
+  .ranking-tbl .col-cf{font-weight:700;min-width:115px}
   .rk-cf-pos{color:#ef4444}
   .rk-cf-neg{color:#10b981}
   .rk-cf-na{color:var(--muted);opacity:.55}
   .rk-cf-year{font-size:8.5px;color:var(--muted);opacity:.7;margin-left:3px;font-weight:normal}
+  .rk-chg-inline{margin-left:6px;font-size:10px}
   @media(max-width:700px){
-    .ranking-grid{grid-template-columns:36px 1fr 75px 78px 110px;font-size:10px}
-    .ranking-th{padding:5px 6px;font-size:9px}
-    .ranking-td{padding:4px 6px;font-size:10px}
-    .ranking-td.rk-name{font-size:10.5px}
+    .ranking-tbl{font-size:10.5px;min-width:600px}
+    .ranking-tbl th,.ranking-tbl td{padding:5px 7px}
+    .ranking-tbl .col-name{font-size:11px;min-width:90px}
+    .ranking-tbl .sticky-1{min-width:32px}
+    .ranking-tbl .sticky-2{left:32px;min-width:50px}
+    .ranking-tbl .sticky-3{left:82px;min-width:95px}
     .rk-cf-year{font-size:7.5px}
+    .rk-chg-inline{font-size:9px}
   }
   /* 近 5 日收盤價條帶：放在右側 */
   .hp-strip{display:flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;flex-shrink:0}
@@ -371,10 +388,15 @@
     <div class="ranking-section" id="ranking-section" style="display:none">
       <div class="ranking-header">
         <span class="ranking-title">🏆 25 家總股東排行</span>
-        <span class="ranking-subtitle">依本週總股東人數由多到少 · 末欄為營業現金流（紅正綠負）</span>
+        <span class="ranking-subtitle">前 3 欄固定 · 其餘可橫向捲動 · 點欄位標題排序</span>
         <span class="ranking-meta" id="ranking-meta" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
       </div>
-      <div class="ranking-grid" id="ranking-grid"></div>
+      <div class="ranking-wrap">
+        <table class="ranking-tbl" id="ranking-tbl">
+          <thead id="ranking-thead"></thead>
+          <tbody id="ranking-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
   <div class="disclaimer-block">
@@ -503,11 +525,12 @@ function fmtCashflow(v){
 // 排行表的排序狀態
 let _rankSortCol='total_h', _rankSortDir=-1;
 
-// 🏆 25 家總股東排行 - 單欄表格 + 表頭排序
+// 🏆 25 家總股東排行 - 真表格 + 前 3 欄黏性 + 2025/2026 分開現金流
 function renderRanking(){
-  const grid=document.getElementById('ranking-grid');
+  const thead=document.getElementById('ranking-thead');
+  const tbody=document.getElementById('ranking-tbody');
   const sec=document.getElementById('ranking-section');
-  if(!grid||!sec) return;
+  if(!thead||!tbody||!sec) return;
   if(!_hData||!_hData.length){sec.style.display='none';return;}
 
   // 更新右上角抓取時間徽章
@@ -524,91 +547,102 @@ function renderRanking(){
     }
   }
 
-  // 整理每一列的資料（合併 holders + cashflow）
+  // 整理每一列
   const cfData=(window._cashflowData||{}).companies||{};
   const rows=_hData.filter(r=>r.total_h>0).map(r=>{
     const cf=cfData[r.code]||{};
+    const cf25=cf.cf_2025||{};
+    const cf26=cf.cf_2026||{};
     return {
       code:r.code, name:r.name,
       total_h:r.total_h, dth:r.dth,
-      operating_cf:(cf.operating_cf!==null&&cf.operating_cf!==undefined)?cf.operating_cf:null,
-      cf_period:cf.period||'',
+      cf_2025: cf25.operating_cf===undefined?null:cf25.operating_cf,
+      cf_2025_period: cf25.period||'',
+      cf_2026: cf26.operating_cf===undefined?null:cf26.operating_cf,
+      cf_2026_period: cf26.period||'',
     };
   });
   if(!rows.length){sec.style.display='none';return;}
   sec.style.display='block';
 
-  // 固定排名：依 total_h 從大到小（即使後續切換排序，rank 不變）
+  // 固定排名：依 total_h 從大到小（無論怎樣排序都不變）
   const rankByTotal={};
   [...rows].sort((a,b)=>b.total_h-a.total_h).forEach((r,i)=>{rankByTotal[r.code]=i+1;});
 
   // 套用當前排序
   rows.sort((a,b)=>{
     let va=a[_rankSortCol], vb=b[_rankSortCol];
-    // null 一律排到底
     const isNullA=(va===null||va===undefined);
     const isNullB=(vb===null||vb===undefined);
     if(isNullA&&isNullB) return 0;
-    if(isNullA) return 1;
+    if(isNullA) return 1;   // null 一律排底
     if(isNullB) return -1;
     if(_rankSortCol==='name'){
       return _rankSortDir*va.localeCompare(vb,'zh-Hant');
     }
+    if(_rankSortCol==='code'){
+      return _rankSortDir*(parseInt(va)-parseInt(vb));
+    }
     return _rankSortDir*(va>vb?1:va<vb?-1:0);
   });
 
-  // 排序欄位定義
+  // 表頭定義
   const cols=[
-    {key:'rank',label:'#',sortKey:'total_h'},  // 點 # 等同排 total_h
-    {key:'name',label:'公司'},
-    {key:'total_h',label:'總股東'},
-    {key:'dth',label:'週變化'},
-    {key:'operating_cf',label:'營業現金流'},
+    {key:'total_h', label:'#',          stickyClass:'sticky-col sticky-1'},
+    {key:'code',    label:'代號',        stickyClass:'sticky-col sticky-2'},
+    {key:'name',    label:'公司',        stickyClass:'sticky-col sticky-3'},
+    {key:'total_h', label:'總股東+週變化', stickyClass:''},
+    {key:'cf_2025', label:'2025 現金流',  stickyClass:''},
+    {key:'cf_2026', label:'2026 現金流',  stickyClass:''},
   ];
 
-  // 表頭
-  let html='';
-  for(const c of cols){
-    const sk=c.sortKey||c.key;
-    const cls=(_rankSortCol===sk)?(_rankSortDir===1?'sort-asc':'sort-desc'):'';
-    html+=`<div class="ranking-th ${cls}" data-col="${sk}">${c.label}</div>`;
-  }
+  // 渲染表頭
+  let theadHtml='<tr>';
+  cols.forEach((c,i)=>{
+    // 第一欄「#」和第四欄「總股東+週變化」都對應 total_h 排序，但要區分點擊
+    const dataCol = (i===0) ? 'rank' : c.key;
+    const cls=(_rankSortCol===c.key && (i===0?_rankSortCol==='total_h':true))?
+              (_rankSortDir===1?'sort-asc':'sort-desc'):'';
+    theadHtml+=`<th class="${c.stickyClass} ${cls}" data-col="${c.key}">${c.label}</th>`;
+  });
+  theadHtml+='</tr>';
+  thead.innerHTML=theadHtml;
 
-  // 資料列
+  // 渲染資料列
+  let tbodyHtml='';
   for(const r of rows){
-    // 排名（永遠對應 total_h 的順序）
-    html+=`<div class="ranking-td rk-rank">${rankByTotal[r.code]}</div>`;
-    // 公司
-    html+=`<div class="ranking-td rk-name">${r.name}</div>`;
-    // 總股東
-    html+=`<div class="ranking-td rk-num">${fmt(r.total_h)}</div>`;
-    // 週變化
-    let chgHtml;
-    if(r.dth>0) chgHtml=`<span class="h-up">▲+${r.dth.toLocaleString()}</span>`;
-    else if(r.dth<0) chgHtml=`<span class="h-dn">▼${r.dth.toLocaleString()}</span>`;
-    else chgHtml=`<span style="color:var(--muted)">＝</span>`;
-    html+=`<div class="ranking-td rk-chg-cell">${chgHtml}</div>`;
-    // 現金流
-    let cfHtml;
-    if(r.operating_cf!==null){
-      const cfStr=fmtCashflow(r.operating_cf);
-      const cls=r.operating_cf>=0?'rk-cf-pos':'rk-cf-neg';
-      const yr=r.cf_period?` <span class="rk-cf-year">(${r.cf_period})</span>`:'';
-      cfHtml=`<span class="${cls}" title="${r.cf_period||''}">${cfStr}${yr}</span>`;
-    } else {
-      cfHtml=`<span class="rk-cf-na" title="尚無資料">—</span>`;
-    }
-    html+=`<div class="ranking-td rk-cf-cell">${cfHtml}</div>`;
-  }
+    const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
+    // 週變化內嵌在總股東後面
+    let chgInline;
+    if(r.dth>0) chgInline=`<span class="h-up rk-chg-inline">▲+${r.dth.toLocaleString()}</span>`;
+    else if(r.dth<0) chgInline=`<span class="h-dn rk-chg-inline">▼${r.dth.toLocaleString()}</span>`;
+    else chgInline=`<span style="color:var(--muted)" class="rk-chg-inline">＝</span>`;
 
-  grid.innerHTML=html;
+    const cfCell = (v, period) => {
+      if(v===null||v===undefined) return `<span class="rk-cf-na">—</span>`;
+      const cfStr=fmtCashflow(v);
+      const cls=v>=0?'rk-cf-pos':'rk-cf-neg';
+      const yr=period?` <span class="rk-cf-year">(${period})</span>`:'';
+      return `<span class="${cls}">${cfStr}${yr}</span>`;
+    };
+
+    tbodyHtml+=`<tr>
+      <td class="sticky-col sticky-1 col-rank">${rankByTotal[r.code]}</td>
+      <td class="sticky-col sticky-2 col-code">${codeLink}</td>
+      <td class="sticky-col sticky-3 col-name">${r.name}</td>
+      <td class="col-h">${fmt(r.total_h)}${chgInline}</td>
+      <td class="col-cf">${cfCell(r.cf_2025, r.cf_2025_period)}</td>
+      <td class="col-cf">${cfCell(r.cf_2026, r.cf_2026_period)}</td>
+    </tr>`;
+  }
+  tbody.innerHTML=tbodyHtml;
 
   // 綁定表頭點擊排序
-  grid.querySelectorAll('.ranking-th').forEach(th=>{
+  thead.querySelectorAll('th').forEach(th=>{
     th.addEventListener('click',()=>{
       const col=th.dataset.col;
       if(_rankSortCol===col) _rankSortDir*=-1;
-      else { _rankSortCol=col; _rankSortDir=-1; }
+      else { _rankSortCol=col; _rankSortDir = (col==='name'||col==='code') ? 1 : -1; }
       renderRanking();
     });
   });
