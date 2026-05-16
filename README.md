@@ -284,7 +284,7 @@ C:\Users\TKCPC\AppData\Roaming\Microsoft\Windows\
 
 ## 🎨 前端功能
 
-### 💡 投資解讀 (Auto-Signals)
+### 💡 AI 全自動投資解讀 (Auto-Signals)
 
 位置：版面頂部（標籤圖例下方）
 
@@ -310,7 +310,7 @@ C:\Users\TKCPC\AppData\Roaming\Microsoft\Windows\
 
 ### ⭐ 本週值得注意 (Highlights)
 
-位置：投資解讀下方、時間軸上方
+位置：AI 全自動投資解讀下方、時間軸上方
 
 - 自動篩選 Top 6 重點事件（依催化強度評分）
 - **規則**：當季 Q2 + 任何季度若被明確標記 (`highlightThisWeek:true`)
@@ -408,7 +408,7 @@ C:\Users\TKCPC\AppData\Roaming\Microsoft\Windows\
 | 18 | 長聖 | 6712 | cart | CAR001 (實體腫瘤) |
 | 19 | 全福生技 | 6885 | nce | BRM421 (乾眼) |
 
-⭐ = 投資解讀 PINNED_SIGNALS 固定觀察
+⭐ = AI 全自動投資解讀 PINNED_SIGNALS 固定觀察
 
 ---
 
