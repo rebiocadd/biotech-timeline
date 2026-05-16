@@ -642,7 +642,9 @@ function renderRanking(){
 // =========================================
 // 🎯 動態投資評分引擎 dashboard
 // =========================================
-let _scoreFilter = 'all';
+// 預設關注名單：藥華藥/康霈/圓祥/藥祇/中裕
+const WATCHLIST_CODES = ['6446', '6919', '6945', '7878', '4147'];
+let _scoreFilter = 'watchlist';  // 預設只顯示關注
 
 function renderScores(){
   const sec=document.getElementById('score-section');
@@ -660,8 +662,10 @@ function renderScores(){
 
   const companies=Object.values(sd.companies);
 
-  // 過濾標籤
+  // 過濾標籤（關注列在最前面、預設選中）
+  const watchlistSet=new Set(WATCHLIST_CODES);
   const tagDefs=[
+    {key:'watchlist',     label:`⭐ 關注 (${WATCHLIST_CODES.length})`},
     {key:'all',           label:`全部 (${companies.length})`},
     {key:'top80',         label:'高度研究 ≥80'},
     {key:'top65',         label:'可觀察 ≥65'},
@@ -669,6 +673,7 @@ function renderScores(){
     {key:'risk_overheat', label:'⚠️ 短線過熱'},
   ];
   const filterFns={
+    watchlist:     c=>watchlistSet.has(c.code),
     all:           c=>true,
     top80:         c=>c.total>=80,
     top65:         c=>c.total>=65,
