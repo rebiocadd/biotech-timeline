@@ -706,7 +706,7 @@ function renderCashRanking(){
 
   const cashCell=(v, period, code)=>{
     if(v===null||v===undefined){
-      return `<span class="rk-cf-na">—<a href="https://goodinfo.tw/tw/StockBzPerformance.asp?STOCK_ID=${code}" target="_blank" title="到 Goodinfo 查詢" style="margin-left:4px;color:var(--accent1);text-decoration:none;font-size:9px">↗</a></span>`;
+      return `<span class="rk-cf-na">—<a href="https://goodinfo.tw/tw/StockFinDetail.asp?RPT_CAT=CF_M_QUAR_ACC&STOCK_ID=${code}" target="_blank" title="到 Goodinfo 現金流量表查詢" style="margin-left:4px;color:var(--accent1);text-decoration:none;font-size:9px">↗</a></span>`;
     }
     const cfStr=fmtCashflow(v).replace(/^\+/,'');
     const yr=period?` <span class="rk-cf-year">(${period})</span>`:'';
@@ -715,7 +715,8 @@ function renderCashRanking(){
 
   let tbodyHtml='';
   for(const r of rows){
-    const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.code}</a>`;
+    // 現金流排行表的代號連結到 Goodinfo 現金流量表（CF_M_QUAR_ACC = 合併累季）
+    const codeLink=`<a href="https://goodinfo.tw/tw/StockFinDetail.asp?RPT_CAT=CF_M_QUAR_ACC&STOCK_ID=${r.code}" target="_blank" title="到 Goodinfo 查看現金流量表">${r.code}</a>`;
     tbodyHtml+=`<tr>
       <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
