@@ -126,68 +126,76 @@ def fetch_yf(code):
                             "operating_cf": total
                         }
 
-            # 現金餘額（分 2025 年底 + 2026 最新）
+            # 現金餘額（2023/2024/2025 年底 + 2026 最新季）
+            cash_2023 = None
+            cash_2024 = None
             cash_2025 = None
             cash_2026 = None
             cash_keys = ('Cash And Cash Equivalents', 'Cash',
                          'Cash Cash Equivalents And Short Term Investments')
+
+            def _extract_cash_from_col(df, col):
+                for k in cash_keys:
+                    if k in df.index:
+                        v = df.loc[k, col]
+                        try:
+                            v = float(v)
+                            if v == v:
+                                return v
+                        except Exception:
+                            pass
+                return None
+
             try:
-                # 年度 balance sheet → 取 2025-12-31
+                # 年度 balance sheet → 取 2023/2024/2025 年底
                 y_bs = t.balance_sheet
                 if y_bs is not None and not y_bs.empty:
                     for col in y_bs.columns:
-                        if hasattr(col, 'year') and col.year == 2025:
-                            for k in cash_keys:
-                                if k in y_bs.index:
-                                    v = y_bs.loc[k, col]
-                                    try:
-                                        v = float(v)
-                                        if v == v:
-                                            cash_2025 = {"period": "2025年底", "value": v}
-                                            break
-                                    except Exception:
-                                        pass
-                            break
-                # 季度 balance sheet → 取最新的 2026 季
+                        if not hasattr(col, 'year'):
+                            continue
+                        v = _extract_cash_from_col(y_bs, col)
+                        if v is None:
+                            continue
+                        if col.year == 2023 and cash_2023 is None:
+                            cash_2023 = {"period": "2023年底", "value": v}
+                        elif col.year == 2024 and cash_2024 is None:
+                            cash_2024 = {"period": "2024年底", "value": v}
+                        elif col.year == 2025 and cash_2025 is None:
+                            cash_2025 = {"period": "2025年底", "value": v}
+
+                # 季度 balance sheet
                 q_bs = t.quarterly_balance_sheet
                 if q_bs is not None and not q_bs.empty:
+                    # 2026 最新季
                     qs_2026 = sorted([c for c in q_bs.columns if hasattr(c, 'year') and c.year == 2026], reverse=True)
                     if qs_2026:
                         col = qs_2026[0]
-                        for k in cash_keys:
-                            if k in q_bs.index:
-                                v = q_bs.loc[k, col]
-                                try:
-                                    v = float(v)
-                                    if v == v:
-                                        q_num = (col.month - 1) // 3 + 1
-                                        cash_2026 = {"period": f"2026 Q{q_num}底", "value": v}
-                                        break
-                                except Exception:
-                                    pass
-                # 若 2025 沒從年度 BS 拿到，從季度找 2025 Q4
-                if cash_2025 is None and q_bs is not None and not q_bs.empty:
-                    qs_2025 = sorted([c for c in q_bs.columns if hasattr(c, 'year') and c.year == 2025], reverse=True)
-                    if qs_2025:
-                        col = qs_2025[0]
-                        for k in cash_keys:
-                            if k in q_bs.index:
-                                v = q_bs.loc[k, col]
-                                try:
-                                    v = float(v)
-                                    if v == v:
-                                        q_num = (col.month - 1) // 3 + 1
-                                        cash_2025 = {"period": f"2025 Q{q_num}底", "value": v}
-                                        break
-                                except Exception:
-                                    pass
+                        v = _extract_cash_from_col(q_bs, col)
+                        if v is not None:
+                            q_num = (col.month - 1) // 3 + 1
+                            cash_2026 = {"period": f"2026 Q{q_num}底", "value": v}
+                    # fallback: 若年度找不到，用季度 Q4
+                    for yr, slot in [(2023, 'cash_2023'), (2024, 'cash_2024'), (2025, 'cash_2025')]:
+                        if locals()[slot] is None:
+                            qs_y = sorted([c for c in q_bs.columns if hasattr(c, 'year') and c.year == yr], reverse=True)
+                            if qs_y:
+                                col = qs_y[0]
+                                v = _extract_cash_from_col(q_bs, col)
+                                if v is not None:
+                                    q_num = (col.month - 1) // 3 + 1
+                                    val = {"period": f"{yr} Q{q_num}底", "value": v}
+                                    if yr == 2023: cash_2023 = val
+                                    elif yr == 2024: cash_2024 = val
+                                    elif yr == 2025: cash_2025 = val
             except Exception:
                 pass
 
-            if cf_2025 or cf_2026 or cash_2025 or cash_2026:
+            if cf_2025 or cf_2026 or cash_2023 or cash_2024 or cash_2025 or cash_2026:
                 return {
                     "cf_2025": cf_2025,
                     "cf_2026": cf_2026,
+                    "cash_2023": cash_2023,
+                    "cash_2024": cash_2024,
                     "cash_2025": cash_2025,
                     "cash_2026": cash_2026,
                     "source": "yfinance",
@@ -237,12 +245,14 @@ def main():
         if cf:
             # 合併策略：yfinance 為主，但保留現有 Goodinfo cash_* 若 yfinance 沒抓到
             merged = dict(cf)
-            if not (merged.get("cash_2025") or {}).get("value") and (existing_entry.get("cash_2025") or {}).get("value"):
-                merged["cash_2025"] = existing_entry["cash_2025"]
-            if not (merged.get("cash_2026") or {}).get("value") and (existing_entry.get("cash_2026") or {}).get("value"):
-                merged["cash_2026"] = existing_entry["cash_2026"]
+            # 確保 4 個年度欄位都存在
+            for fld in ("cash_2023", "cash_2024", "cash_2025", "cash_2026"):
+                if not (merged.get(fld) or {}).get("value") and (existing_entry.get(fld) or {}).get("value"):
+                    merged[fld] = existing_entry[fld]
+                if fld not in merged:
+                    merged[fld] = None
             # 標註多元來源
-            if merged.get("cash_2025") and (existing_entry.get("cash_2025") or {}).get("period") and not (cf.get("cash_2025") or {}).get("value"):
+            if (existing_entry.get("cash_2025") or {}).get("period") and not (cf.get("cash_2025") or {}).get("value"):
                 merged["source"] = "yfinance+goodinfo"
             result["companies"][code] = merged
             ca25 = (merged.get("cash_2025") or {}).get("value")
@@ -252,10 +262,15 @@ def main():
             print(f"✅ 2025現金={s25} 2026現金={s26}")
             auto_ok += 1
         elif (existing_entry.get("cf_2025") or existing_entry.get("cf_2026")
+              or existing_entry.get("cash_2023") or existing_entry.get("cash_2024")
               or existing_entry.get("cash_2025") or existing_entry.get("cash_2026")):
-            # 沿用既有手動/Goodinfo 資料
-            result["companies"][code] = existing_entry
-            ca25 = (existing_entry.get("cash_2025") or {}).get("value")
+            # 沿用既有手動/Goodinfo 資料，補齊缺欄
+            entry = dict(existing_entry)
+            for fld in ("cash_2023", "cash_2024", "cash_2025", "cash_2026"):
+                if fld not in entry:
+                    entry[fld] = None
+            result["companies"][code] = entry
+            ca25 = (entry.get("cash_2025") or {}).get("value")
             s25 = f"{ca25/1e8:.2f}億" if ca25 else "?"
             print(f"📝 沿用既有資料 (cash_2025={s25})")
             manual_kept += 1
@@ -263,6 +278,8 @@ def main():
             result["companies"][code] = {
                 "cf_2025": None,
                 "cf_2026": None,
+                "cash_2023": None,
+                "cash_2024": None,
                 "cash_2025": None,
                 "cash_2026": None,
                 "source": "manual_pending",

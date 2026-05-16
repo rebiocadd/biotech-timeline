@@ -597,7 +597,7 @@ function fmtCashflow(v){
 
 // 兩個排行表獨立的排序狀態
 let _rankSortColA='total_h', _rankSortDirA=-1;       // 總股東排行
-let _rankSortColB='cash_2025', _rankSortDirB=-1;     // 現金餘額排行
+let _rankSortColB='cash_2026', _rankSortDirB=-1;     // 現金餘額排行（預設 2026 排序）
 
 // 共用：把 _hData + cashflow.json 整理成 row 陣列
 // 全部公司都納入（即使 total_h=0 也保留，會以 — 顯示）
@@ -605,11 +605,17 @@ function _buildRankingRows(){
   const cfData=(window._cashflowData||{}).companies||{};
   return _hData.map(r=>{
     const cf=cfData[r.code]||{};
+    const c23=cf.cash_2023||{};
+    const c24=cf.cash_2024||{};
     const c25=cf.cash_2025||{};
     const c26=cf.cash_2026||{};
     return {
       code:r.code, name:r.name,
       total_h:r.total_h, dth:r.dth,
+      cash_2023: c23.value===undefined?null:c23.value,
+      cash_2023_period: c23.period||'',
+      cash_2024: c24.value===undefined?null:c24.value,
+      cash_2024_period: c24.period||'',
       cash_2025: c25.value===undefined?null:c25.value,
       cash_2025_period: c25.period||'',
       cash_2026: c26.value===undefined?null:c26.value,
@@ -819,7 +825,7 @@ function renderHolderRanking(){
 }
 
 // =========================================
-// 💰 表 B：25 家現金流餘額排行（5 欄）
+// 💰 表 B：26 家現金流餘額排行（7 欄，4 年度由新到舊）
 // =========================================
 function renderCashRanking(){
   const thead=document.getElementById('cash-rank-thead');
@@ -844,23 +850,34 @@ function renderCashRanking(){
   const titleEl=document.getElementById('ranking-title-B');
   if(titleEl) titleEl.textContent=`💰 ${rows.length} 家現金流餘額排行`;
 
-  // 排名固定依 cash_2025 由大到小（null 排最後）
+  // 排名固定依「最新有資料的年度」由大到小（優先 2026 → 2025 → 2024 → 2023）
+  const _latestCash=(r)=>{
+    if(r.cash_2026!==null) return r.cash_2026;
+    if(r.cash_2025!==null) return r.cash_2025;
+    if(r.cash_2024!==null) return r.cash_2024;
+    if(r.cash_2023!==null) return r.cash_2023;
+    return null;
+  };
   const rankBy={};
   [...rows].sort((a,b)=>{
-    if(a.cash_2025===null && b.cash_2025===null) return 0;
-    if(a.cash_2025===null) return 1;
-    if(b.cash_2025===null) return -1;
-    return b.cash_2025-a.cash_2025;
+    const va=_latestCash(a), vb=_latestCash(b);
+    if(va===null && vb===null) return 0;
+    if(va===null) return 1;
+    if(vb===null) return -1;
+    return vb-va;
   }).forEach((r,i)=>{rankBy[r.code]=i+1;});
 
   _sortRows(rows, _rankSortColB, _rankSortDirB);
 
+  // 欄位順序：# / 代號 / 公司 / 2026 / 2025 / 2024 / 2023（由左到右）
   const cols=[
-    {key:'cash_2025', label:'#',           stickyClass:'sticky-col sticky-1'},
+    {key:'cash_2026', label:'#',           stickyClass:'sticky-col sticky-1'},
     {key:'code',      label:'代號',         stickyClass:'sticky-col sticky-2'},
     {key:'name',      label:'公司',         stickyClass:'sticky-col sticky-3'},
-    {key:'cash_2025', label:'2025 現金餘額', stickyClass:''},
     {key:'cash_2026', label:'2026 現金餘額', stickyClass:''},
+    {key:'cash_2025', label:'2025 現金餘額', stickyClass:''},
+    {key:'cash_2024', label:'2024 現金餘額', stickyClass:''},
+    {key:'cash_2023', label:'2023 現金餘額', stickyClass:''},
   ];
 
   let theadHtml='<tr>';
@@ -888,8 +905,10 @@ function renderCashRanking(){
       <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
       <td class="sticky-col sticky-3 col-name">${r.name}</td>
-      <td class="col-cf">${cashCell(r.cash_2025, r.cash_2025_period, r.code)}</td>
       <td class="col-cf">${cashCell(r.cash_2026, r.cash_2026_period, r.code)}</td>
+      <td class="col-cf">${cashCell(r.cash_2025, r.cash_2025_period, r.code)}</td>
+      <td class="col-cf">${cashCell(r.cash_2024, r.cash_2024_period, r.code)}</td>
+      <td class="col-cf">${cashCell(r.cash_2023, r.cash_2023_period, r.code)}</td>
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;
