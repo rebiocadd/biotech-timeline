@@ -134,11 +134,16 @@
   .ranking-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent4);margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
   .ranking-meta:hover{background:rgba(245,158,11,.18)}
   .ranking-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .ranking-row{display:grid;grid-template-columns:24px 1fr auto auto;align-items:center;gap:8px;padding:5px 9px;background:rgba(15,24,40,.55);border:1px solid rgba(30,45,69,.5);border-radius:3px;font-family:'Space Mono',monospace;font-size:10.5px}
+  .ranking-row{display:grid;grid-template-columns:22px 1fr auto auto auto;align-items:center;gap:6px;padding:5px 8px;background:rgba(15,24,40,.55);border:1px solid rgba(30,45,69,.5);border-radius:3px;font-family:'Space Mono',monospace;font-size:10.5px}
   .rk-rank{color:var(--muted);font-weight:700;text-align:right}
   .rk-name{color:#fff;font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rk-num{color:var(--accent1);font-weight:700}
-  .rk-chg{font-size:10px;font-weight:700;min-width:55px;text-align:right}
+  .rk-chg{font-size:9.5px;font-weight:700;min-width:52px;text-align:right}
+  .rk-cf{font-size:9.5px;font-weight:700;min-width:60px;text-align:right;font-family:'Space Mono',monospace}
+  .rk-cf-pos{color:#ef4444}   /* 正現金流 紅（亮色，台股慣例正向） */
+  .rk-cf-neg{color:#10b981}   /* 負現金流 綠（虧損） */
+  .rk-cf-na{color:var(--muted);opacity:.55}
+  .rk-cf-year{font-size:8px;color:var(--muted);opacity:.7;margin-left:2px}
   @media(max-width:700px){.ranking-grid{grid-template-columns:1fr;gap:4px}}
   /* 近 5 日收盤價條帶：放在右側 */
   .hp-strip{display:flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;flex-shrink:0}
@@ -353,7 +358,7 @@
     <div class="ranking-section" id="ranking-section" style="display:none">
       <div class="ranking-header">
         <span class="ranking-title">🏆 25 家總股東排行</span>
-        <span class="ranking-subtitle">依本週總股東人數由多到少 · 同步 TDCC 最新週次</span>
+        <span class="ranking-subtitle">依本週總股東人數由多到少 · 末欄為營業現金流（紅正綠負）</span>
         <span class="ranking-meta" id="ranking-meta" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
       </div>
       <div class="ranking-grid" id="ranking-grid"></div>
@@ -472,6 +477,16 @@ function loadWeek(idx){
   renderSignals();
 }
 
+// 把現金流數字格式化為「+1.28 億」「-0.83 億」格式
+function fmtCashflow(v){
+  if(v===null||v===undefined) return null;
+  const abs=Math.abs(v);
+  const sign=v>=0?'+':'-';
+  if(abs>=1e8) return sign+(abs/1e8).toFixed(2)+'億';
+  if(abs>=1e4) return sign+(abs/1e4).toFixed(1)+'萬';
+  return sign+abs.toLocaleString();
+}
+
 // 🏆 25 家總股東排行（依當前 _hData 的 total_h）
 function renderRanking(){
   const grid=document.getElementById('ranking-grid');
@@ -493,6 +508,8 @@ function renderRanking(){
       meta.textContent='⏱ 尚未抓取';
     }
   }
+  // 取得現金流資料
+  const cfData=(window._cashflowData||{}).companies||{};
   // 兩欄：左 1~13，右 14~25
   const mid=Math.ceil(sorted.length/2);
   const left=sorted.slice(0,mid);
@@ -502,11 +519,21 @@ function renderRanking(){
     if(r.dth>0) chg=`<span class="h-up rk-chg">▲+${r.dth.toLocaleString()}</span>`;
     else if(r.dth<0) chg=`<span class="h-dn rk-chg">▼${r.dth.toLocaleString()}</span>`;
     else chg=`<span class="rk-chg" style="color:var(--muted)">＝</span>`;
+    // 現金流
+    const cf=cfData[r.code];
+    let cfHtml=`<span class="rk-cf rk-cf-na" title="尚無資料">—</span>`;
+    if(cf&&cf.operating_cf!==null&&cf.operating_cf!==undefined){
+      const cfStr=fmtCashflow(cf.operating_cf);
+      const cls=cf.operating_cf>=0?'rk-cf-pos':'rk-cf-neg';
+      const yr=cf.period?` <span class="rk-cf-year">(${cf.period})</span>`:'';
+      cfHtml=`<span class="rk-cf ${cls}" title="營業現金流 ${cf.period||''}">${cfStr}${yr}</span>`;
+    }
     return `<div class="ranking-row">
       <span class="rk-rank">${idx+1}</span>
       <span class="rk-name">${r.name}</span>
       <span class="rk-num">${fmt(r.total_h)}</span>
       ${chg}
+      ${cfHtml}
     </div>`;
   };
   grid.innerHTML=
@@ -1109,8 +1136,10 @@ function renderStatusBar(status, newsData, timelineData){
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
   fetch('news_status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
-  fetch('date.json?v='+Date.now()).then(r=>r.json())
-]).then(([statusData, newsData, timelineData])=>{
+  fetch('date.json?v='+Date.now()).then(r=>r.json()),
+  fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}}))
+]).then(([statusData, newsData, timelineData, cashflowData])=>{
+  window._cashflowData = cashflowData;
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;
