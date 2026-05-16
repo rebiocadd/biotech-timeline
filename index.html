@@ -108,6 +108,8 @@
   .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
   .signals-title{font-size:13px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px}
   .signals-subtitle{font-size:10.5px;color:var(--muted)}
+  .signals-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);margin-left:auto;background:rgba(0,212,255,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(0,212,255,.22);cursor:help;white-space:nowrap}
+  .signals-meta:hover{background:rgba(0,212,255,.18)}
   .signals-tagline{font-size:11px;color:#cbd5e1;margin-bottom:10px}
   .signals-table{display:grid;grid-template-columns:1.3fr 1fr 2.4fr;gap:1px;background:var(--border);border-radius:5px;overflow:hidden;font-size:11.5px}
   .signals-th{background:rgba(15,24,40,.85);padding:6px 10px;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);letter-spacing:.5px;font-weight:700}
@@ -290,6 +292,7 @@
     <div class="signals-header">
       <span class="signals-title">💡 投資解讀</span>
       <span class="signals-subtitle">本週總股東人數變化 Top 5 · 自動分析</span>
+      <span class="signals-meta" id="signals-meta" title="資料同步來源：&#10;🏦 千張大戶：每週六 10:00（UTC+8）&#10;📡 新聞掃描：每日 08:00（UTC+8）&#10;💰 股價：平日 09:00、15:00（UTC+8）">⏱ 資料同步中…</span>
     </div>
     <div class="signals-tagline">幾個有趣的訊號：</div>
     <div class="signals-table" id="signals-grid"></div>
@@ -616,6 +619,26 @@ function renderSignals(){
   });
   if(!items.length){sec.style.display='none';return;}
   sec.style.display='block';
+  // 更新「資料同步」時間徽章（取最新的千張、新聞、股價）
+  const metaEl=document.getElementById('signals-meta');
+  if(metaEl){
+    const s=window._statusData||{};
+    const cand=[s.holders&&s.holders.lastRun, s.news&&s.news.lastRun, s.prices&&s.prices.lastRun].filter(Boolean).sort().reverse();
+    const last=cand[0];
+    if(last){
+      // 主要顯示千張更新時間（最相關），補上資料日期 if available
+      const hRun=s.holders&&s.holders.lastRun;
+      const dataDate=s.holders&&s.holders.dataDate;
+      if(hRun){
+        const dd=dataDate?' · 資料：'+dataDate:'';
+        metaEl.innerHTML='⏱ 千張更新：'+hRun+dd+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+      } else {
+        metaEl.innerHTML='⏱ 最後同步：'+last+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+      }
+    } else {
+      metaEl.textContent='⏱ 尚未同步';
+    }
+  }
   // 表頭
   let html=`<div class="signals-th">公司</div><div class="signals-th">變化</div><div class="signals-th">可能原因（自動分析）</div>`;
   // 資料列
