@@ -1,4 +1,4 @@
-# 🎯 動態投資評分引擎 · Dynamic Investment Scoring Engine
+# 🎯 AI 自動化動態投資評分引擎 · AI-Driven Dynamic Investment Scoring Engine
 
 > **不是投資建議**，僅供研究與風險排序工具
 

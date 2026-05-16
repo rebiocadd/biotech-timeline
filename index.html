@@ -365,12 +365,12 @@
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
-  <!-- 🎯 動態投資評分引擎 -->
+  <!-- 🎯 AI 自動化動態投資評分引擎 -->
   <div class="score-section" id="score-section" style="display:none">
     <div class="score-header">
-      <span class="score-title">🎯 動態投資評分引擎</span>
-      <span class="score-subtitle">7 維度加權 0~100 · 不是投資建議，僅供研究與風險排序</span>
-      <span class="score-meta" id="score-meta">⏱ 載入中…</span>
+      <span class="score-title">🎯 AI 自動化動態投資評分引擎</span>
+      <span class="score-subtitle">7 維度加權 0~100 · 每日 08:00 自動評分 · 不是投資建議，僅供研究與風險排序</span>
+      <span class="score-meta" id="score-meta" title="自動評分排程：&#10;⏰ 每日 08:00 UTC+8&#10;📊 7 維度: 催化/現金/股價/趨勢/籌碼/新聞/臨床&#10;💾 保留 90 天評分歷史">⏱ 載入中…</span>
     </div>
     <div class="score-tags" id="score-tags"></div>
     <div class="score-grid" id="score-grid"></div>
@@ -645,7 +645,8 @@ function renderScores(){
   sec.style.display='block';
 
   if(meta){
-    meta.innerHTML=`⏱ 計算：${sd.lastRun} <span style="opacity:.55;font-size:.85em;margin-left:2px">${sd.tz||'UTC+8'}</span>`;
+    // 顯示最後評分時間，加上「自動」字眼
+    meta.innerHTML=`⏱ AI 自動評分：${sd.lastRun} <span style="opacity:.55;font-size:.85em;margin-left:2px">${sd.tz||'UTC+8'}</span>`;
   }
 
   const companies=Object.values(sd.companies);
