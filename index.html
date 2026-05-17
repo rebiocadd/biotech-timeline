@@ -244,7 +244,8 @@
   .ranking-tbl tbody tr:last-child td{border-bottom:none}
   .ranking-tbl tbody tr:hover td{background:#13243f}
   /* 前 3 欄黏性定位 */
-  .ranking-tbl th.sticky-col,.ranking-tbl td.sticky-col{position:sticky;background:#0a1124}
+  /* will-change + translateZ 強制 GPU 圖層升級，避免 iOS Safari sticky cells 漏畫 */
+  .ranking-tbl th.sticky-col,.ranking-tbl td.sticky-col{position:sticky;background:#0a1124;will-change:transform;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
   .ranking-tbl tbody td.sticky-col{background:#0f1828}
   .ranking-tbl tbody tr:hover td.sticky-col{background:#13243f}
   .ranking-tbl .sticky-1{left:0;min-width:34px;width:34px;z-index:2}
@@ -377,7 +378,8 @@
   .holders-table tr:last-child td{border-bottom:none}
   .holders-table tbody tr:hover td{background:rgba(14,165,233,.05)}
   /* 第一欄黏性定位（代號+公司合併兩列） */
-  .holders-table th:nth-child(1),.holders-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a0e1a;min-width:78px;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  /* will-change + translateZ 強制 GPU 圖層升級，避免 iOS Safari sticky cells 漏畫 */
+  .holders-table th:nth-child(1),.holders-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a0e1a;min-width:78px;box-shadow:2px 0 4px rgba(0,0,0,.4);will-change:transform;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
   .holders-table thead th:nth-child(1){z-index:3;background:#0f1d2e}
   .holders-table tbody tr:hover td:nth-child(1){background:#0c1525}
   .h-up{color:#ef4444;font-weight:700}
@@ -645,7 +647,15 @@ function applySort(){
     if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}
     return _sortDir*(va>vb?1:va<vb?-1:0);
   });
-  document.getElementById('holders-body').innerHTML=sorted.map(renderHolderRow).join('');
+  const _hb=document.getElementById('holders-body');
+  _hb.innerHTML=sorted.map(renderHolderRow).join('');
+  // iOS Safari sticky 圖層重建：強制 layout + scrollLeft 自指派
+  requestAnimationFrame(()=>{
+    const wrap=_hb.closest('.holders-wrap')||_hb.parentElement.parentElement.parentElement;
+    // eslint-disable-next-line no-unused-expressions
+    _hb.offsetHeight;
+    if(wrap&&'scrollLeft' in wrap) wrap.scrollLeft=wrap.scrollLeft;
+  });
 }
 
 function loadWeek(idx){
@@ -961,6 +971,13 @@ function renderHolderRanking(){
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;
+  // iOS Safari sticky 圖層重建
+  requestAnimationFrame(()=>{
+    const wrap=tbody.closest('.ranking-wrap');
+    // eslint-disable-next-line no-unused-expressions
+    tbody.offsetHeight;
+    if(wrap) wrap.scrollLeft=wrap.scrollLeft;
+  });
 
   thead.querySelectorAll('th').forEach(th=>{
     if(th.classList.contains('no-sort')) return;  // # 欄不參與排序
@@ -1061,6 +1078,13 @@ function renderCashRanking(){
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;
+  // iOS Safari sticky 圖層重建
+  requestAnimationFrame(()=>{
+    const wrap=tbody.closest('.ranking-wrap');
+    // eslint-disable-next-line no-unused-expressions
+    tbody.offsetHeight;
+    if(wrap) wrap.scrollLeft=wrap.scrollLeft;
+  });
 
   thead.querySelectorAll('th').forEach(th=>{
     th.addEventListener('click',()=>{
