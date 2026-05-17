@@ -304,6 +304,74 @@ BLTE 是美國 SEC 認定的 **Foreign Private Issuer**，**不需要報 10-Q �
 
 ---
 
+## ⚠️ MOPS URL 格式變更紀錄（2026-05-17 修正）
+
+### 問題
+
+MOPS 早期使用傳統 web URL：
+```
+https://mops.twse.com.tw/mops/web/t146sb05?stockNo=XXXX&step=1
+```
+
+但 MOPS 已升級為 SPA (Single Page App) 架構，**舊 URL 全部失效**，會自動跳轉到：
+```
+https://mops.twse.com.tw/mops/error/error.html  (65 bytes 空頁)
+```
+
+### 解法（已套用到 date.json）
+
+新版 URL 格式：
+```
+https://mops.twse.com.tw/mops/#/web/t146sb05?companyId=XXXX
+```
+
+關鍵變更：
+- 路徑：`/mops/web/...` → `/mops/#/web/...`（加 `#` hash 路由）
+- 參數：`stockNo` → `companyId`
+- 移除：`&step=1`（已無效）
+
+### 驗證方法
+
+```python
+# 舊 URL：跳轉到 error.html，size=65
+# 新 URL：正常載入 SPA，size=928
+
+# 用 redirect 終點驗證
+import urllib.request
+req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+with urllib.request.urlopen(req) as r:
+    if 'error/error.html' in r.url:
+        print('❌ 失效 URL')
+    else:
+        print('✅ 有效 URL')
+```
+
+### 一鍵全面修正腳本（保留參考）
+
+```python
+import json, re
+NEW = 'https://mops.twse.com.tw/mops/#/web/t146sb05?companyId={code}'
+OLD = re.compile(r'https://mops\.twse\.com\.tw/mops/web/t146sb05\?stockNo=(\d+)(?:&step=1)?')
+# 走過所有 sources，把 OLD 匹配的換成 NEW，把裸 URL 用該公司 code 補上
+```
+
+### 其他常用 MOPS 頁面（也採同樣 SPA 路由）
+
+| 用途 | URL pattern |
+|---|---|
+| 公司基本資料 | `https://mops.twse.com.tw/mops/#/web/t146sb05?companyId={code}` |
+| 重大訊息 | `https://mops.twse.com.tw/mops/#/web/t05st01?companyId={code}` |
+| 財務報表 | `https://mops.twse.com.tw/mops/#/web/t163sb04?companyId={code}` |
+| 月營收公告 | `https://mops.twse.com.tw/mops/#/web/t05st10_2_main?companyId={code}` |
+
+### 教訓
+
+⚠️ 任何政府/金融網站升級 SPA 都會造成深層連結失效。建議：
+1. 加 CI 健檢：每月跑一次 link checker，HTTP 200 但 final URL 含 `error/` 視為失效
+2. 把 URL 模板集中管理（如 `config/links.json`），避免散落各處
+
+---
+
 ## 興櫃公司 2026 Q1 最終結論（2026-05-17 確認）
 
 對於 12 家興櫃生技公司，**2026 Q1 現金資料皆無法取得**，原因：
