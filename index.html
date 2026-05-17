@@ -133,6 +133,7 @@
   .uu-tfda{display:inline-block;margin-top:4px;font-size:9.5px;color:var(--accent1);text-decoration:none;background:rgba(14,165,233,.08);padding:2px 6px;border-radius:3px;border:1px solid rgba(14,165,233,.3);font-family:'Space Mono',monospace;letter-spacing:.3px;white-space:nowrap}
   .uu-tfda:hover{background:rgba(14,165,233,.22);color:#5ee9ff;border-color:var(--accent1)}
   .uu-tfda-icon{margin-right:3px}
+  .uu-expected-note{display:block;margin-top:4px;font-size:9.5px;color:var(--accent4);background:rgba(245,158,11,.08);padding:2px 6px;border-radius:3px;border:1px solid rgba(245,158,11,.3);font-weight:600;letter-spacing:.2px;white-space:nowrap}
   .uu-highlight-star{font-size:10px;color:var(--accent4);margin-left:4px}
   .uu-price-cell{padding:4px 6px !important}
   @media (max-width:768px){
@@ -1603,10 +1604,11 @@ function renderUpcomingUnblind(){
       const tip=src==='TPIDB'?'TPIDB 台灣臨床試驗主持人資料庫 · 試驗預計結束日（最慢解盲）':'TFDA 臨床試驗資訊網 · 試驗預計結束日（最慢解盲）';
       tfdaHtml=`<a class="uu-tfda" href="${ev.tfdaUrl}" target="_blank" onclick="event.stopPropagation()" title="${tip}"><span class="uu-tfda-icon">🔗</span>${src} 最慢 ${ev.tfdaEndDate||'?'}</a>`;
     }
+    const expectedNoteHtml=ev.expectedDisclosureNote?`<span class="uu-expected-note" title="公司預期公布解盲數據的時間（公司指引）">📅 ${ev.expectedDisclosureNote}</span>`:'';
     return `<tr data-event-key="${x.key}" title="點擊跳至時程表">
       <td><span class="uu-quarter-pill uu-q-${qKey}">${qShort}</span></td>
       <td><div class="uu-company-name">${c.name}${star}</div>${codeLink}</td>
-      <td><div class="uu-drug">${ev.drug||'-'}</div><div class="uu-phase">${ev.label||''}</div>${tfdaHtml}</td>
+      <td><div class="uu-drug">${ev.drug||'-'}</div><div class="uu-phase">${ev.label||''}</div>${tfdaHtml}${expectedNoteHtml}</td>
       <td><div class="uu-indication">${c.indication||'-'}</div>${reason?`<div class="uu-reason" title="${escAttr(reason)}">${reason}</div>`:''}</td>
       <td><span class="ec-status-pill ${statusCls}">${x.status}</span></td>
       <td class="uu-price-cell">${buildPriceStrip(c)}</td>
