@@ -120,6 +120,8 @@
   .uu-q-q1{background:rgba(14,165,233,.18);color:var(--q1);border:1px solid rgba(14,165,233,.35)}
   .uu-q-q2{background:rgba(139,92,246,.18);color:var(--q2);border:1px solid rgba(139,92,246,.35)}
   .uu-q-q3{background:rgba(16,185,129,.18);color:var(--q3);border:1px solid rgba(16,185,129,.35)}
+  .uu-q-q4{background:rgba(245,158,11,.18);color:var(--q4);border:1px solid rgba(245,158,11,.35)}
+  .uu-q-h2{background:rgba(239,68,68,.18);color:var(--h2);border:1px solid rgba(239,68,68,.35)}
   .uu-company-name{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:3px;line-height:1.25}
   .uu-company-code{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);background:rgba(14,165,233,.12);padding:1px 6px;border-radius:3px;letter-spacing:.5px;text-decoration:none}
   .uu-company-code:hover{background:rgba(14,165,233,.22);color:#5ee9ff}
@@ -417,11 +419,11 @@
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
-  <!-- 🔵 即將解盲（未來 3 個月）-->
+  <!-- 🔵 今年解盲（2026 全年）-->
   <div class="upcoming-unblind-section" id="upcoming-unblind-section">
     <div class="uu-header">
-      <span class="uu-title">🔵 即將解盲（未來 3 個月）</span>
-      <span class="uu-subtitle">tag-resolve 事件聚焦 · Q1~Q3 待公布 · 點列可跳轉時程表</span>
+      <span class="uu-title">🔵 今年解盲（2026）</span>
+      <span class="uu-subtitle">2026 全年解盲事件 · 含期中分析／試驗結果讀出 · 不含收案／規劃 · 點列跳轉時程表</span>
       <span class="uu-meta" id="upcoming-unblind-meta">⏱ 篩選中…</span>
     </div>
     <div class="uu-table-wrap">
@@ -1513,23 +1515,29 @@ function renderHighlights(){
   });
 }
 
-// 🔵 即將解盲（未來 3 個月）：自動篩選 tag-resolve 事件
+// 🔵 今年解盲（2026 全年）：自動篩選真正的解盲/數據讀出事件
 function renderUpcomingUnblind(){
   const tbody=document.getElementById('upcoming-unblind-tbody');
   const meta=document.getElementById('upcoming-unblind-meta');
   if(!tbody) return;
 
-  const PUBLISHED=['已公布','已核准','已完成','通過','期中分析通過'];
-  const Q_ORDER={Q1:1,Q2:2,Q3:3};
+  const Q_ORDER={Q1:1,Q2:2,Q3:3,H2:3.5,Q4:4};
   const CAT_ORDER={'高':1,'中高':2,'中':3,'中低':4,'低':5};
 
-  // 篩選：tag-resolve + 季度在 Q1~Q3 + 尚未公布
+  // tag-data 事件需含解盲類關鍵字才算解盲（排除「進展」「啟動」「劑量爬升」等非解盲）
+  const UNBLIND_DATA_RE=/解盲|期中分析|試驗結果|療效評估|結果$|讀出|讀取|數據$/;
+  function isUnblindingEvent(ev){
+    if(ev.tag==='tag-resolve') return true;
+    if(ev.tag==='tag-data' && UNBLIND_DATA_RE.test(ev.label||'')) return true;
+    return false;
+  }
+
+  // 篩選：是解盲事件 + 季度 Q1~H2/Q4 都納入（含已公布，呈現全年地圖）
   const items=Object.keys(_eventCards).map(k=>{
     const ev=_eventCards[k];
-    if(ev.tag!=='tag-resolve') return null;
+    if(!isUnblindingEvent(ev)) return null;
     if(!Q_ORDER[ev._quarter]) return null;
     const status=guessStatus(ev);
-    if(PUBLISHED.includes(status)) return null;
     return {ev, key:k, status};
   }).filter(Boolean);
 
