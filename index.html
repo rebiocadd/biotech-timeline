@@ -122,7 +122,7 @@
   .uu-q-q3{background:rgba(16,185,129,.18);color:var(--q3);border:1px solid rgba(16,185,129,.35)}
   .uu-q-q4{background:rgba(245,158,11,.18);color:var(--q4);border:1px solid rgba(245,158,11,.35)}
   .uu-q-h2{background:rgba(239,68,68,.18);color:var(--h2);border:1px solid rgba(239,68,68,.35)}
-  .uu-company-name{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:3px;line-height:1.25}
+  .uu-company-name{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:3px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .uu-company-code{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);background:rgba(14,165,233,.12);padding:1px 6px;border-radius:3px;letter-spacing:.5px;text-decoration:none}
   .uu-company-code:hover{background:rgba(14,165,233,.22);color:#5ee9ff}
   .uu-drug{font-family:'Space Mono',monospace;font-size:11.5px;color:#fff;font-weight:700;line-height:1.3}
@@ -139,7 +139,9 @@
   .uu-price-cell{padding:4px 6px !important}
   @media (max-width:768px){
     .uu-table thead th,.uu-table tbody td{padding:7px 7px;font-size:11px}
-    .uu-company-name{font-size:11.5px}
+    .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){min-width:74px;width:74px}
+    .uu-company-name{font-size:11px;letter-spacing:-.3px;white-space:nowrap}
+    .uu-highlight-star{font-size:9px;margin-left:2px}
     .uu-drug{font-size:10.5px}
     .uu-indication{font-size:10.5px}
     .uu-col-catalyst{display:none}
