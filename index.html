@@ -116,16 +116,22 @@
   .uu-table tbody tr{cursor:pointer;transition:background .15s}
   .uu-table tbody tr:hover td{background:#13243f}
   .uu-table tbody tr:last-child td{border-bottom:none}
+  /* 欄寬定義（不用 inline style，CSS 統一管理）*/
+  .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){width:48px;min-width:48px}
+  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){width:90px;min-width:90px}
+  .uu-table thead th:nth-child(3),.uu-table tbody td:nth-child(3){width:160px;min-width:160px}
+  .uu-table thead th:nth-child(5),.uu-table tbody td:nth-child(5){width:80px;min-width:80px}
+  .uu-table thead th:nth-child(6),.uu-table tbody td:nth-child(6){width:160px;min-width:160px}
+  .uu-table thead th:nth-child(7),.uu-table tbody td:nth-child(7){width:60px;min-width:60px}
   /* 第 1、2 欄黏性定位（季度 + 公司）橫向捲動時固定 */
-  /* 季度欄壓縮到 48px，靠左對齊；公司欄緊接其後（無視覺裂縫）*/
-  .uu-table thead th:first-child,.uu-table tbody td:first-child{width:48px;min-width:48px;padding-left:8px;padding-right:4px}
   .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){position:sticky;left:0;z-index:2}
   .uu-table thead th:nth-child(1){z-index:3;background:#0a1a2e}
   .uu-table tbody td:nth-child(1){background:#0f1828}
-  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:48px;z-index:2}
+  /* 第 2 欄：緊接第 1 欄，右側陰影區隔捲動區（仿 ranking-tbl）*/
+  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:48px;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,.4)}
   .uu-table thead th:nth-child(2){z-index:3;background:#0a1a2e}
   .uu-table tbody td:nth-child(2){background:#0f1828}
-  /* hover 時 sticky cells 同步變色（確保捲動時不會穿透看到下層）*/
+  /* hover 時 sticky cells 同步變色 */
   .uu-table tbody tr:hover td:nth-child(1),.uu-table tbody tr:hover td:nth-child(2){background:#13243f}
   .uu-quarter-pill{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.5px;white-space:nowrap}
   .uu-q-q1{background:rgba(14,165,233,.18);color:var(--q1);border:1px solid rgba(14,165,233,.35)}
@@ -150,7 +156,9 @@
   .uu-price-cell{padding:4px 6px !important}
   @media (max-width:768px){
     .uu-table thead th,.uu-table tbody td{padding:7px 7px;font-size:11px}
-    .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){min-width:74px;width:74px}
+    /* 手機版：第 1 欄略縮，第 2 欄維持夠寬可容 4 字 + 代號徽章 */
+    .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){width:42px;min-width:42px}
+    .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){width:80px;min-width:80px;left:42px}
     .uu-company-name{font-size:11px;letter-spacing:-.3px;white-space:nowrap}
     .uu-highlight-star{font-size:9px;margin-left:2px}
     .uu-drug{font-size:10.5px}
@@ -448,13 +456,13 @@
       <table class="uu-table" id="upcoming-unblind-table">
         <thead>
           <tr>
-            <th style="width:60px">季度</th>
-            <th style="width:130px">公司</th>
-            <th style="width:160px">藥物 · 階段</th>
+            <th>季度</th>
+            <th>公司</th>
+            <th>藥物 · 階段</th>
             <th>適應症 · 觀察重點</th>
-            <th style="width:80px">狀態</th>
-            <th style="width:160px">近 3 日收盤</th>
-            <th style="width:60px" class="uu-col-catalyst">關注</th>
+            <th>狀態</th>
+            <th>近 3 日收盤</th>
+            <th class="uu-col-catalyst">關注</th>
           </tr>
         </thead>
         <tbody id="upcoming-unblind-tbody"></tbody>
