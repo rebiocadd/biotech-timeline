@@ -124,11 +124,12 @@
   .uu-table thead th:nth-child(6),.uu-table tbody td:nth-child(6){width:160px;min-width:160px}
   .uu-table thead th:nth-child(7),.uu-table tbody td:nth-child(7){width:60px;min-width:60px}
   /* 第 1、2 欄黏性定位（季度 + 公司）橫向捲動時固定 */
-  .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){position:sticky;left:0;z-index:2}
+  /* will-change + translateZ 強制 GPU 圖層升級，避免 iOS Safari 初次載入漏畫 */
+  .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){position:sticky;left:0;z-index:2;will-change:transform;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
   .uu-table thead th:nth-child(1){z-index:3;background:#0a1a2e}
   .uu-table tbody td:nth-child(1){background:#0f1828}
   /* 第 2 欄：緊接第 1 欄，右側陰影區隔捲動區（仿 ranking-tbl）*/
-  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:48px;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:48px;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,.4);will-change:transform;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
   .uu-table thead th:nth-child(2){z-index:3;background:#0a1a2e}
   .uu-table tbody td:nth-child(2){background:#0f1828}
   /* hover 時 sticky cells 同步變色 */
@@ -1638,6 +1639,17 @@ function renderUpcomingUnblind(){
       <td class="uu-col-catalyst">${cat?`<span class="cat-level ${catCls}">${cat}</span>`:'-'}</td>
     </tr>`;
   }).join('');
+
+  // 強制重繪：iOS Safari sticky 圖層偶爾漏畫，用 requestAnimationFrame 觸發 reflow
+  // 讀取 offsetHeight 強制 layout，再瞬間 scrollLeft 微調觸發合成層重建
+  requestAnimationFrame(()=>{
+    const wrap=tbody.closest('.uu-table-wrap');
+    if(wrap){
+      // eslint-disable-next-line no-unused-expressions
+      tbody.offsetHeight;  // 強制 layout
+      wrap.scrollLeft=wrap.scrollLeft;  // 觸發合成層重建（iOS Safari 必須）
+    }
+  });
 
   // 點擊列 → 滾動到對應的時程表格子並高亮
   tbody.querySelectorAll('tr[data-event-key]').forEach(tr=>{
