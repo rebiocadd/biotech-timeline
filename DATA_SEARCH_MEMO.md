@@ -251,3 +251,68 @@ API 文件：https://finmind.github.io/
 2. **季報時程**：上市/上櫃 Q1 5/15、Q2 8/14、Q3 11/14、年報 3/31。FinMind 通常 1-3 天內收錄。
 3. **興櫃公司若轉上櫃**：原本沒 Q1 的會突然出現多季資料，update_cashflow.py 會自動補上。
 4. **若 FinMind 服務中斷**：fallback 到 yfinance（會延遲 1-2 季）+ Goodinfo 手動。
+
+---
+
+## 補充：雙重上市公司的資料源（仁新醫藥案例）
+
+### 仁新醫藥 (6696) = NASDAQ BLTE = Belite Bio, Inc
+
+部分台灣興櫃生技公司同時在美股上市（雙重上市），這時可以從美股 SEC 補資料。
+
+### 嘗試的美股來源
+
+| 來源 | URL | 結果 |
+|---|---|---|
+| **yfinance BLTE** | `yf.Ticker('BLTE').quarterly_balance_sheet` | ✅ 有 5 季資料，但最新只到 2025-12-31 |
+| **SEC EDGAR Submissions** | `https://data.sec.gov/submissions/CIK{cik}.json` | ✅ 列出所有 filings（193 個） |
+| **SEC XBRL Concept** | `https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/us-gaap/CashAndCashEquivalentsAtCarryingValue.json` | ✅ 但只有年度（20-F）資料 |
+| **SEC Full-Text Search** | `https://efts.sec.gov/LATEST/search-index?q=...` | ✅ 找到 filings 索引 |
+| **SEC Filing Documents** | `https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/` | ✅ 拉個別 6-K / 20-F 全文 |
+
+### Foreign Private Issuer (FPI) 的特殊性
+
+BLTE 是美國 SEC 認定的 **Foreign Private Issuer**，**不需要報 10-Q 季報**。
+他們只交：
+- **20-F**（年報，年度結束後 4 個月內）
+- **6-K**（事件性公告：新藥試驗、增資、人事異動等）
+
+歷史檢查 BLTE 過往 6-K（2025-05-21 / 2025-08-11 / 2025-11-10）：
+- ❌ 都沒有「March 31 / June 30 / September 30」季度日期關鍵字
+- ❌ 都不是季度財務報表，而是 fundraising 或 clinical update 公告
+
+**結論**：仁新醫藥（BLTE）即使在美股**也不揭露 Q1 / H1 / Q3 季度業績**。
+
+### 雙重上市公司的尋找步驟
+
+```
+1. 查公司是否有美股代號（Google: "公司名 + ADR / NASDAQ / NYSE"）
+2. 從 SEC EDGAR 找 CIK
+   url = https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=BLTE
+3. 拉 submissions JSON
+   url = https://data.sec.gov/submissions/CIK{0001889109}.json
+4. 篩 form ∈ {10-Q, 6-K, 20-F}
+5. 若是 FPI（看 6-K 而非 10-Q）→ 通常不報季度
+6. 若有 10-Q → 解析該文件找 "Cash and Cash Equivalents"
+```
+
+### 雙重上市的台灣生技公司清單（參考）
+
+- 仁新醫藥 6696 → NASDAQ BLTE（Foreign Private Issuer，無 Q1）
+- 智擎生技 4162 → 過往有 ADR，現已下市
+- 其他可用 SEC Full-Text Search「Taiwan biotech」找
+
+---
+
+## 興櫃公司 2026 Q1 最終結論（2026-05-17 確認）
+
+對於 12 家興櫃生技公司，**2026 Q1 現金資料皆無法取得**，原因：
+
+| 公司 | 雙重上市？ | 美股有 Q1？ | 結論 |
+|---|---|---|---|
+| 仁新醫藥 6696 | ✅ NASDAQ BLTE | ❌（FPI 不需季報） | 等 2026/9 H1 半年報 |
+| 其他 11 家 | ❌ 純興櫃 | — | 等 2026/9 H1 半年報 |
+
+**下一個資料釋出時間點**：
+- 2026 年 8-9 月：H1 半年報（涵蓋 Q1+Q2 結算現金）
+- 2027 年 3-4 月：2026 年報
