@@ -130,6 +130,9 @@
   .uu-indication{font-size:11.5px;color:#cbd5e1;line-height:1.4}
   .uu-reason{font-size:10px;color:#94a3b8;margin-top:3px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .uu-empty{padding:24px;text-align:center;color:var(--muted);font-size:12px}
+  .uu-tfda{display:inline-block;margin-top:4px;font-size:9.5px;color:var(--accent1);text-decoration:none;background:rgba(14,165,233,.08);padding:2px 6px;border-radius:3px;border:1px solid rgba(14,165,233,.3);font-family:'Space Mono',monospace;letter-spacing:.3px;white-space:nowrap}
+  .uu-tfda:hover{background:rgba(14,165,233,.22);color:#5ee9ff;border-color:var(--accent1)}
+  .uu-tfda-icon{margin-right:3px}
   .uu-highlight-star{font-size:10px;color:var(--accent4);margin-left:4px}
   .uu-price-cell{padding:4px 6px !important}
   @media (max-width:768px){
@@ -1594,10 +1597,11 @@ function renderUpcomingUnblind(){
     const reason=ev.catalystReason||ev.highlightReason||'';
     const star=ev.highlightThisWeek?'<span class="uu-highlight-star" title="本週重點">⭐</span>':'';
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" class="uu-company-code" onclick="event.stopPropagation()">${c.code}</a>`;
+    const tfdaHtml=ev.tfdaUrl?`<a class="uu-tfda" href="${ev.tfdaUrl}" target="_blank" onclick="event.stopPropagation()" title="TFDA 臨床試驗資訊網 · 試驗預計結束日（最慢解盲）"><span class="uu-tfda-icon">🔗</span>TFDA 最慢 ${ev.tfdaEndDate||'?'}</a>`:'';
     return `<tr data-event-key="${x.key}" title="點擊跳至時程表">
       <td><span class="uu-quarter-pill uu-q-${qKey}">${qShort}</span></td>
       <td><div class="uu-company-name">${c.name}${star}</div>${codeLink}</td>
-      <td><div class="uu-drug">${ev.drug||'-'}</div><div class="uu-phase">${ev.label||''}</div></td>
+      <td><div class="uu-drug">${ev.drug||'-'}</div><div class="uu-phase">${ev.label||''}</div>${tfdaHtml}</td>
       <td><div class="uu-indication">${c.indication||'-'}</div>${reason?`<div class="uu-reason" title="${escAttr(reason)}">${reason}</div>`:''}</td>
       <td><span class="ec-status-pill ${statusCls}">${x.status}</span></td>
       <td class="uu-price-cell">${buildPriceStrip(c)}</td>
