@@ -200,6 +200,10 @@
   .ranking-tbl .col-h{color:var(--accent1);font-weight:700;min-width:80px}
   .ranking-tbl .col-chg{font-weight:700;min-width:80px;font-size:10.5px}
   .ranking-tbl .col-cf{font-weight:700;min-width:140px}
+  /* 總股東表格（A）：8 欄 (3 sticky + 3 人數 + 2 漲幅)，獨立加寬 */
+  #ranking-tbl{min-width:620px}
+  #ranking-tbl .col-h{min-width:88px}
+  #ranking-tbl .col-chg{min-width:80px}
   /* 現金流表格（B）需要 4 欄年度資料，獨立加寬 */
   #cash-rank-tbl{min-width:760px}
   #cash-rank-tbl .col-cf{min-width:150px}
@@ -216,6 +220,10 @@
     .ranking-tbl .col-name{font-size:10px;letter-spacing:-.3px}
     .ranking-tbl .col-h,.ranking-tbl .col-chg{font-size:9.5px;min-width:0}
     .ranking-tbl .col-cf{font-size:9.5px;min-width:110px}
+    /* 手機總股東表格：8 欄 (3 sticky + 3 人數 + 2 漲幅)，啟用橫向捲動 */
+    #ranking-tbl{min-width:520px}
+    #ranking-tbl .col-h{min-width:64px}
+    #ranking-tbl .col-chg{min-width:62px;font-size:9px}
     /* 手機現金流表格：4 欄年度資料，總寬 ~550px，啟用橫向捲動 */
     #cash-rank-tbl{min-width:560px}
     #cash-rank-tbl .col-cf{min-width:120px}
@@ -450,7 +458,7 @@
     <div class="ranking-section" id="ranking-section" style="display:none">
       <div class="ranking-header">
         <span class="ranking-title" id="ranking-title-A">🏆 總股東排行</span>
-        <span class="ranking-subtitle">前 3 欄固定 · 點欄位標題排序</span>
+        <span class="ranking-subtitle">前 3 欄固定 · 人數/漲幅各週可獨立排序</span>
         <span class="ranking-meta" id="ranking-meta" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
       </div>
       <div class="ranking-wrap">
@@ -625,13 +633,17 @@ function _buildRankingRows(){
     const c25=cf.cash_2025||{};
     const c26=cf.cash_2026||{};
     const r0=m0[r.code]||{}, r1=m1[r.code]||{}, r2=m2[r.code]||{};
+    const h0=r0.total_h||0, h1=r1.total_h||0, h2=r2.total_h||0;
     return {
       code:r.code, name:r.name,
       total_h:r.total_h, dth:r.dth,
       // 三週總股東快照（用於排行表 A）
-      w0_h: r0.total_h||0, w0_date: (w0&&w0.date)||'',
-      w1_h: r1.total_h||0, w1_date: (w1&&w1.date)||'',
-      w2_h: r2.total_h||0, w2_date: (w2&&w2.date)||'',
+      w0_h: h0, w0_date: (w0&&w0.date)||'',
+      w1_h: h1, w1_date: (w1&&w1.date)||'',
+      w2_h: h2, w2_date: (w2&&w2.date)||'',
+      // 週漲跌（人數變化）：null 代表沒有前一週資料可比
+      w0_chg: (h0&&h1) ? (h0-h1) : null,   // 5/15 vs 5/8
+      w1_chg: (h1&&h2) ? (h1-h2) : null,   // 5/8  vs 4/30
       cash_2023: c23.value===undefined?null:c23.value,
       cash_2023_period: c23.period||'',
       cash_2024: c24.value===undefined?null:c24.value,
@@ -810,14 +822,17 @@ function renderHolderRanking(){
   const dW2=(rows[0]&&rows[0].w2_date)||'兩週前';
 
   // 注意：# 欄使用獨立 key='rank' 不可排序，避免與 w0_h 衝突
-  // 每個週度欄位各自綁定 w0_h / w1_h / w2_h，可獨立排序
+  // 拆成「人數」+「漲幅」獨立欄位，各自可排序
+  // 4/30 是最舊的一週，沒有更早資料可比，故省略漲幅欄
   const cols=[
-    {key:'rank', label:'#',           stickyClass:'sticky-col sticky-1', noSort:true},
-    {key:'code', label:'代號',         stickyClass:'sticky-col sticky-2'},
-    {key:'name', label:'公司',         stickyClass:'sticky-col sticky-3'},
-    {key:'w0_h', label:dW0+' 總股東',  stickyClass:''},
-    {key:'w1_h', label:dW1+' 總股東',  stickyClass:''},
-    {key:'w2_h', label:dW2+' 總股東',  stickyClass:''},
+    {key:'rank',   label:'#',          stickyClass:'sticky-col sticky-1', noSort:true},
+    {key:'code',   label:'代號',        stickyClass:'sticky-col sticky-2'},
+    {key:'name',   label:'公司',        stickyClass:'sticky-col sticky-3'},
+    {key:'w0_h',   label:dW0+' 人數',   stickyClass:'', colClass:'col-h'},
+    {key:'w0_chg', label:dW0+' 漲幅',   stickyClass:'', colClass:'col-chg'},
+    {key:'w1_h',   label:dW1+' 人數',   stickyClass:'', colClass:'col-h'},
+    {key:'w1_chg', label:dW1+' 漲幅',   stickyClass:'', colClass:'col-chg'},
+    {key:'w2_h',   label:dW2+' 人數',   stickyClass:'', colClass:'col-h'},
   ];
 
   let theadHtml='<tr>';
@@ -830,16 +845,17 @@ function renderHolderRanking(){
   theadHtml+='</tr>';
   thead.innerHTML=theadHtml;
 
-  // 把單一週快照渲染成 cell（含與前一週的差異徽章）
-  const hCell=(curr, prev)=>{
-    if(!curr) return `<span class="rk-cf-na">—</span>`;
-    const main=fmt(curr);
-    if(prev){
-      const d=curr-prev;
-      if(d>0)  return `${main} <span class="h-up" style="font-size:10px">▲+${d.toLocaleString()}</span>`;
-      if(d<0)  return `${main} <span class="h-dn" style="font-size:10px">▼${d.toLocaleString()}</span>`;
-    }
-    return main;
+  // 人數 cell：只顯示人數
+  const hCountCell=(v)=>{
+    if(!v) return `<span class="rk-cf-na">—</span>`;
+    return fmt(v);
+  };
+  // 漲幅 cell：顯示 ▲+184 / ▼-50 / ＝
+  const hChgCell=(d)=>{
+    if(d===null||d===undefined) return `<span class="rk-cf-na">—</span>`;
+    if(d>0) return `<span class="h-up">▲+${d.toLocaleString()}</span>`;
+    if(d<0) return `<span class="h-dn">▼${d.toLocaleString()}</span>`;
+    return `<span style="color:var(--muted)">＝</span>`;
   };
 
   let tbodyHtml='';
@@ -849,9 +865,11 @@ function renderHolderRanking(){
       <td class="sticky-col sticky-1 col-rank">${rankBy[r.code]||'—'}</td>
       <td class="sticky-col sticky-2 col-code">${codeLink}</td>
       <td class="sticky-col sticky-3 col-name">${r.name}</td>
-      <td class="col-h">${hCell(r.w0_h, r.w1_h)}</td>
-      <td class="col-h">${hCell(r.w1_h, r.w2_h)}</td>
-      <td class="col-h">${hCell(r.w2_h, null)}</td>
+      <td class="col-h">${hCountCell(r.w0_h)}</td>
+      <td class="col-chg">${hChgCell(r.w0_chg)}</td>
+      <td class="col-h">${hCountCell(r.w1_h)}</td>
+      <td class="col-chg">${hChgCell(r.w1_chg)}</td>
+      <td class="col-h">${hCountCell(r.w2_h)}</td>
     </tr>`;
   }
   tbody.innerHTML=tbodyHtml;
