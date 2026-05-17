@@ -9,7 +9,7 @@ update_cashflow.py - 抓取 25 家公司的現金流資料
 
 寫入：cashflow.json
 """
-import json, sys, os, time
+import json, sys, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 
 try:
@@ -20,6 +20,69 @@ except Exception:
 TAIPEI_TZ = timezone(timedelta(hours=8))
 DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
 CF_PATH = os.path.join(os.path.dirname(__file__), "cashflow.json")
+
+
+# ── 來源1：FinMind 開放 API（主來源，覆蓋 2026 Q1）─────────────
+def fetch_finmind(code):
+    """
+    從 FinMind 抓 2023-2026 各季度現金及約當現金（每年取最新一季）。
+    回傳：{cash_2023, cash_2024, cash_2025, cash_2026, source}  或  None
+    """
+    url = 'https://api.finmindtrade.com/api/v4/data'
+    params = {
+        'dataset': 'TaiwanStockBalanceSheet',
+        'data_id': code,
+        'start_date': '2023-01-01',
+        'end_date': '2026-12-31',
+    }
+    full_url = url + '?' + urllib.parse.urlencode(params)
+    try:
+        req = urllib.request.Request(full_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            resp = json.loads(r.read().decode('utf-8'))
+        if resp.get('status') != 200:
+            return None
+        items = resp.get('data', [])
+    except Exception:
+        return None
+
+    # 篩出「現金及約當現金」，依日期分組（每年取最新一季）
+    by_year = {}
+    for it in items:
+        if it.get('type') != 'CashAndCashEquivalents':
+            continue
+        d = it.get('date', '')   # 'YYYY-MM-DD'
+        v = it.get('value')
+        if not d or v is None:
+            continue
+        yr = d[:4]
+        if yr not in by_year or d > by_year[yr][0]:
+            by_year[yr] = (d, v)
+
+    if not by_year:
+        return None
+
+    def make_entry(yr_key):
+        if yr_key not in by_year:
+            return None
+        d, v = by_year[yr_key]
+        mo = int(d[5:7])
+        q = (mo - 1) // 3 + 1
+        period = f'{yr_key}年底' if mo == 12 else f'{yr_key} Q{q}底'
+        return {'period': period, 'value': float(v)}
+
+    result = {
+        'cf_2025': None,
+        'cf_2026': None,
+        'cash_2023': make_entry('2023'),
+        'cash_2024': make_entry('2024'),
+        'cash_2025': make_entry('2025'),
+        'cash_2026': make_entry('2026'),
+        'source': 'finmind',
+    }
+    if any(v for k, v in result.items() if k.startswith('cash_')):
+        return result
+    return None
 
 
 def load_companies():
@@ -226,40 +289,79 @@ def main():
     result = {
         "lastRun": now.strftime("%Y/%m/%d %H:%M"),
         "tz": "UTC+8",
-        "source": "yfinance (上市) + 手動 (興櫃)",
+        "source": "FinMind (主, 含 2026 Q1) + yfinance (備援) + 手動 (興櫃)",
         "companies": {},
     }
 
     auto_ok = 0
+    finmind_ok = 0
+    yf_ok = 0
     manual_kept = 0
     no_data = []
 
     for code, name, market in companies:
         print(f"\n  [{code}] {name}...", end=" ", flush=True)
-        cf = None
+
+        # 1. 先試 FinMind (覆蓋 2026 Q1 + 上市櫃 + 部分興櫃)
+        cf_fm = fetch_finmind(code)
+        time.sleep(0.4)
+
+        # 2. 再試 yfinance (上市備援；補 operating_cf)
+        cf_yf = None
         if market == "listed":
-            cf = fetch_yf(code)
+            cf_yf = fetch_yf(code)
             time.sleep(0.3)
 
         existing_entry = existing.get(code, {})
+        # 合併三來源：FinMind 主，yfinance 補 operating_cf，existing 補殘缺
+        cf = None
+        if cf_fm or cf_yf:
+            cf = {
+                "cf_2025": None,
+                "cf_2026": None,
+                "cash_2023": None,
+                "cash_2024": None,
+                "cash_2025": None,
+                "cash_2026": None,
+                "source": "",
+                "suffix": (cf_yf or {}).get("suffix", ""),
+            }
+            sources = []
+            # FinMind 為主 (cash_*)
+            if cf_fm:
+                for fld in ("cash_2023", "cash_2024", "cash_2025", "cash_2026"):
+                    if (cf_fm.get(fld) or {}).get("value"):
+                        cf[fld] = cf_fm[fld]
+                sources.append("finmind")
+                finmind_ok += 1
+            # yfinance 補：operating_cf 和 FinMind 缺的欄位
+            if cf_yf:
+                if (cf_yf.get("cf_2025") or {}).get("operating_cf"):
+                    cf["cf_2025"] = cf_yf["cf_2025"]
+                if (cf_yf.get("cf_2026") or {}).get("operating_cf"):
+                    cf["cf_2026"] = cf_yf["cf_2026"]
+                for fld in ("cash_2023", "cash_2024", "cash_2025", "cash_2026"):
+                    if not (cf.get(fld) or {}).get("value") and (cf_yf.get(fld) or {}).get("value"):
+                        cf[fld] = cf_yf[fld]
+                if "yfinance" not in sources:
+                    sources.append("yfinance")
+                    yf_ok += 1
+            cf["source"] = "+".join(sources)
+
         if cf:
-            # 合併策略：yfinance 為主，但保留現有 Goodinfo cash_* 若 yfinance 沒抓到
+            # 補：FinMind/yf 都沒抓到的，用 existing (手動 Goodinfo) 填補
             merged = dict(cf)
-            # 確保 4 個年度欄位都存在
             for fld in ("cash_2023", "cash_2024", "cash_2025", "cash_2026"):
                 if not (merged.get(fld) or {}).get("value") and (existing_entry.get(fld) or {}).get("value"):
                     merged[fld] = existing_entry[fld]
-                if fld not in merged:
-                    merged[fld] = None
-            # 標註多元來源
-            if (existing_entry.get("cash_2025") or {}).get("period") and not (cf.get("cash_2025") or {}).get("value"):
-                merged["source"] = "yfinance+goodinfo"
+                    if "goodinfo" not in merged["source"]:
+                        merged["source"] = merged["source"] + "+goodinfo"
             result["companies"][code] = merged
             ca25 = (merged.get("cash_2025") or {}).get("value")
             ca26 = (merged.get("cash_2026") or {}).get("value")
             s25 = f"{ca25/1e8:.2f}億" if ca25 else "—"
             s26 = f"{ca26/1e8:.2f}億" if ca26 else "—"
-            print(f"✅ 2025現金={s25} 2026現金={s26}")
+            print(f"✅ [{merged['source']}] 2025={s25} 2026={s26}")
             auto_ok += 1
         elif (existing_entry.get("cf_2025") or existing_entry.get("cf_2026")
               or existing_entry.get("cash_2023") or existing_entry.get("cash_2024")
@@ -291,7 +393,7 @@ def main():
         json.dump(result, f, ensure_ascii=False, separators=(",", ":"))
 
     print("\n" + "=" * 60)
-    print(f" ✅ 自動抓到：{auto_ok}/{len(companies)}")
+    print(f" ✅ 自動抓到：{auto_ok}/{len(companies)}（FinMind:{finmind_ok} / yfinance:{yf_ok}）")
     print(f" 📝 沿用手動：{manual_kept}")
     print(f" ⏳ 待補資料：{len(no_data)}")
     if no_data:
