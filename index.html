@@ -1597,7 +1597,12 @@ function renderUpcomingUnblind(){
     const reason=ev.catalystReason||ev.highlightReason||'';
     const star=ev.highlightThisWeek?'<span class="uu-highlight-star" title="本週重點">⭐</span>':'';
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${c.code}" target="_blank" class="uu-company-code" onclick="event.stopPropagation()">${c.code}</a>`;
-    const tfdaHtml=ev.tfdaUrl?`<a class="uu-tfda" href="${ev.tfdaUrl}" target="_blank" onclick="event.stopPropagation()" title="TFDA 臨床試驗資訊網 · 試驗預計結束日（最慢解盲）"><span class="uu-tfda-icon">🔗</span>TFDA 最慢 ${ev.tfdaEndDate||'?'}</a>`:'';
+    let tfdaHtml='';
+    if(ev.tfdaUrl){
+      const src=/taiwanclinicaltrials\.tw/.test(ev.tfdaUrl)?'TPIDB':(/fda\.gov\.tw/.test(ev.tfdaUrl)?'TFDA':'試驗');
+      const tip=src==='TPIDB'?'TPIDB 台灣臨床試驗主持人資料庫 · 試驗預計結束日（最慢解盲）':'TFDA 臨床試驗資訊網 · 試驗預計結束日（最慢解盲）';
+      tfdaHtml=`<a class="uu-tfda" href="${ev.tfdaUrl}" target="_blank" onclick="event.stopPropagation()" title="${tip}"><span class="uu-tfda-icon">🔗</span>${src} 最慢 ${ev.tfdaEndDate||'?'}</a>`;
+    }
     return `<tr data-event-key="${x.key}" title="點擊跳至時程表">
       <td><span class="uu-quarter-pill uu-q-${qKey}">${qShort}</span></td>
       <td><div class="uu-company-name">${c.name}${star}</div>${codeLink}</td>
