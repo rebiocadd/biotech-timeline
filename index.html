@@ -117,12 +117,16 @@
   .uu-table tbody tr:hover td{background:#13243f}
   .uu-table tbody tr:last-child td{border-bottom:none}
   /* 第 1、2 欄黏性定位（季度 + 公司）橫向捲動時固定 */
+  /* 季度欄壓縮到 48px，靠左對齊；公司欄緊接其後（無視覺裂縫）*/
+  .uu-table thead th:first-child,.uu-table tbody td:first-child{width:48px;min-width:48px;padding-left:8px;padding-right:4px}
   .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){position:sticky;left:0;z-index:2}
-  .uu-table thead th:nth-child(1){z-index:3}
-  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:60px;z-index:2;border-right:1px solid rgba(0,212,255,.25)}
-  .uu-table thead th:nth-child(2){z-index:3}
-  /* 第 3 欄起算的左邊距，確保字不被 sticky 欄遮蓋 */
-  .uu-table thead th:nth-child(3),.uu-table tbody td:nth-child(3){padding-left:14px}
+  .uu-table thead th:nth-child(1){z-index:3;background:#0a1a2e}
+  .uu-table tbody td:nth-child(1){background:#0f1828}
+  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:48px;z-index:2}
+  .uu-table thead th:nth-child(2){z-index:3;background:#0a1a2e}
+  .uu-table tbody td:nth-child(2){background:#0f1828}
+  /* hover 時 sticky cells 同步變色（確保捲動時不會穿透看到下層）*/
+  .uu-table tbody tr:hover td:nth-child(1),.uu-table tbody tr:hover td:nth-child(2){background:#13243f}
   .uu-quarter-pill{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.5px;white-space:nowrap}
   .uu-q-q1{background:rgba(14,165,233,.18);color:var(--q1);border:1px solid rgba(14,165,233,.35)}
   .uu-q-q2{background:rgba(139,92,246,.18);color:var(--q2);border:1px solid rgba(139,92,246,.35)}
