@@ -119,8 +119,10 @@
   /* 第 1、2 欄黏性定位（季度 + 公司）橫向捲動時固定 */
   .uu-table thead th:nth-child(1),.uu-table tbody td:nth-child(1){position:sticky;left:0;z-index:2}
   .uu-table thead th:nth-child(1){z-index:3}
-  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:60px;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,.4)}
+  .uu-table thead th:nth-child(2),.uu-table tbody td:nth-child(2){position:sticky;left:60px;z-index:2;border-right:1px solid rgba(0,212,255,.25)}
   .uu-table thead th:nth-child(2){z-index:3}
+  /* 第 3 欄起算的左邊距，確保字不被 sticky 欄遮蓋 */
+  .uu-table thead th:nth-child(3),.uu-table tbody td:nth-child(3){padding-left:14px}
   .uu-quarter-pill{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.5px;white-space:nowrap}
   .uu-q-q1{background:rgba(14,165,233,.18);color:var(--q1);border:1px solid rgba(14,165,233,.35)}
   .uu-q-q2{background:rgba(139,92,246,.18);color:var(--q2);border:1px solid rgba(139,92,246,.35)}
