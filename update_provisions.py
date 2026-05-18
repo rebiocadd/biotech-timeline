@@ -227,32 +227,45 @@ def score_clinical(event, company=None):
     score = 40  # 基礎
 
     # 已公布實績（最強訊號，里程碑代表 derisking）
-    if event.get("announcedNote"):
-        ann = event.get("announcedNote", "")
-        if any(k in ann for k in ["收案完成", "期中分析通過", "IDMC", "達標", "通過"]):
-            score += 35  # 重大里程碑：執行力強 + 時程確定 + 風險降低
-        elif "解盲" in ann or "讀出" in ann:
-            score += 28  # 已解盲（事件兌現）
-        else:
-            score += 15
-        # 額外：收案超前 / 提前完成 = 加碼（也檢查 detail 欄位的描述）
-        detail_text = ann + " " + (event.get("detail", "") or "")
-        if any(k in detail_text for k in ["超前", "提前", "比預期", "超過預期", "比原訂"]):
-            score += 8
-        # 額外：詳細日期（YYYY/MM/DD 完成）= 公司公開透明
-        import re
-        if re.search(r'\d{4}/\d{2}/\d{2}', ann):
-            score += 3
-        # 大規模收案階梯加分（統計力強 + 公司執行力佳）
-        # 從 detail_text 抓最大的「N 人/位」數字
-        nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', detail_text)]
-        if nums:
-            n = max(nums)
-            if n >= 1000:   score += 10  # 超大規模
-            elif n >= 800:  score += 8   # 大規模 (鼎晉 800)
-            elif n >= 500:  score += 6
-            elif n >= 300:  score += 4
-            elif n >= 100:  score += 2
+    # 改：同時掃 announcedNote / statusLabel / detail，三者任一含里程碑關鍵字皆算
+    ann_text = (event.get("announcedNote") or "")
+    status_text = (event.get("statusLabel") or "") + " " + (event.get("status") or "")
+    detail_text = (event.get("detail") or "")
+    combined_milestone = ann_text + " " + status_text + " " + detail_text
+
+    has_announced = bool(ann_text)
+    # 偵測里程碑關鍵字
+    MILESTONE_STRONG = ["收案完成", "期中分析通過", "IDMC", "達標", "已進入審查", "DSMB"]
+    MILESTONE_RESOLVED = ["解盲", "讀出"]
+    has_strong = any(k in combined_milestone for k in MILESTONE_STRONG)
+    has_resolved = any(k in combined_milestone for k in MILESTONE_RESOLVED)
+
+    if has_strong:
+        score += 35  # 重大里程碑：執行力強 + 時程確定 + 風險降低
+    elif has_resolved:
+        score += 28
+    elif has_announced:
+        score += 15
+
+    # 額外：收案超前 / 提前完成 = 加碼
+    if any(k in combined_milestone for k in ["超前", "提前", "比預期", "超過預期", "比原訂"]):
+        score += 8
+    # 額外：詳細日期（YYYY/MM/DD 完成）= 公司公開透明
+    import re
+    if re.search(r'\d{4}/\d{2}/\d{2}', ann_text):
+        score += 3
+
+    # 大規模收案階梯加分（罕病門檻較低，因人數本來就少）
+    # 從 detail / ann 抓最大的「N 人/位」數字
+    nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', combined_milestone)]
+    if nums:
+        n = max(nums)
+        if n >= 1000:   score += 10
+        elif n >= 800:  score += 8
+        elif n >= 500:  score += 6
+        elif n >= 300:  score += 4
+        elif n >= 100:  score += 3
+        elif n >= 50:   score += 2  # 罕病常見規模
 
     # 催化強度
     cl = event.get("catalystLevel", "")
@@ -380,26 +393,30 @@ def score_success_prob(scores_entry, event):
     phase = get_clinical_phase(event.get("label", ""))
     base = PHASE_SUCCESS_BASE.get(phase, 60)
 
-    # 已公布實績（IDMC 通過 / 期中通過 / 收案完成）= 成功機率大增
-    if event.get("announcedNote"):
-        ann = event.get("announcedNote", "")
-        detail_text = ann + " " + (event.get("detail", "") or "")
-        if any(k in ann for k in ["IDMC", "期中分析通過", "達標"]):
-            base = min(100, base + 18)
-        elif "收案完成" in ann or "收案超前" in ann:
-            base = min(100, base + 14)
-        # 超前 / 提前完成額外加碼（亦檢查 detail）
-        if any(k in detail_text for k in ["超前", "提前", "比預期", "比原訂"]):
-            base = min(100, base + 8)
-        # 大規模收案加碼（統計力強 = 假陽性風險低）
-        import re
-        nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', detail_text)]
-        if nums:
-            n = max(nums)
-            if n >= 1000:   base = min(100, base + 8)
-            elif n >= 800:  base = min(100, base + 6)
-            elif n >= 500:  base = min(100, base + 4)
-            elif n >= 300:  base = min(100, base + 2)
+    # 已公布實績（IDMC 通過 / 期中通過 / 收案完成 / DSMB 通過）= 成功機率大增
+    # 改：同時掃 announcedNote / statusLabel / detail
+    ann_text = event.get("announcedNote", "") or ""
+    status_text = (event.get("statusLabel") or "") + " " + (event.get("status") or "")
+    detail_text = event.get("detail", "") or ""
+    combined = ann_text + " " + status_text + " " + detail_text
+
+    if any(k in combined for k in ["IDMC", "期中分析通過", "達標", "DSMB"]):
+        base = min(100, base + 18)
+    elif any(k in combined for k in ["收案完成", "收案超前", "已進入審查"]):
+        base = min(100, base + 14)
+    # 超前 / 提前完成額外加碼
+    if any(k in combined for k in ["超前", "提前", "比預期", "比原訂"]):
+        base = min(100, base + 8)
+    # 大規模收案加碼
+    import re
+    nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', combined)]
+    if nums:
+        n = max(nums)
+        if n >= 1000:   base = min(100, base + 8)
+        elif n >= 800:  base = min(100, base + 6)
+        elif n >= 500:  base = min(100, base + 4)
+        elif n >= 300:  base = min(100, base + 2)
+        elif n >= 50:   base = min(100, base + 1)  # 罕病小規模也加
 
     # 公司既有臨床可信度也納入（次要）
     if scores_entry:
