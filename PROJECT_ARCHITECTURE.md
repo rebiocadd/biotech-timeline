@@ -194,15 +194,62 @@ biotech-timeline/
 
 ## 七、修改情境 SOP
 
-### 🎯 情境 A：加入一家新公司
+### 🎯 情境 A：加入一家新公司（⚠️ 必看 SOP）
 
-1. 編輯 `date.json`，在對應 section（上市/上櫃/興櫃）的 `companies` 陣列加入新物件
-2. 必填欄位：`code`, `name`, `market`, `events`（即使每季都 null 也要有）
-3. commit + push
-4. 自動跟進：
-   - 下一次 09:00/15:00 排程 → 自動補股價
-   - 下次週六 10:00 → 自動補千張 + 現金流
-   - 下次 08:00 → 自動補新聞 + 評分
+**重要**：加入新公司後，**必須立即手動跑 3 個腳本**把它補進 4 個獨立表格，否則使用者要等下次排程（最多 6 天）才會看到。
+
+#### Step 1：編輯 `date.json`
+在對應 section（上市/上櫃/興櫃）的 `companies` 陣列加入新物件：
+- 必填：`code`, `name`, `market` (listed/otc/emerging), `events` (即使每季都 null 也要有 q1~q4 + h2)
+- 建議填：`website`, `strategy`, `indication`, `target`
+
+#### Step 2：立即跑 3 個腳本補進 4 個表格
+
+```bash
+# 1. 補現金流（💰 26 家現金流餘額排行）
+python update_cashflow.py
+
+# 2. 補千張大戶（🏦 集保戶持股統計 + 🏆 26 家總股東排行）
+python update_holders.py
+
+# 3. 算評分（🎯 AI 自動化動態訊號評估引擎）
+python update_scores.py
+
+# 4. （選擇性）抓即時股價
+python update_prices.py
+```
+
+#### Step 3：commit + push
+
+```bash
+git add date.json cashflow.json holders.json holders_history.json scores.json status.json
+git commit -m "新增 XXXX 第 N 家"
+git push origin main
+```
+
+#### 為什麼這 4 個表格必須手動補？
+
+| 表格 | 資料源 JSON | 為何要立即跑？ |
+|---|---|---|
+| 🎯 AI 動態訊號評估引擎 | `scores.json` | 評分需要 cashflow + holders 才能算，3 個都要先有 |
+| 🏦 集保戶持股統計 | `holders_history.json` | TDCC 抓取需要爬蟲 |
+| 🏆 26 家總股東排行 | `holders_history.json` | 同上 |
+| 💰 26 家現金流餘額排行 | `cashflow.json` | FinMind API 呼叫 |
+
+**不跑會怎樣？**
+- 新公司在這 4 個表格會「不見」或顯示空欄位
+- 動態評分裡看不到
+- 集保戶統計顯示 0 持有者
+- 排行表會少一家
+- 現金流會顯示 ﹣
+
+**會自動補齊嗎？**
+是，但要等到：
+- 下次平日 09:00/15:00 → `update_prices.py` 自動補股價
+- 下次每天 08:00 → 自動補新聞 + 評分
+- 下次週六 10:00 → 自動補千張 + 現金流
+
+**所以新加入公司一定要手動觸發**，否則使用者最久要等 6 天（下個週六）才看到完整資料。
 
 ### 🎯 情境 B：更新某公司某季事件
 
