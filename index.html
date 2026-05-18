@@ -924,8 +924,12 @@ function renderProvisions(){
     // 上市拉抬難度標籤
     const fl=r.flags||{};
     if(fl.isListed) tags.push(`<span class="prov-tag prov-tag-medhigh" title="TWSE 上市：10% 漲跌幅限制，拉抬難度高">🏛️ 上市難拉抬</span>`);
-    // 細胞療法標籤
-    if(fl.isCellTherapy) tags.push(`<span class="prov-tag prov-tag-highrisk" title="細胞療法（CAR-T/幹細胞等）製程複雜、達標困難">🧫 細胞療法</span>`);
+    // 細胞療法分級標籤
+    if(fl.cellTherapyRisk==='high_allo'){
+      tags.push(`<span class="prov-tag prov-tag-highrisk" title="異體 CAR-T / 異體幹細胞 — 全球無成功上市案例，技術風險極高">🚨 異體細胞療法(極高風險)</span>`);
+    } else if(fl.cellTherapyRisk==='standard_cart'){
+      tags.push(`<span class="prov-tag prov-tag-medrisk" title="自體 CAR-T — 已有 CD19/BCMA 等成功標靶，技術風險中等">🧫 自體CAR-T</span>`);
+    }
     // 股本標籤
     const sc=r.shareCapital||{};
     if(sc.label){

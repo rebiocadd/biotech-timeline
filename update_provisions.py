@@ -168,18 +168,40 @@ def get_clinical_phase(label):
 
 # 細胞療法/CAR-T 偵測：高難度技術 + 製程複雜，失敗風險加成
 CELL_THERAPY_KEYWORDS = ['cart', 'car-t', 'car t', '幹細胞', '細胞療法', 'cell therapy',
-                          'stem cell', '異體', 'autologous', 'iPSC', '免疫細胞']
+                          'stem cell', 'autologous', 'ipsc', '免疫細胞']
 
-def is_cell_therapy(company, event):
-    """判斷是否為細胞療法（包含 CAR-T、幹細胞、異體細胞等）"""
-    if company.get('strategy') == 'cart':
-        return True
+def get_cell_therapy_risk(company, event):
+    """細胞療法風險分級
+    - 'high_allo'      : 異體 CAR-T / 異體幹細胞（全球無成功上市，極高風險）
+    - 'standard_cart'  : 自體 CAR-T / 一般細胞療法（標靶已驗證 e.g., CD19, 風險中等）
+    - 'none'           : 非細胞療法
+    """
     text = (str(company.get('target', '')) + ' ' +
             str(company.get('indication', '')) + ' ' +
             str(event.get('label', '')) + ' ' +
             str(event.get('detail', '')) + ' ' +
             str(event.get('drug', ''))).lower()
-    return any(k.lower() in text for k in CELL_THERAPY_KEYWORDS)
+
+    is_allo = any(k in text for k in ['異體', 'allogeneic', 'allo-car', 'allo car'])
+    is_cart_or_stem = any(k in text for k in
+        ['cart', 'car-t', 'car t', '幹細胞', '細胞療法', 'stem cell', 'cell therapy', 'autologous'])
+
+    # strategy='cart' 也算
+    if company.get('strategy') == 'cart':
+        is_cart_or_stem = True
+
+    if is_allo and is_cart_or_stem:
+        return 'high_allo'  # 異體 CAR-T / 異體細胞療法 = 全球無上市，極高風險
+    if is_allo:
+        return 'high_allo'  # 異體幹細胞等
+    if is_cart_or_stem:
+        return 'standard_cart'  # 自體 CAR-T / 一般細胞療法
+    return 'none'
+
+
+def is_cell_therapy(company, event):
+    """是否為任何形式的細胞療法（保留向後相容）"""
+    return get_cell_therapy_risk(company, event) != 'none'
 
 
 # 臨床期別「成功機率」基礎分（糧草先行視角：早期解盲幾乎都過）
@@ -221,12 +243,16 @@ def score_clinical(event, company=None):
         import re
         if re.search(r'\d{4}/\d{2}/\d{2}', ann):
             score += 3
-        # 大規模收案（≥500 人）= 統計力強
-        m = re.search(r'(\d{3,4})\s*[人位]', detail_text)
-        if m:
-            n = int(m.group(1))
-            if n >= 500:
-                score += 4
+        # 大規模收案階梯加分（統計力強 + 公司執行力佳）
+        # 從 detail_text 抓最大的「N 人/位」數字
+        nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', detail_text)]
+        if nums:
+            n = max(nums)
+            if n >= 1000:   score += 10  # 超大規模
+            elif n >= 800:  score += 8   # 大規模 (鼎晉 800)
+            elif n >= 500:  score += 6
+            elif n >= 300:  score += 4
+            elif n >= 100:  score += 2
 
     # 催化強度
     cl = event.get("catalystLevel", "")
@@ -254,9 +280,13 @@ def score_clinical(event, company=None):
     bf = event.get("bonusFactors", [])
     if bf: score += min(8, len(bf))
 
-    # 細胞療法扣分（CAR-T / 幹細胞等高難度技術）
-    if company and is_cell_therapy(company, event):
-        score -= 10  # 製程複雜 + 失敗風險高
+    # 細胞療法分級扣分
+    if company:
+        risk = get_cell_therapy_risk(company, event)
+        if risk == 'high_allo':
+            score -= 18  # 異體 CAR-T / 幹細胞 - 全球無上市，極高失敗風險
+        elif risk == 'standard_cart':
+            score -= 5   # 自體 CAR-T / 一般細胞療法 - 已有驗證標靶
 
     return max(10, min(100, score))
 
@@ -330,10 +360,16 @@ def score_share_structure(total_s, market=None):
 
 
 def score_success_prob_with_penalty(scores_entry, event, company=None):
-    """📊 成功機率 (含細胞療法懲罰)"""
+    """📊 成功機率 (含細胞療法分級懲罰)
+    異體 CAR-T 全球無成功上市，懲罰最重
+    """
     base = score_success_prob(scores_entry, event)
-    if company and is_cell_therapy(company, event):
-        base = max(10, base - 8)  # 細胞療法臨床終點達標難
+    if company:
+        risk = get_cell_therapy_risk(company, event)
+        if risk == 'high_allo':
+            base = max(10, base - 15)  # 異體 = 全球未驗證，達標機率極低
+        elif risk == 'standard_cart':
+            base = max(10, base - 4)   # 自體 = 已有同類藥上市，風險可控
     return base
 
 
@@ -355,6 +391,15 @@ def score_success_prob(scores_entry, event):
         # 超前 / 提前完成額外加碼（亦檢查 detail）
         if any(k in detail_text for k in ["超前", "提前", "比預期", "比原訂"]):
             base = min(100, base + 8)
+        # 大規模收案加碼（統計力強 = 假陽性風險低）
+        import re
+        nums = [int(x) for x in re.findall(r'(\d{2,5})\s*[人位]', detail_text)]
+        if nums:
+            n = max(nums)
+            if n >= 1000:   base = min(100, base + 8)
+            elif n >= 800:  base = min(100, base + 6)
+            elif n >= 500:  base = min(100, base + 4)
+            elif n >= 300:  base = min(100, base + 2)
 
     # 公司既有臨床可信度也納入（次要）
     if scores_entry:
@@ -510,9 +555,12 @@ def main():
             # 上市公司拉抬難度標籤
             if is_listed:
                 advice.append("上市拉抬難")
-            # 細胞療法標籤
-            if is_ct:
-                advice.append("細胞療法")
+            # 細胞療法分級標籤
+            ct_risk = get_cell_therapy_risk(c, event)
+            if ct_risk == 'high_allo':
+                advice.append("異體細胞療法(極高風險)")
+            elif ct_risk == 'standard_cart':
+                advice.append("自體CAR-T(標靶已驗證)")
 
             # 風險等級（依期別）
             phase = get_clinical_phase(event.get("label", ""))
@@ -582,6 +630,7 @@ def main():
                 "flags": {
                     "isListed": is_listed,
                     "isCellTherapy": is_ct,
+                    "cellTherapyRisk": get_cell_therapy_risk(c, event),  # 'high_allo' / 'standard_cart' / 'none'
                 },
                 "advice": " · ".join(advice) if advice else "—",
             })
