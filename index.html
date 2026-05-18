@@ -508,6 +508,7 @@
   <div class="timeline-section-header" style="display:flex;align-items:center;gap:10px;margin:18px 0 8px;flex-wrap:wrap">
     <span style="font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px">🗓️ 主時程表</span>
     <span style="font-size:10.5px;color:var(--muted)" id="timeline-subtitle">27 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細</span>
+    <span class="ranking-meta" id="timeline-meta" title="股價：平日 09:00、15:00（UTC+8）自動更新&#10;事件文字：人工維護">⏱ 抓取中…</span>
   </div>
   <div class="quarters-header">
     <div></div>
@@ -1857,6 +1858,18 @@ Promise.all([
   window._statusData = statusData;
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
+  // 🗓️ 主時程表抓取時間徽章（比照 27 家總股東排行格式）
+  const _tmeta = document.getElementById('timeline-meta');
+  if(_tmeta){
+    const pRun = (statusData.prices && statusData.prices.lastRun);
+    const pDate = (statusData.prices && statusData.prices.lastRunDate);
+    if(pRun){
+      const dd = pDate ? ' · 資料：'+pDate : '';
+      _tmeta.innerHTML = '⏱ 抓取：'+pRun+dd+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+    } else {
+      _tmeta.textContent = '⏱ 尚未抓取';
+    }
+  }
   // 主要 meta 載入完成後，若集保資料已就緒則重新渲染 signals/ranking
   // 解決 race condition：holders_history 載入比主要資料早時，autoReason 抓不到 news/meta
   if(_hHistory){
