@@ -199,6 +199,50 @@
     .score-grid{grid-template-columns:1fr}
     .sc-total{font-size:16px}
   }
+  /* 🌾 AI 評估糧草先行（兵馬未動，糧草先行） */
+  .provisions-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(0,212,255,.05));border:1px solid rgba(245,158,11,.32);border-radius:10px}
+  .prov-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .prov-title{font-size:13px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;letter-spacing:1px}
+  .prov-subtitle{font-size:10.5px;color:var(--muted)}
+  .prov-tagline{font-size:11px;color:#cbd5e1;margin-bottom:10px;line-height:1.55}
+  .prov-tagline strong{color:var(--accent4)}
+  .prov-list{display:flex;flex-direction:column;gap:6px}
+  .prov-card{display:grid;grid-template-columns:32px 1fr 70px;column-gap:10px;align-items:start;padding:9px 11px;background:rgba(15,24,40,.6);border:1px solid var(--border);border-left-width:3px;border-radius:5px;font-size:11.5px}
+  .prov-card.rank-1{border-left-color:#fbbf24}
+  .prov-card.rank-2{border-left-color:#94a3b8}
+  .prov-card.rank-3{border-left-color:#fb923c}
+  .prov-card.rank-other{border-left-color:#475569}
+  .prov-rank{font-size:18px;font-weight:700;color:var(--accent4);text-align:center;font-family:'Space Mono',monospace;line-height:1}
+  .prov-body{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .prov-row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .prov-name{font-weight:700;color:#fff;font-size:12.5px}
+  .prov-name a{color:#fff;text-decoration:none}
+  .prov-name a:hover{color:var(--accent1);text-decoration:underline}
+  .prov-code{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);background:rgba(14,165,233,.12);padding:1px 6px;border-radius:3px}
+  .prov-event{font-size:10.5px;color:#cbd5e1}
+  .prov-event-drug{font-family:'Space Mono',monospace;color:#94a3b8;margin-right:4px}
+  .prov-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+  .prov-tag{font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.2px}
+  .prov-tag-price{background:rgba(16,185,129,.18);color:#34d399}
+  .prov-tag-time{background:rgba(245,158,11,.18);color:#fbbf24}
+  .prov-tag-vol{background:rgba(0,212,255,.18);color:#5ee9ff}
+  .prov-tag-hot{background:rgba(239,68,68,.18);color:#fca5a5}
+  .prov-tag-warn{background:rgba(124,58,237,.18);color:#c4b5fd}
+  .prov-bars{display:grid;grid-template-columns:28px 1fr;column-gap:4px;row-gap:1px;font-size:8.5px;font-family:'Space Mono',monospace;margin-top:3px}
+  .prov-bar-label{color:var(--muted);text-align:right}
+  .prov-bar-track{height:4px;background:rgba(30,45,69,.5);border-radius:2px;overflow:hidden;align-self:center}
+  .prov-bar-fill{height:100%;border-radius:2px}
+  .prov-total{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .prov-total-num{font-size:22px;font-weight:700;color:var(--accent4);font-family:'Space Mono',monospace;line-height:1}
+  .prov-total-label{font-size:8.5px;color:var(--muted)}
+  @media(max-width:700px){
+    .prov-card{grid-template-columns:26px 1fr 60px;column-gap:6px;padding:8px}
+    .prov-name{font-size:11.5px}
+    .prov-event{font-size:10px}
+    .prov-tag{font-size:9px}
+    .prov-rank{font-size:14px}
+    .prov-total-num{font-size:18px}
+  }
   /* 💡 AI 自動化市場訊號解讀（幾個有趣的訊號 - 3 欄表格樣式） */
   .signals-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(16,185,129,.04));border:1px solid rgba(0,212,255,.22);border-radius:10px}
   .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
@@ -493,6 +537,21 @@
     </div>
     <div class="signals-tagline">幾個有趣的訊號：</div>
     <div class="signals-table" id="signals-grid"></div>
+  </div>
+
+  <!-- 🌾 AI 評估糧草先行 -->
+  <div class="provisions-section" id="provisions-section" style="display:none">
+    <div class="prov-header">
+      <span class="prov-title">🌾 AI 評估糧草先行</span>
+      <span class="prov-subtitle">近期解盲 + 股價平穩/偏低 = 適合提前佈局</span>
+      <span class="ranking-meta" id="provisions-meta" title="6 維度評分：催化迫近 30% + 股價窗口 20% + 臨床訊號 20% + 現金 10% + 新聞 10% + 機率 10%&#10;每日 08:00 + 週六 10:00 自動更新">⏱ 載入中…</span>
+    </div>
+    <div class="prov-tagline">
+      <strong>「兵馬未動，糧草先行」</strong> — 在催化事件（解盲/數據讀出）發生前，
+      於股價低點或平穩期提前布局現金，待事件兌現後享受升幅紅利。
+      篩選條件：① 今年將有解盲類事件 ② 股價合理位置 ③ 臨床有實際進度。
+    </div>
+    <div class="prov-list" id="provisions-list"></div>
   </div>
 
   <!-- 本週值得注意 -->
@@ -801,6 +860,61 @@ function renderRanking(){
 
 // =========================================
 // 🎯 動態投資評分引擎 dashboard
+// =========================================
+// 🌾 AI 評估糧草先行 — 渲染 TOP 8
+// =========================================
+function renderProvisions(){
+  const sec=document.getElementById('provisions-section');
+  const list=document.getElementById('provisions-list');
+  const meta=document.getElementById('provisions-meta');
+  const data=window._provisionsData;
+  if(!sec||!list||!data||!data.candidates||!data.candidates.length){return;}
+  sec.style.display='block';
+  // 徽章
+  if(meta){
+    if(data.lastRun){
+      meta.innerHTML='⏱ 評分：'+data.lastRun+' <span style="opacity:.55;font-size:.85em;margin-left:2px">'+(data.tz||'UTC+8')+'</span>';
+    } else { meta.textContent='⏱ 尚未評分'; }
+  }
+  // TOP 8
+  const top=data.candidates.slice(0,8);
+  const compLabels={imminence:'迫近',priceWindow:'股價',clinical:'臨床',cash:'現金',newsHeat:'新聞',successProb:'機率'};
+  const compColors={imminence:'#fbbf24',priceWindow:'#10b981',clinical:'#a78bfa',cash:'#0ea5e9',newsHeat:'#ef4444',successProb:'#22d3ee'};
+  list.innerHTML=top.map((r,idx)=>{
+    const rankCls=idx===0?'rank-1':(idx===1?'rank-2':(idx===2?'rank-3':'rank-other'));
+    // 進度條
+    const barsHtml=Object.entries(r.components).map(([k,v])=>{
+      const c=compColors[k]||'#cbd5e1';
+      return `<span class="prov-bar-label">${compLabels[k]||k}</span><div class="prov-bar-track"><div class="prov-bar-fill" style="width:${v}%;background:${c}"></div></div>`;
+    }).join('');
+    // 標籤
+    const tags=[];
+    const adv=r.advice||'';
+    if(adv.includes('股價偏低')) tags.push(`<span class="prov-tag prov-tag-price">📉 股價偏低</span>`);
+    if(adv.includes('股價平穩')) tags.push(`<span class="prov-tag prov-tag-vol">📊 股價平穩</span>`);
+    if(adv.includes('波動小')) tags.push(`<span class="prov-tag prov-tag-vol">📈 波動小</span>`);
+    if(r.event.daysUntil>=0 && r.event.daysUntil<=60) tags.push(`<span class="prov-tag prov-tag-time">⏰ ${r.event.daysUntil} 天內</span>`);
+    else if(r.event.daysUntil<0) tags.push(`<span class="prov-tag prov-tag-warn">⏳ 延期中</span>`);
+    if(r.event.highlightThisWeek) tags.push(`<span class="prov-tag prov-tag-hot">🔥 本週重點</span>`);
+    return `<div class="prov-card ${rankCls}">
+      <div class="prov-rank">${idx+1}</div>
+      <div class="prov-body">
+        <div class="prov-row1">
+          <span class="prov-name"><a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank">${r.name}</a></span>
+          <span class="prov-code">${r.code}</span>
+          <span class="prov-event"><span class="prov-event-drug">${r.event.drug||'-'}</span>${r.event.label||''} · ${r.event.quarter}</span>
+        </div>
+        <div class="prov-tags">${tags.join('')}</div>
+        <div class="prov-bars">${barsHtml}</div>
+      </div>
+      <div class="prov-total">
+        <div class="prov-total-num">${r.provisionScore}</div>
+        <div class="prov-total-label">糧草分</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // =========================================
 // 預設關注名單：藥華藥/安成/藥祇/中裕/安立璽榮/圓祥
 const WATCHLIST_CODES = ['6446', '6610', '7878', '4147', '7871', '6945'];
@@ -1848,11 +1962,14 @@ Promise.all([
   fetch('news_status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('date.json?v='+Date.now()).then(r=>r.json()),
   fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
-  fetch('scores.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}}))
-]).then(([statusData, newsData, timelineData, cashflowData, scoresData])=>{
+  fetch('scores.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
+  fetch('provisions.json?v='+Date.now()).then(r=>r.json()).catch(()=>({candidates:[]}))
+]).then(([statusData, newsData, timelineData, cashflowData, scoresData, provisionsData])=>{
   window._cashflowData = cashflowData;
   window._scoresData = scoresData;
+  window._provisionsData = provisionsData;
   setTimeout(()=>{ try { renderScores(); } catch(e){ console.warn('renderScores fail', e); } }, 0);
+  setTimeout(()=>{ try { renderProvisions(); } catch(e){ console.warn('renderProvisions fail', e); } }, 0);
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;

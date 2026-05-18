@@ -72,7 +72,8 @@ jobs:
             python update_news.py
             python update_highlights.py || echo "⚠️ highlights step failed, continue"
             python update_scores.py || echo "⚠️ scores step failed, continue"
-            git add news_status.json date.json status.json scores.json
+            python update_provisions.py || echo "⚠️ provisions step failed, continue"
+            git add news_status.json date.json status.json scores.json provisions.json
             if git diff --staged --quiet; then
               echo "No changes, skipping"; break
             fi
@@ -110,7 +111,8 @@ jobs:
             pip install yfinance --quiet || true
             python update_cashflow.py || echo "⚠️ cashflow step failed, continue"
             python update_scores.py || echo "⚠️ scores step failed, continue"
-            git add holders.json holders_history.json cashflow.json scores.json status.json
+            python update_provisions.py || echo "⚠️ provisions step failed, continue"
+            git add holders.json holders_history.json cashflow.json scores.json provisions.json status.json
             if git diff --staged --quiet; then
               echo "No changes, skipping"; break
             fi
