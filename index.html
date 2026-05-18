@@ -560,7 +560,7 @@
   <!-- 🌾 AI 評估糧草先行 -->
   <div class="provisions-section" id="provisions-section" style="display:none">
     <div class="prov-header">
-      <span class="prov-title">🌾 AI 評估糧草先行 TOP 4</span>
+      <span class="prov-title">🌾 AI 評估糧草先行 TOP 5</span>
       <span class="prov-subtitle">近期解盲 + 股價平穩/偏低 = 適合提前佈局</span>
       <span class="ranking-meta" id="provisions-meta" title="6 維度評分：催化迫近 30% + 股價窗口 20% + 臨床訊號 20% + 現金 10% + 新聞 10% + 機率 10%&#10;每日 08:00 + 週六 10:00 自動更新">⏱ 載入中…</span>
     </div>
@@ -894,8 +894,8 @@ function renderProvisions(){
       meta.innerHTML='⏱ 評分：'+data.lastRun+' <span style="opacity:.55;font-size:.85em;margin-left:2px">'+(data.tz||'UTC+8')+'</span>';
     } else { meta.textContent='⏱ 尚未評分'; }
   }
-  // TOP 4
-  const top=data.candidates.slice(0,4);
+  // TOP 5
+  const top=data.candidates.slice(0,5);
   const compLabels={imminence:'迫近',priceWindow:'股價',clinical:'臨床',cash:'現金',newsHeat:'新聞',successProb:'機率',shareStructure:'籌碼'};
   const compColors={imminence:'#fbbf24',priceWindow:'#10b981',clinical:'#a78bfa',cash:'#0ea5e9',newsHeat:'#ef4444',successProb:'#22d3ee',shareStructure:'#ec4899'};
   list.innerHTML=top.map((r,idx)=>{
