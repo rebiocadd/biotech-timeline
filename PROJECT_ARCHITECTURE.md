@@ -104,16 +104,33 @@ biotech-timeline/
 
 ## 五、頁面區塊 × 資料源 × 自動化 對照表
 
-| # | 頁面區塊 | 資料源 JSON | 由哪個 .py 更新 | 排程 |
+> 共 **8 個獨立區塊**，依照頁面實際從上到下顯示順序排列。
+> 「🗓️ 主時程表」內含「上市公司」「興櫃公司」兩段，但屬同一個網格元件，算 1 個區塊。
+
+| # | 區塊（HTML 順序） | 資料源 JSON | 由哪個 .py 更新 | 自動排程 |
 |---|---|---|---|---|
-| 1 | 🗓️ 主時程表（公司事件矩陣） | `date.json` | events 部分手動，price 部分 `update_prices.py` | 平日 09:00, 15:00 |
-| 2 | 🔵 今年解盲（2026） | `date.json` | （同上）| 平日 09:00, 15:00 |
-| 3 | 🎯 AI 動態訊號評估引擎 | `scores.json` | `update_scores.py` | 每日 08:00 + 週六 10:00 |
-| 4 | 💡 AI 全自動市場訊號解讀 | `holders_history.json` + `news_status.json` | `update_holders.py` + `update_news.py` | 週六 10:00 + 每日 08:00 |
-| 5 | ⭐ 本週值得注意 | `date.json` (highlightThisWeek) | `update_highlights.py` | 每日 08:00 |
-| 6 | 🏦 集保戶持股統計 | `holders_history.json` | `update_holders.py` | 週六 10:00 |
-| 7 | 🏆 26 家總股東排行（三週快照） | `holders_history.json` | `update_holders.py` | 週六 10:00 |
-| 8 | 💰 26 家現金流餘額排行（4 年度） | `cashflow.json` | `update_cashflow.py` | 週六 10:00 |
+| 1 | **🔵 今年解盲（2026）** | `date.json` (篩 tag-resolve / tag-data) | events 手動 + `update_prices.py` 補股價 | 平日 09:00, 15:00 |
+| 2 | **🎯 AI 自動化動態訊號評估引擎** | `scores.json` | `update_scores.py`（讀 date+holders+cashflow+news 整合）| 每日 08:00 + 週六 10:00 |
+| 3 | **💡 AI 全自動市場訊號解讀** | `holders_history.json` + `news_status.json` | `update_holders.py` + `update_news.py` | 週六 10:00 + 每日 08:00 |
+| 4 | **⭐ 本週值得注意** | `date.json` (`highlightThisWeek:true` 事件) | `update_highlights.py` | 每日 08:00 |
+| 5 | **🗓️ 主時程表**（上市 + 興櫃合一網格）| `date.json` (events 主表 + price/change/history)| events 手動 + `update_prices.py` 補股價 | 平日 09:00, 15:00 |
+| 6 | **🏦 集保戶持股統計**（15 持股等級切換）| `holders_history.json` | `update_holders.py` | 週六 10:00 |
+| 7 | **🏆 27 家總股東排行**（三週快照） | `holders_history.json` | `update_holders.py` | 週六 10:00 |
+| 8 | **💰 27 家現金流餘額排行**（4 年度）| `cashflow.json` | `update_cashflow.py`（FinMind 主 + yfinance 備）| 週六 10:00 |
+
+### 自動化覆蓋率
+
+```
+✅ 全自動運作 .................... 7 個區塊
+⚠️ 半自動（events 文字手動補） ... 1 個區塊（主時程表 + 今年解盲共用同一資料）
+```
+
+### 「⭐ 本週值得注意」與「🎯 AI 動態訊號評估引擎」的差別
+
+| 區塊 | 篩選邏輯 | 主要目的 |
+|---|---|---|
+| ⭐ 本週值得注意 | `highlightThisWeek:true` 由 `update_highlights.py` 自動標記（新聞觸發） | 即時關注「本週有動靜」的公司 |
+| 🎯 AI 動態訊號評分 | 7 模組評分 + 5 風險閘 由 `update_scores.py` 整合計算 | 長期排序與分級（≥80 / ≥65 / 觀察） |
 
 ---
 
