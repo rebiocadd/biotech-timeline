@@ -133,22 +133,53 @@ def score_price_window(price_history):
 
 
 def get_clinical_phase(label):
-    """從事件 label 判斷臨床期別，回傳 phase key
+    """從事件 label 判斷臨床期別，回傳 phase key。
+    支援阿拉伯數字（2a/2b）、中文（二期）、英文（Phase 2）、羅馬數字（IIa/IIb/III）。
     回傳值：'phase1', 'phase1b', 'phase2a', 'phase2', 'phase2b', 'phase3', 'interim', 'approval', 'unknown'
     """
     if not label:
         return 'unknown'
+    import re
     L = label.lower()
-    # 注意順序：先抓細項再抓粗項
+    # 先檢查里程碑類
     if "藥證" in label or "approval" in L: return 'approval'
     if "期中分析" in label or "interim" in L: return 'interim'
-    if "3期" in label or "三期" in label or "phase 3" in L or "phase iii" in L: return 'phase3'
+
+    # 阿拉伯數字
+    if "3期" in label or "三期" in label or "phase 3" in L: return 'phase3'
     if "2b" in L: return 'phase2b'
     if "2a" in L: return 'phase2a'
-    if "2期" in label or "二期" in label or "phase 2" in L or "phase ii" in L: return 'phase2'
+    if "2期" in label or "二期" in label or "phase 2" in L: return 'phase2'
     if "1b" in L: return 'phase1b'
-    if "1期" in label or "一期" in label or "phase 1" in L or "phase i" in L: return 'phase1'
+    if "1期" in label or "一期" in label or "phase 1" in L: return 'phase1'
+
+    # 羅馬數字（需搭配「期」字或詞尾以避免誤抓 ID 等英文）
+    # 順序：III → IIa → IIb → II → Ib → I （長字優先）
+    # Python regex \b 對中文邊界判斷不正確，改用具體字串匹配
+    if any(p in label for p in ['III期', 'III 期', 'Ⅲ期']) or 'phase iii' in L: return 'phase3'
+    if any(p in label for p in ['IIa期', 'IIa 期', 'Ⅱa期', 'iia期']) or 'iia' in L and '期' in label: return 'phase2a'
+    if any(p in label for p in ['IIb期', 'IIb 期', 'Ⅱb期', 'iib期']) or 'iib' in L and '期' in label: return 'phase2b'
+    if any(p in label for p in ['II期', 'II 期', 'Ⅱ期']) or 'phase ii' in L: return 'phase2'
+    if any(p in label for p in ['Ib期', 'Ib 期', 'ib期']): return 'phase1b'
+    if any(p in label for p in ['I期', 'I 期', 'Ⅰ期']) or 'phase i' in L: return 'phase1'
+
     return 'unknown'
+
+
+# 細胞療法/CAR-T 偵測：高難度技術 + 製程複雜，失敗風險加成
+CELL_THERAPY_KEYWORDS = ['cart', 'car-t', 'car t', '幹細胞', '細胞療法', 'cell therapy',
+                          'stem cell', '異體', 'autologous', 'iPSC', '免疫細胞']
+
+def is_cell_therapy(company, event):
+    """判斷是否為細胞療法（包含 CAR-T、幹細胞、異體細胞等）"""
+    if company.get('strategy') == 'cart':
+        return True
+    text = (str(company.get('target', '')) + ' ' +
+            str(company.get('indication', '')) + ' ' +
+            str(event.get('label', '')) + ' ' +
+            str(event.get('detail', '')) + ' ' +
+            str(event.get('drug', ''))).lower()
+    return any(k.lower() in text for k in CELL_THERAPY_KEYWORDS)
 
 
 # 臨床期別「成功機率」基礎分（糧草先行視角：早期解盲幾乎都過）
@@ -166,9 +197,10 @@ PHASE_SUCCESS_BASE = {
 }
 
 
-def score_clinical(event):
+def score_clinical(event, company=None):
     """🧬 臨床訊號：收案進度 + 催化強度 + 期別風險平衡
     糧草先行視角：早期 = 低風險、晚期 = 高風險高 reward
+    細胞療法（CAR-T/幹細胞）製程複雜、臨床達標難度高，扣分
     """
     score = 40  # 基礎
 
@@ -207,6 +239,10 @@ def score_clinical(event):
     # 投資亮點數量（公司資訊豐富 = 投資人能看清楚）
     bf = event.get("bonusFactors", [])
     if bf: score += min(8, len(bf))
+
+    # 細胞療法扣分（CAR-T / 幹細胞等高難度技術）
+    if company and is_cell_therapy(company, event):
+        score -= 10  # 製程複雜 + 失敗風險高
 
     return max(10, min(100, score))
 
@@ -257,20 +293,34 @@ def score_news(news_entry, event):
     return base
 
 
-def score_share_structure(total_s):
+def score_share_structure(total_s, market=None):
     """📦 籌碼結構：股本越小越易拉抬（生技股投資邏輯）
     台股 1 股面額 10 元，股本 = total_s × 10。
+    上市公司（market=listed）有 10% 漲跌幅限制，較難快速拉抬，扣分。
     """
     if not total_s or total_s <= 0:
-        return 50  # 資料缺失，中性
+        base = 50  # 資料缺失，中性
+    elif total_s < 5e7:      base = 100  # < 5千萬股（極小型）
+    elif total_s < 1e8:      base = 90   # 5千萬~1億股（小型）
+    elif total_s < 1.5e8:    base = 78   # 1~1.5億股（中小型）
+    elif total_s < 2.5e8:    base = 60   # 1.5~2.5億股（中型）
+    elif total_s < 4e8:      base = 42   # 2.5~4億股（中大型）
+    elif total_s < 6e8:      base = 28   # 4~6億股（大型）
+    else:                    base = 15   # > 6億股（巨型）
 
-    if total_s < 5e7:      return 100  # < 5千萬股（極小型，極易拉抬）
-    elif total_s < 1e8:    return 90   # 5千萬~1億股（小型）
-    elif total_s < 1.5e8:  return 78   # 1~1.5億股（中小型）
-    elif total_s < 2.5e8:  return 60   # 1.5~2.5億股（中型）
-    elif total_s < 4e8:    return 42   # 2.5~4億股（中大型）
-    elif total_s < 6e8:    return 28   # 4~6億股（大型）
-    else:                  return 15   # > 6億股（巨型，難動）
+    # 上市（TWSE）有 10% 漲跌幅 + 較嚴監管 → 拉抬難度高
+    if market == 'listed':
+        base = max(5, base - 20)
+
+    return base
+
+
+def score_success_prob_with_penalty(scores_entry, event, company=None):
+    """📊 成功機率 (含細胞療法懲罰)"""
+    base = score_success_prob(scores_entry, event)
+    if company and is_cell_therapy(company, event):
+        base = max(10, base - 8)  # 細胞療法臨床終點達標難
+    return base
 
 
 def score_success_prob(scores_entry, event):
@@ -401,12 +451,14 @@ def main():
                 pw, percentile, vol_pct = pw_result
             else:
                 pw, percentile, vol_pct = pw_result, None, None
-            cl = score_clinical(event)
+            cl = score_clinical(event, company=c)
             cs = score_cash(cf_data.get(code, {}))
             ns = score_news(news_data.get(code), event)
-            sp = score_success_prob(scores_data.get(code), event)
+            sp = score_success_prob_with_penalty(scores_data.get(code), event, company=c)
             total_s = share_map.get(code, 0)
-            ss = score_share_structure(total_s)
+            ss = score_share_structure(total_s, market=c.get("market"))
+            is_ct = is_cell_therapy(c, event)
+            is_listed = (c.get("market") == "listed")
 
             # 加權總分（7 維度）
             total = round(
@@ -436,6 +488,13 @@ def main():
                 advice.append(f"預計{days_until}天")
             if event.get("highlightThisWeek"):
                 advice.append("本週重點")
+
+            # 上市公司拉抬難度標籤
+            if is_listed:
+                advice.append("上市拉抬難")
+            # 細胞療法標籤
+            if is_ct:
+                advice.append("細胞療法")
 
             # 風險等級（依期別）
             phase = get_clinical_phase(event.get("label", ""))
@@ -501,6 +560,10 @@ def main():
                     "totalShares": total_s,
                     "label": share_label,
                     "short": share_short,
+                },
+                "flags": {
+                    "isListed": is_listed,
+                    "isCellTherapy": is_ct,
                 },
                 "advice": " · ".join(advice) if advice else "—",
             })

@@ -921,6 +921,11 @@ function renderProvisions(){
     else if(adv.includes('高風險解盲')) tags.push(`<span class="prov-tag prov-tag-highrisk">🔴 ${adv.match(/高風險解盲\([^)]*\)/)?.[0]||'高風險'}</span>`);
     else if(adv.includes('期中通過')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 期中通過(已降風險)</span>`);
     else if(adv.includes('藥證審查')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 藥證審查(低風險)</span>`);
+    // 上市拉抬難度標籤
+    const fl=r.flags||{};
+    if(fl.isListed) tags.push(`<span class="prov-tag prov-tag-medhigh" title="TWSE 上市：10% 漲跌幅限制，拉抬難度高">🏛️ 上市難拉抬</span>`);
+    // 細胞療法標籤
+    if(fl.isCellTherapy) tags.push(`<span class="prov-tag prov-tag-highrisk" title="細胞療法（CAR-T/幹細胞等）製程複雜、達標困難">🧫 細胞療法</span>`);
     // 股本標籤
     const sc=r.shareCapital||{};
     if(sc.label){
