@@ -199,7 +199,7 @@
     .score-grid{grid-template-columns:1fr}
     .sc-total{font-size:16px}
   }
-  /* 💡 AI 全自動投資解讀（幾個有趣的訊號 - 3 欄表格樣式） */
+  /* 💡 AI 自動化市場訊號解讀（幾個有趣的訊號 - 3 欄表格樣式） */
   .signals-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(16,185,129,.04));border:1px solid rgba(0,212,255,.22);border-radius:10px}
   .signals-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
   .signals-title{font-size:13px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px}
@@ -484,10 +484,10 @@
     <div class="score-grid" id="score-grid"></div>
   </div>
 
-  <!-- 💡 AI 全自動投資解讀（散戶人數變化 + 可能原因） -->
+  <!-- 💡 AI 自動化市場訊號解讀（散戶人數變化 + 可能原因） -->
   <div class="signals-section" id="signals-section" style="display:none">
     <div class="signals-header">
-      <span class="signals-title">💡 AI 全自動市場訊號解讀</span>
+      <span class="signals-title">💡 AI 自動化市場訊號解讀</span>
       <span class="signals-subtitle">本週總股東人數變化 Top 5 · 自動分析</span>
       <span class="signals-meta" id="signals-meta" title="資料同步來源：&#10;🏦 集保戶持股（全 15 級總股東）：每週六 10:00（UTC+8）&#10;📡 新聞掃描：每日 08:00（UTC+8）&#10;💰 股價：平日 09:00、15:00（UTC+8）">⏱ 資料同步中…</span>
     </div>
@@ -500,9 +500,14 @@
     <div class="highlights-header">
       <span class="highlights-title">⭐ 本週值得注意</span>
       <span class="highlights-subtitle">近期高催化強度 / 已標記事件 · 每次載入自動篩選</span>
-      <span class="highlights-meta" id="highlights-meta" title="自動化排程說明：&#10;💰 股價：平日 09:00、15:00（UTC+8）&#10;📡 新聞掃描：每日 08:00（UTC+8）&#10;⭐ 自動標記：新聞掃描完成後（依關鍵字評分）&#10;🔒 人工標記：永不被自動腳本覆蓋&#10;🏦 千張統計：每週六 10:00（UTC+8）">⏱ 資料同步中…</span>
+      <span class="highlights-meta" id="highlights-meta" title="自動化排程說明：&#10;💰 股價：平日 09:00、15:00（UTC+8）&#10;📡 新聞掃描：每日 08:00（UTC+8）&#10;⭐ 自動標記：新聞掃描完成後（依關鍵字評分）&#10;🔒 人工標記：永不被自動腳本覆蓋&#10;🏦 集保統計：每週六 10:00（UTC+8）">⏱ 資料同步中…</span>
     </div>
     <div class="highlights-list" id="highlights-list"></div>
+  </div>
+  <!-- 🗓️ 主時程表 -->
+  <div class="timeline-section-header" style="display:flex;align-items:center;gap:10px;margin:18px 0 8px;flex-wrap:wrap">
+    <span style="font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px">🗓️ 主時程表</span>
+    <span style="font-size:10.5px;color:var(--muted)" id="timeline-subtitle">27 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細</span>
   </div>
   <div class="quarters-header">
     <div></div>
@@ -515,7 +520,7 @@
   <div class="timeline-rows" id="timeline"></div>
   <div class="holders-section" id="holders-section">
     <div class="holders-header">
-      <span class="holders-title">🏦 集保戶持股統計</span>
+      <span class="holders-title" id="holders-title">🏦 集保戶持股統計</span>
       <span class="holders-subtitle" id="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
       <span class="ranking-meta" id="holders-updated" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
     </div>
@@ -706,6 +711,11 @@ function loadWeek(idx){
     } else {
       _hupd.textContent='⏱ 尚未抓取'+weekTxt;
     }
+  }
+  // 動態更新集保戶持股統計標題加上家數（27 家 / 28 家...）
+  const _htitle=document.getElementById('holders-title');
+  if(_htitle){
+    _htitle.textContent=`🏦 ${curr.data.length} 家集保戶持股統計`;
   }
   document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
 
@@ -1202,7 +1212,7 @@ function getAutoReason(code, name){
   }
 }
 
-// 💡 AI 全自動投資解讀：Top N + 固定加入的觀察清單 (PINNED)
+// 💡 AI 自動化市場訊號解讀：Top N + 固定加入的觀察清單 (PINNED)
 const PINNED_SIGNALS=['7878']; // 藥祇生醫 — 不論變化大小都納入解讀
 function renderSignals(){
   const grid=document.getElementById('signals-grid');
@@ -1826,7 +1836,7 @@ function renderStatusBar(status, newsData, timelineData){
   }
   if(status && status.holders && status.holders.lastRun){
     const dd=status.holders.dataDate?' · 資料：'+status.holders.dataDate:'';
-    pills.push(`<span class="scan-pill scan-holders" title="台灣時區 UTC+8"><span class="dot"></span>🏦 千張統計：${status.holders.lastRun}${tzTag}${dd}</span>`);
+    pills.push(`<span class="scan-pill scan-holders" title="台灣時區 UTC+8"><span class="dot"></span>🏦 集保統計：${status.holders.lastRun}${tzTag}${dd}</span>`);
   }
   bar.innerHTML=pills.join('');
 }
@@ -1847,7 +1857,7 @@ Promise.all([
   window._statusData = statusData;
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
-  // 主要 meta 載入完成後，若千張資料已就緒則重新渲染 signals/ranking
+  // 主要 meta 載入完成後，若集保資料已就緒則重新渲染 signals/ranking
   // 解決 race condition：holders_history 載入比主要資料早時，autoReason 抓不到 news/meta
   if(_hHistory){
     const sel=document.getElementById('holders-week');
