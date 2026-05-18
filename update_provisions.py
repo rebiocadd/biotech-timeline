@@ -204,6 +204,52 @@ def is_cell_therapy(company, event):
     return get_cell_therapy_risk(company, event) != 'none'
 
 
+# 紅海市場（競爭極激烈）偵測
+def get_market_competition_risk(company, event):
+    """偵測紅海市場（標靶已被搶占 / 競爭極激烈 / 商業化難度高）
+    回傳：'glp1_red_ocean' / 'none'
+    """
+    text = (str(company.get('target', '')) + ' ' +
+            str(company.get('indication', '')) + ' ' +
+            str(event.get('detail', '')) + ' ' +
+            str(event.get('drug', '')) + ' ' +
+            str(event.get('label', ''))).lower()
+
+    # GLP-1 系列：小分子（Lilly orforglipron）+ 注射型（Wegovy/Mounjaro）已主導
+    # 口服 GLP-1 胜肽/生物相似藥要競爭極困難
+    glp1_keywords = ['glp-1', 'glp1', 'tirzepatide', 'semaglutide', 'wegovy', 'mounjaro', 'ozempic']
+    is_glp1 = any(k in text for k in glp1_keywords)
+    is_oral = '口服' in text or 'oral' in text.lower()
+    is_biosimilar = company.get('strategy') == 'biosimilar' or '生物相似' in text
+
+    # 口服 GLP-1 (胜肽或生物相似藥) = 紅海中的紅海
+    if is_glp1 and (is_oral or is_biosimilar):
+        return 'glp1_red_ocean'
+    return 'none'
+
+
+# 孤兒藥/罕病偵測（門檻較低 + FDA/EMA 加速通道）
+ORPHAN_KEYWORDS = [
+    '罕病', '孤兒藥', 'orphan', '罕見疾病',
+    'ebs', '泡泡龍', '表皮分解性水皰症',
+    '裘馨', 'duchenne', 'dmd', 'sma', 'als',
+    '法布瑞', 'fabry', '高雪氏', 'gaucher',
+    '亨丁頓', "huntington", '小腦萎縮', 'sca',
+    '異染性腦白質', 'mld',
+]
+
+def is_orphan_drug(company, event):
+    """偵測孤兒藥/罕病：適應症在 FDA orphan / EMA orphan list
+    優勢：FDA 7 年市場獨佔權、稅務優惠、終點門檻較低、
+    臨床收案規模小（成功率反而較高）
+    """
+    text = (str(company.get('indication', '')) + ' ' +
+            str(event.get('detail', '')) + ' ' +
+            str(event.get('catalystReason', '')) + ' ' +
+            str(event.get('label', ''))).lower()
+    return any(k.lower() in text for k in ORPHAN_KEYWORDS)
+
+
 # 臨床期別「成功機率」基礎分（糧草先行視角：早期解盲幾乎都過）
 # 來源：Hay et al. (2014) BIO Industry Analysis 臨床試驗成功率統計
 PHASE_SUCCESS_BASE = {
@@ -301,6 +347,15 @@ def score_clinical(event, company=None):
         elif risk == 'standard_cart':
             score -= 5   # 自體 CAR-T / 一般細胞療法 - 已有驗證標靶
 
+        # 紅海市場扣分（口服 GLP-1 等）
+        comp_risk = get_market_competition_risk(company, event)
+        if comp_risk == 'glp1_red_ocean':
+            score -= 12  # 小分子+注射型已主導，生物相似藥/胜肽商業化困難
+
+        # 孤兒藥/罕病加分（FDA 7 年獨佔 + 終點門檻較低 + 收案規模小）
+        if is_orphan_drug(company, event):
+            score += 10
+
     return max(10, min(100, score))
 
 
@@ -373,16 +428,23 @@ def score_share_structure(total_s, market=None):
 
 
 def score_success_prob_with_penalty(scores_entry, event, company=None):
-    """📊 成功機率 (含細胞療法分級懲罰)
-    異體 CAR-T 全球無成功上市，懲罰最重
-    """
+    """📊 成功機率 (含細胞療法 + 市場競爭 + 孤兒藥調整)"""
     base = score_success_prob(scores_entry, event)
     if company:
         risk = get_cell_therapy_risk(company, event)
         if risk == 'high_allo':
-            base = max(10, base - 15)  # 異體 = 全球未驗證，達標機率極低
+            base = max(10, base - 15)
         elif risk == 'standard_cart':
-            base = max(10, base - 4)   # 自體 = 已有同類藥上市，風險可控
+            base = max(10, base - 4)
+
+        # 紅海市場：臨床即使達標、商業化仍困難 → 投資成功率下降
+        comp_risk = get_market_competition_risk(company, event)
+        if comp_risk == 'glp1_red_ocean':
+            base = max(10, base - 10)
+
+        # 孤兒藥加分：FDA 終點門檻較寬鬆 + 加速通道
+        if is_orphan_drug(company, event):
+            base = min(100, base + 12)
     return base
 
 
@@ -578,6 +640,14 @@ def main():
                 advice.append("異體細胞療法(極高風險)")
             elif ct_risk == 'standard_cart':
                 advice.append("自體CAR-T(標靶已驗證)")
+            # 市場競爭風險
+            comp_risk = get_market_competition_risk(c, event)
+            if comp_risk == 'glp1_red_ocean':
+                advice.append("口服GLP-1紅海市場")
+            # 孤兒藥
+            is_orphan = is_orphan_drug(c, event)
+            if is_orphan:
+                advice.append("孤兒藥(門檻較低)")
 
             # 風險等級（依期別）
             phase = get_clinical_phase(event.get("label", ""))
@@ -648,6 +718,8 @@ def main():
                     "isListed": is_listed,
                     "isCellTherapy": is_ct,
                     "cellTherapyRisk": get_cell_therapy_risk(c, event),  # 'high_allo' / 'standard_cart' / 'none'
+                    "marketCompetition": get_market_competition_risk(c, event),  # 'glp1_red_ocean' / 'none'
+                    "isOrphan": is_orphan_drug(c, event),
                 },
                 "advice": " · ".join(advice) if advice else "—",
             })

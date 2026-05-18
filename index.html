@@ -930,6 +930,14 @@ function renderProvisions(){
     } else if(fl.cellTherapyRisk==='standard_cart'){
       tags.push(`<span class="prov-tag prov-tag-medrisk" title="自體 CAR-T — 已有 CD19/BCMA 等成功標靶，技術風險中等">🧫 自體CAR-T</span>`);
     }
+    // 紅海市場
+    if(fl.marketCompetition==='glp1_red_ocean'){
+      tags.push(`<span class="prov-tag prov-tag-highrisk" title="口服 GLP-1 競爭極激烈：Lilly orforglipron 小分子已成功、Wegovy/Mounjaro 注射型主導，胜肽生物相似藥商業化困難">🌊 GLP-1紅海</span>`);
+    }
+    // 孤兒藥/罕病
+    if(fl.isOrphan){
+      tags.push(`<span class="prov-tag prov-tag-lowrisk" title="孤兒藥/罕病 — FDA 7 年市場獨佔 + 終點門檻較寬 + 收案規模小 + 加速審查通道">🏵️ 孤兒藥(門檻低)</span>`);
+    }
     // 股本標籤
     const sc=r.shareCapital||{};
     if(sc.label){
