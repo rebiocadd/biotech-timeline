@@ -132,34 +132,83 @@ def score_price_window(price_history):
     return round(pos * 0.6 + vol_score * 0.4, 1), percentile, vol_pct
 
 
+def get_clinical_phase(label):
+    """從事件 label 判斷臨床期別，回傳 phase key
+    回傳值：'phase1', 'phase1b', 'phase2a', 'phase2', 'phase2b', 'phase3', 'interim', 'approval', 'unknown'
+    """
+    if not label:
+        return 'unknown'
+    L = label.lower()
+    # 注意順序：先抓細項再抓粗項
+    if "藥證" in label or "approval" in L: return 'approval'
+    if "期中分析" in label or "interim" in L: return 'interim'
+    if "3期" in label or "三期" in label or "phase 3" in L or "phase iii" in L: return 'phase3'
+    if "2b" in L: return 'phase2b'
+    if "2a" in L: return 'phase2a'
+    if "2期" in label or "二期" in label or "phase 2" in L or "phase ii" in L: return 'phase2'
+    if "1b" in L: return 'phase1b'
+    if "1期" in label or "一期" in label or "phase 1" in L or "phase i" in L: return 'phase1'
+    return 'unknown'
+
+
+# 臨床期別「成功機率」基礎分（糧草先行視角：早期解盲幾乎都過）
+# 來源：Hay et al. (2014) BIO Industry Analysis 臨床試驗成功率統計
+PHASE_SUCCESS_BASE = {
+    'phase1':   92,  # 安全性試驗，幾乎都過
+    'phase1b':  88,  # dose-finding，多數能達主要終點
+    'phase2a':  72,  # POC 試驗，有療效訊號就過
+    'phase2':   65,
+    'phase2b':  52,  # 樞紐前驗證，已開始有失敗風險
+    'phase3':   42,  # 樞紐試驗，~60% 失敗率
+    'interim':  78,  # 期中分析通過 = 已有正面訊號
+    'approval': 85,  # 申請藥證 = 已過 3 期
+    'unknown':  60,
+}
+
+
 def score_clinical(event):
-    """🧬 臨床訊號：收案/期中/催化"""
+    """🧬 臨床訊號：收案進度 + 催化強度 + 期別風險平衡
+    糧草先行視角：早期 = 低風險、晚期 = 高風險高 reward
+    """
     score = 40  # 基礎
 
     # 已公布實績（最強訊號）
     if event.get("announcedNote"):
         ann = event.get("announcedNote", "")
-        if any(k in ann for k in ["收案完成", "期中分析通過", "IDMC", "解盲", "達標"]):
-            score += 30
+        if any(k in ann for k in ["收案完成", "期中分析通過", "IDMC", "達標", "通過"]):
+            score += 25  # 已有實質里程碑
+        elif "解盲" in ann or "讀出" in ann:
+            score += 20  # 已解盲（事件兌現）
         else:
-            score += 15
+            score += 12
 
     # 催化強度
     cl = event.get("catalystLevel", "")
-    score += {"高": 20, "中高": 12, "中": 6, "中低": 2, "低": 0}.get(cl, 0)
+    score += {"高": 15, "中高": 10, "中": 5, "中低": 2, "低": 0}.get(cl, 0)
 
-    # 期別越後越穩
-    label = event.get("label", "")
-    if "3期" in label or "三期" in label:    score += 12
-    elif "2b" in label:                       score += 8
-    elif "2期" in label or "二期" in label:   score += 5
-    elif "1b" in label:                       score += 3
+    # 期別調整（糧草先行視角）：
+    # - 早期解盲（1/1b）穩定，加分
+    # - 中期（2/2a）平衡，小幅加分
+    # - 晚期（2b/3）高風險，扣分
+    phase = get_clinical_phase(event.get("label", ""))
+    phase_adj = {
+        'phase1':   +10,   # 安全性試驗
+        'phase1b':  +8,    # 幾乎一定過
+        'phase2a':  +3,
+        'phase2':   0,
+        'phase2b':  -3,    # 開始有失敗風險
+        'phase3':   -8,    # 高風險，但若過了 reward 大
+        'interim':  +5,    # 期中通過 = 已減半風險
+        'approval': +12,   # 申請藥證 = 最穩
+        'unknown':  0,
+    }
+    score += phase_adj.get(phase, 0)
 
     # 投資亮點數量（公司資訊豐富 = 投資人能看清楚）
     bf = event.get("bonusFactors", [])
     if bf: score += min(8, len(bf))
 
-    return min(100, score)
+    return max(10, min(100, score))
 
 
 def score_cash(cf_entry, op_cf_neg=True):
@@ -209,17 +258,27 @@ def score_news(news_entry, event):
 
 
 def score_success_prob(scores_entry, event):
-    """📊 成功機率：取 update_scores 的 clinicalCredibility"""
-    if not scores_entry:
-        return 50
-    cc = scores_entry.get("components", {}).get("clinicalCredibility", 50)
+    """📊 成功機率：以臨床期別歷史成功率為基礎
+    糧草先行視角：早期解盲機率高、晚期低
+    """
+    phase = get_clinical_phase(event.get("label", ""))
+    base = PHASE_SUCCESS_BASE.get(phase, 60)
 
-    # 期別後段加成
-    label = event.get("label", "")
-    if "3期" in label or "三期" in label:
-        cc = min(100, cc + 8)
+    # 已公布實績（IDMC 通過 / 期中通過）= 成功機率大增
+    if event.get("announcedNote"):
+        ann = event.get("announcedNote", "")
+        if any(k in ann for k in ["IDMC", "期中分析通過", "達標"]):
+            base = min(100, base + 15)
+        elif "收案完成" in ann or "收案超前" in ann:
+            base = min(100, base + 8)  # 收案順利 = 公司執行力強
 
-    return cc
+    # 公司既有臨床可信度也納入（次要）
+    if scores_entry:
+        cc = scores_entry.get("components", {}).get("clinicalCredibility", 50)
+        # 30% 來自公司既有可信度，70% 來自期別基礎機率
+        base = round(base * 0.7 + cc * 0.3, 1)
+
+    return min(100, base)
 
 
 # ─────────────────────────────────────────────
@@ -349,6 +408,22 @@ def main():
                 advice.append(f"預計{days_until}天")
             if event.get("highlightThisWeek"):
                 advice.append("本週重點")
+
+            # 風險等級（依期別）
+            phase = get_clinical_phase(event.get("label", ""))
+            risk_label = {
+                'phase1':   "低風險解盲(1期)",
+                'phase1b':  "低風險解盲(1b)",
+                'phase2a':  "中風險解盲(2a)",
+                'phase2':   "中風險解盲(2期)",
+                'phase2b':  "中高風險(2b)",
+                'phase3':   "高風險解盲(3期)",
+                'interim':  "期中通過(已降風險)",
+                'approval': "藥證審查(低風險)",
+                'unknown':  None,
+            }.get(phase)
+            if risk_label:
+                advice.append(risk_label)
 
             results.append({
                 "code": code,

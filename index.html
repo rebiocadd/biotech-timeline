@@ -228,6 +228,11 @@
   .prov-tag-vol{background:rgba(0,212,255,.18);color:#5ee9ff}
   .prov-tag-hot{background:rgba(239,68,68,.18);color:#fca5a5}
   .prov-tag-warn{background:rgba(124,58,237,.18);color:#c4b5fd}
+  /* 期別風險等級 */
+  .prov-tag-lowrisk{background:rgba(16,185,129,.20);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+  .prov-tag-medrisk{background:rgba(245,158,11,.20);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+  .prov-tag-medhigh{background:rgba(249,115,22,.20);color:#fdba74;border:1px solid rgba(249,115,22,.35)}
+  .prov-tag-highrisk{background:rgba(239,68,68,.22);color:#fca5a5;border:1px solid rgba(239,68,68,.40)}
   .prov-bars{display:grid;grid-template-columns:28px 1fr;column-gap:4px;row-gap:1px;font-size:8.5px;font-family:'Space Mono',monospace;margin-top:3px}
   .prov-bar-label{color:var(--muted);text-align:right}
   .prov-bar-track{height:4px;background:rgba(30,45,69,.5);border-radius:2px;overflow:hidden;align-self:center}
@@ -896,6 +901,13 @@ function renderProvisions(){
     if(r.event.daysUntil>=0 && r.event.daysUntil<=60) tags.push(`<span class="prov-tag prov-tag-time">⏰ ${r.event.daysUntil} 天內</span>`);
     else if(r.event.daysUntil<0) tags.push(`<span class="prov-tag prov-tag-warn">⏳ 延期中</span>`);
     if(r.event.highlightThisWeek) tags.push(`<span class="prov-tag prov-tag-hot">🔥 本週重點</span>`);
+    // 風險等級標籤（依期別）
+    if(adv.includes('低風險解盲')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 ${adv.match(/低風險解盲\([^)]*\)/)?.[0]||'低風險'}</span>`);
+    else if(adv.includes('中風險解盲')) tags.push(`<span class="prov-tag prov-tag-medrisk">🟡 ${adv.match(/中風險解盲\([^)]*\)/)?.[0]||'中風險'}</span>`);
+    else if(adv.includes('中高風險')) tags.push(`<span class="prov-tag prov-tag-medhigh">🟠 ${adv.match(/中高風險\([^)]*\)/)?.[0]||'中高風險'}</span>`);
+    else if(adv.includes('高風險解盲')) tags.push(`<span class="prov-tag prov-tag-highrisk">🔴 ${adv.match(/高風險解盲\([^)]*\)/)?.[0]||'高風險'}</span>`);
+    else if(adv.includes('期中通過')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 期中通過(已降風險)</span>`);
+    else if(adv.includes('藥證審查')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 藥證審查(低風險)</span>`);
     return `<div class="prov-card ${rankCls}">
       <div class="prov-rank">${idx+1}</div>
       <div class="prov-body">
