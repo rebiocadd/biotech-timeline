@@ -257,6 +257,22 @@ def score_news(news_entry, event):
     return base
 
 
+def score_share_structure(total_s):
+    """📦 籌碼結構：股本越小越易拉抬（生技股投資邏輯）
+    台股 1 股面額 10 元，股本 = total_s × 10。
+    """
+    if not total_s or total_s <= 0:
+        return 50  # 資料缺失，中性
+
+    if total_s < 5e7:      return 100  # < 5千萬股（極小型，極易拉抬）
+    elif total_s < 1e8:    return 90   # 5千萬~1億股（小型）
+    elif total_s < 1.5e8:  return 78   # 1~1.5億股（中小型）
+    elif total_s < 2.5e8:  return 60   # 1.5~2.5億股（中型）
+    elif total_s < 4e8:    return 42   # 2.5~4億股（中大型）
+    elif total_s < 6e8:    return 28   # 4~6億股（大型）
+    else:                  return 15   # > 6億股（巨型，難動）
+
+
 def score_success_prob(scores_entry, event):
     """📊 成功機率：以臨床期別歷史成功率為基礎
     糧草先行視角：早期解盲機率高、晚期低
@@ -357,6 +373,15 @@ def main():
     except Exception:
         scores_data = {}
 
+    # 讀 holders.json 取 total_s 計算股本
+    holders_path = os.path.join(HERE, "holders.json")
+    try:
+        with open(holders_path, "r", encoding="utf-8") as f:
+            h_data = json.load(f).get("data", [])
+        share_map = {c.get("code"): c.get("total_s") for c in h_data}
+    except Exception:
+        share_map = {}
+
     results = []
     for sec in date_data:
         for c in sec.get("companies", []):
@@ -369,7 +394,7 @@ def main():
                 continue
             priority, days_until, quarter, event, ev_date = cand
 
-            # 算 6 個維度分數
+            # 算 7 個維度分數
             imm = score_imminence(days_until)
             pw_result = score_price_window(c.get("priceHistory", []))
             if isinstance(pw_result, tuple):
@@ -380,15 +405,18 @@ def main():
             cs = score_cash(cf_data.get(code, {}))
             ns = score_news(news_data.get(code), event)
             sp = score_success_prob(scores_data.get(code), event)
+            total_s = share_map.get(code, 0)
+            ss = score_share_structure(total_s)
 
-            # 加權總分
+            # 加權總分（7 維度）
             total = round(
-                imm * 0.30 +
-                pw  * 0.20 +
-                cl  * 0.20 +
-                cs  * 0.10 +
-                ns  * 0.10 +
-                sp  * 0.10,
+                imm * 0.25 +
+                pw  * 0.17 +
+                cl  * 0.18 +
+                cs  * 0.09 +
+                ns  * 0.09 +
+                sp  * 0.10 +
+                ss  * 0.12,
                 1
             )
 
@@ -425,6 +453,22 @@ def main():
             if risk_label:
                 advice.append(risk_label)
 
+            # 5 日股價歷史（給卡片顯示）
+            ph = c.get("priceHistory") or []
+            ph_last5 = ph[-5:] if len(ph) >= 5 else ph
+
+            # 股本標籤
+            share_label = None
+            share_short = None
+            if total_s:
+                if total_s < 5e7:    share_label, share_short = ("極小型(易拉抬)", f"{total_s/1e7:.1f}千萬股")
+                elif total_s < 1e8:  share_label, share_short = ("小型(易拉抬)", f"{total_s/1e7:.1f}千萬股")
+                elif total_s < 1.5e8: share_label, share_short = ("中小型", f"{total_s/1e8:.2f}億股")
+                elif total_s < 2.5e8: share_label, share_short = ("中型", f"{total_s/1e8:.2f}億股")
+                elif total_s < 4e8:  share_label, share_short = ("中大型(較難)", f"{total_s/1e8:.2f}億股")
+                elif total_s < 6e8:  share_label, share_short = ("大型(難拉抬)", f"{total_s/1e8:.2f}億股")
+                else:                share_label, share_short = ("巨型(難拉抬)", f"{total_s/1e8:.2f}億股")
+
             results.append({
                 "code": code,
                 "name": name,
@@ -436,6 +480,7 @@ def main():
                     "cash": round(cs, 1),
                     "newsHeat": round(ns, 1),
                     "successProb": round(sp, 1),
+                    "shareStructure": round(ss, 1),
                 },
                 "event": {
                     "quarter": quarter.upper(),
@@ -449,6 +494,13 @@ def main():
                 "priceStatus": {
                     "percentile": round(percentile, 1) if percentile is not None else None,
                     "volatility": round(vol_pct, 1) if vol_pct is not None else None,
+                    "history5d": ph_last5,
+                    "current": (ph_last5[-1]["close"] if ph_last5 else None),
+                },
+                "shareCapital": {
+                    "totalShares": total_s,
+                    "label": share_label,
+                    "short": share_short,
                 },
                 "advice": " · ".join(advice) if advice else "—",
             })
@@ -458,14 +510,16 @@ def main():
 
     # 輸出 TOP 10（前端只顯示 TOP N，但我們存全部）
     print(f"\n找到 {len(results)} 家有解盲類事件的公司，TOP 10：")
-    print(f"{'排名':<4} {'代號':<6} {'公司':<12} {'糧草分':<7} {'迫近':<5} {'股價':<5} {'臨床':<5} {'現金':<5} {'新聞':<5} {'機率':<5}")
-    print("-" * 90)
+    print(f"{'排名':<4} {'代號':<6} {'公司':<12} {'糧草分':<7} {'迫近':<5} {'股價':<5} {'臨床':<5} {'現金':<5} {'新聞':<5} {'機率':<5} {'籌碼':<5}")
+    print("-" * 96)
     for i, r in enumerate(results[:10], 1):
         co = r["components"]
+        sc = r.get("shareCapital", {})
         print(f"{i:<4} {r['code']:<6} {r['name']:<12} {r['provisionScore']:<7} "
               f"{co['imminence']:<5} {co['priceWindow']:<5} {co['clinical']:<5} "
-              f"{co['cash']:<5} {co['newsHeat']:<5} {co['successProb']:<5}")
-        print(f"      ↳ {r['event']['quarter']} {r['event']['drug'] or '-'} «{r['event']['label']}» ({r['advice']})")
+              f"{co['cash']:<5} {co['newsHeat']:<5} {co['successProb']:<5} {co.get('shareStructure',0):<5}")
+        print(f"      ↳ {r['event']['quarter']} {r['event']['drug'] or '-'} «{r['event']['label']}» "
+              f"({r['advice']}) | 股本: {sc.get('short','?')}")
 
     # 寫入 JSON
     now = datetime.now(TAIPEI_TZ)

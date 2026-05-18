@@ -233,6 +233,19 @@
   .prov-tag-medrisk{background:rgba(245,158,11,.20);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
   .prov-tag-medhigh{background:rgba(249,115,22,.20);color:#fdba74;border:1px solid rgba(249,115,22,.35)}
   .prov-tag-highrisk{background:rgba(239,68,68,.22);color:#fca5a5;border:1px solid rgba(239,68,68,.40)}
+  /* 股本水位 */
+  .prov-tag-cap-s{background:rgba(16,185,129,.20);color:#34d399}
+  .prov-tag-cap-m{background:rgba(245,158,11,.18);color:#fbbf24}
+  .prov-tag-cap-l{background:rgba(249,115,22,.20);color:#fdba74}
+  .prov-tag-cap-xl{background:rgba(239,68,68,.20);color:#fca5a5}
+  /* 5 日股價條紋（卡片內） */
+  .prov-price-strip{display:flex;gap:3px;margin-top:5px;flex-wrap:nowrap;align-items:flex-end}
+  .prov-price-cell{display:flex;flex-direction:column;align-items:center;padding:2px 4px;background:rgba(15,24,40,.65);border:1px solid rgba(30,45,69,.7);border-radius:3px;line-height:1.2;min-width:38px;font-family:'Space Mono',monospace}
+  .prov-price-date{font-size:8px;color:var(--muted);opacity:.75}
+  .prov-price-val{font-size:10px;font-weight:700}
+  .prov-price-up{color:#ef4444}
+  .prov-price-dn{color:#10b981}
+  .prov-price-flat{color:#e2e8f0}
   .prov-bars{display:grid;grid-template-columns:28px 1fr;column-gap:4px;row-gap:1px;font-size:8.5px;font-family:'Space Mono',monospace;margin-top:3px}
   .prov-bar-label{color:var(--muted);text-align:right}
   .prov-bar-track{height:4px;background:rgba(30,45,69,.5);border-radius:2px;overflow:hidden;align-self:center}
@@ -883,8 +896,8 @@ function renderProvisions(){
   }
   // TOP 4
   const top=data.candidates.slice(0,4);
-  const compLabels={imminence:'迫近',priceWindow:'股價',clinical:'臨床',cash:'現金',newsHeat:'新聞',successProb:'機率'};
-  const compColors={imminence:'#fbbf24',priceWindow:'#10b981',clinical:'#a78bfa',cash:'#0ea5e9',newsHeat:'#ef4444',successProb:'#22d3ee'};
+  const compLabels={imminence:'迫近',priceWindow:'股價',clinical:'臨床',cash:'現金',newsHeat:'新聞',successProb:'機率',shareStructure:'籌碼'};
+  const compColors={imminence:'#fbbf24',priceWindow:'#10b981',clinical:'#a78bfa',cash:'#0ea5e9',newsHeat:'#ef4444',successProb:'#22d3ee',shareStructure:'#ec4899'};
   list.innerHTML=top.map((r,idx)=>{
     const rankCls=idx===0?'rank-1':(idx===1?'rank-2':(idx===2?'rank-3':'rank-other'));
     // 進度條
@@ -908,6 +921,28 @@ function renderProvisions(){
     else if(adv.includes('高風險解盲')) tags.push(`<span class="prov-tag prov-tag-highrisk">🔴 ${adv.match(/高風險解盲\([^)]*\)/)?.[0]||'高風險'}</span>`);
     else if(adv.includes('期中通過')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 期中通過(已降風險)</span>`);
     else if(adv.includes('藥證審查')) tags.push(`<span class="prov-tag prov-tag-lowrisk">🟢 藥證審查(低風險)</span>`);
+    // 股本標籤
+    const sc=r.shareCapital||{};
+    if(sc.label){
+      let capCls='prov-tag-cap-m';
+      if(sc.label.includes('極小型')||sc.label.includes('小型(易')) capCls='prov-tag-cap-s';
+      else if(sc.label.includes('中大型')) capCls='prov-tag-cap-l';
+      else if(sc.label.includes('大型')||sc.label.includes('巨型')) capCls='prov-tag-cap-xl';
+      tags.push(`<span class="prov-tag ${capCls}" title="總發行股數 ${sc.short}">📦 ${sc.label}</span>`);
+    }
+    // 5 日股價條紋
+    const ps=r.priceStatus||{};
+    const hist=ps.history5d||[];
+    let stripHtml='';
+    if(hist.length>=2){
+      const cells=hist.map((p,i)=>{
+        const prev=i>0?hist[i-1].close:p.close;
+        const cls=p.close>prev?'prov-price-up':(p.close<prev?'prov-price-dn':'prov-price-flat');
+        const arrow=p.close>prev?'▲':(p.close<prev?'▼':'＝');
+        return `<div class="prov-price-cell"><div class="prov-price-date">${p.date}</div><div class="prov-price-val ${cls}">${p.close.toFixed(2)}</div></div>`;
+      }).join('');
+      stripHtml=`<div class="prov-price-strip">${cells}</div>`;
+    }
     return `<div class="prov-card ${rankCls}">
       <div class="prov-rank">${idx+1}</div>
       <div class="prov-body">
@@ -917,6 +952,7 @@ function renderProvisions(){
           <span class="prov-event"><span class="prov-event-drug">${r.event.drug||'-'}</span>${r.event.label||''} · ${r.event.quarter}</span>
         </div>
         <div class="prov-tags">${tags.join('')}</div>
+        ${stripHtml}
         <div class="prov-bars">${barsHtml}</div>
       </div>
       <div class="prov-total">
