@@ -12,19 +12,21 @@
   },
   "catalyst": {
     "eventTypeWeights": {
-      "tag-approval":   100,
       "tag-resolve":     95,
-      "tag-license":     80,
-      "tag-data":        70,
-      "tag-phase":       60,
-      "tag-conference":  45
+      "tag-approval":    90,
+      "tag-data":        78,
+      "tag-license":     65,
+      "tag-phase":       45,
+      "tag-conference":  30
     },
     "timeProximityBoost": {
-      "within7d":     1.30,
-      "within30d":    1.15,
-      "within90d":    1.00,
-      "within180d":   0.80,
-      "beyond180d":   0.55
+      "within7d":     1.00,
+      "within30d":    0.90,
+      "within90d":    0.70,
+      "within180d":   0.45,
+      "beyond180d":   0.20,
+      "past7d":       0.40,
+      "past30d":      0.20
     },
     "clinicalStageBoost": {
       "3期":          1.20,

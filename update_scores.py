@@ -80,17 +80,26 @@ def calculate_catalyst_score(company, weights):
         ev_date = q_dates.get(q.lower(), today)
         days_diff = (ev_date - today).days
 
-        # 時間鄰近係數
-        if days_diff < 7 and days_diff > -7:
-            prox = cfg["timeProximityBoost"]["within7d"]
+        # 時間鄰近係數（嚴謹版：過去事件需特別處理，避免被 days_diff < 30 誤抓）
+        prox_cfg = cfg["timeProximityBoost"]
+        if days_diff < -30:
+            prox = prox_cfg.get("past30d", 0.20)   # 過期 30+ 天：可能延期/已過時
+        elif days_diff < -7:
+            prox = prox_cfg.get("past7d", 0.40)    # 過去 7-30 天：剛過，可能延期
+        elif -7 <= days_diff <= 7:
+            prox = prox_cfg["within7d"]            # 7 天內：高度即時
         elif days_diff < 30:
-            prox = cfg["timeProximityBoost"]["within30d"]
+            prox = prox_cfg["within30d"]
         elif days_diff < 90:
-            prox = cfg["timeProximityBoost"]["within90d"]
+            prox = prox_cfg["within90d"]
         elif days_diff < 180:
-            prox = cfg["timeProximityBoost"]["within180d"]
+            prox = prox_cfg["within180d"]
         else:
-            prox = cfg["timeProximityBoost"]["beyond180d"]
+            prox = prox_cfg["beyond180d"]
+
+        # 已公告（announcedNote 有值）→ 催化已釋放，降低 50% 影響
+        if ev.get("announcedNote"):
+            prox *= 0.5
 
         # 臨床期別係數（看 ev.label）
         label = ev.get("label", "")
