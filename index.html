@@ -517,7 +517,7 @@
     <div class="holders-header">
       <span class="holders-title">🏦 集保戶持股統計</span>
       <span class="holders-subtitle" id="holders-subtitle">持股超過 1,000 張（≥1,000,001股）· 資料來源：TDCC 集保（雙驗證）</span>
-      <span class="holders-updated" id="holders-updated"></span>
+      <span class="ranking-meta" id="holders-updated" title="資料抓取自 TDCC 集保戶股權分散表&#10;每週六 10:00（UTC+8）自動更新">⏱ 抓取中…</span>
     </div>
     <div class="holders-controls">
       <label for="holders-week">查看週次：</label>
@@ -693,7 +693,20 @@ function loadWeek(idx){
   // 動態調整佔比欄位標題
   const pctTh=document.querySelector('.holders-table th[data-col="pct"]');
   if(pctTh) pctTh.textContent=(LEVEL_TABS.find(t=>t.key===_currentLevel)?.short||'')+' 佔比%';
-  document.getElementById('holders-updated').textContent='共 '+weeks.length+' 週資料';
+  // 集保戶持股統計徽章 — 比照「總股東排行」格式（⏱ 抓取 + 資料日 + UTC+8 + 週數）
+  const _hupd=document.getElementById('holders-updated');
+  if(_hupd){
+    const s=window._statusData||{};
+    const hRun=s.holders&&s.holders.lastRun;
+    const dataDate=s.holders&&s.holders.dataDate;
+    const weekTxt=' · 共 '+weeks.length+' 週';
+    if(hRun){
+      const dd=dataDate?' · 資料：'+dataDate:'';
+      _hupd.innerHTML='⏱ 抓取：'+hRun+dd+weekTxt+' <span style="opacity:.55;font-size:.85em;margin-left:2px">UTC+8</span>';
+    } else {
+      _hupd.textContent='⏱ 尚未抓取'+weekTxt;
+    }
+  }
   document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
 
   applySort();
