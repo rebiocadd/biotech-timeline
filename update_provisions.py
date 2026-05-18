@@ -204,15 +204,29 @@ def score_clinical(event, company=None):
     """
     score = 40  # 基礎
 
-    # 已公布實績（最強訊號）
+    # 已公布實績（最強訊號，里程碑代表 derisking）
     if event.get("announcedNote"):
         ann = event.get("announcedNote", "")
         if any(k in ann for k in ["收案完成", "期中分析通過", "IDMC", "達標", "通過"]):
-            score += 25  # 已有實質里程碑
+            score += 35  # 重大里程碑：執行力強 + 時程確定 + 風險降低
         elif "解盲" in ann or "讀出" in ann:
-            score += 20  # 已解盲（事件兌現）
+            score += 28  # 已解盲（事件兌現）
         else:
-            score += 12
+            score += 15
+        # 額外：收案超前 / 提前完成 = 加碼（也檢查 detail 欄位的描述）
+        detail_text = ann + " " + (event.get("detail", "") or "")
+        if any(k in detail_text for k in ["超前", "提前", "比預期", "超過預期", "比原訂"]):
+            score += 8
+        # 額外：詳細日期（YYYY/MM/DD 完成）= 公司公開透明
+        import re
+        if re.search(r'\d{4}/\d{2}/\d{2}', ann):
+            score += 3
+        # 大規模收案（≥500 人）= 統計力強
+        m = re.search(r'(\d{3,4})\s*[人位]', detail_text)
+        if m:
+            n = int(m.group(1))
+            if n >= 500:
+                score += 4
 
     # 催化強度
     cl = event.get("catalystLevel", "")
@@ -330,13 +344,17 @@ def score_success_prob(scores_entry, event):
     phase = get_clinical_phase(event.get("label", ""))
     base = PHASE_SUCCESS_BASE.get(phase, 60)
 
-    # 已公布實績（IDMC 通過 / 期中通過）= 成功機率大增
+    # 已公布實績（IDMC 通過 / 期中通過 / 收案完成）= 成功機率大增
     if event.get("announcedNote"):
         ann = event.get("announcedNote", "")
+        detail_text = ann + " " + (event.get("detail", "") or "")
         if any(k in ann for k in ["IDMC", "期中分析通過", "達標"]):
-            base = min(100, base + 15)
+            base = min(100, base + 18)
         elif "收案完成" in ann or "收案超前" in ann:
-            base = min(100, base + 8)  # 收案順利 = 公司執行力強
+            base = min(100, base + 14)
+        # 超前 / 提前完成額外加碼（亦檢查 detail）
+        if any(k in detail_text for k in ["超前", "提前", "比預期", "比原訂"]):
+            base = min(100, base + 8)
 
     # 公司既有臨床可信度也納入（次要）
     if scores_entry:
