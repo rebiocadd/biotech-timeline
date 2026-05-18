@@ -350,10 +350,13 @@ def check_risk_gates(company, cashflow_entry, weights, runway_months, gain_20d, 
 # 主流程
 # ─────────────────────────────────────────────
 def get_score_band(total, weights):
-    for band in weights["scoreBands"]:
-        if band["min"] <= total <= band["max"]:
+    """從高分到低分檢查，第一個 total >= min 的就是該 band。
+    這樣可以處理小數分（如 79.2）落在 band gap (79-80) 的情況。"""
+    sorted_bands = sorted(weights["scoreBands"], key=lambda b: b["min"], reverse=True)
+    for band in sorted_bands:
+        if total >= band["min"]:
             return band
-    return weights["scoreBands"][-1]
+    return sorted_bands[-1]
 
 
 def main():
