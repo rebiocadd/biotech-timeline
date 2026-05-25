@@ -104,6 +104,50 @@
   .highlight-reason{display:block;font-size:10.5px;color:#94a3b8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
   .highlight-empty{text-align:center;color:var(--muted);padding:14px;font-size:12px}
   /* 🔵 即將解盲（未來 3 個月） */
+  /* 📰 27 家最新新聞表格（放在「今年解盲」上方）*/
+  .news-summary-section{margin:18px 0;padding:14px 16px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(245,158,11,.06));border:1px solid rgba(239,68,68,.22);border-radius:10px}
+  .ns-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .ns-title{font-size:13px;font-weight:700;color:#fca5a5;font-family:'Space Mono',monospace;letter-spacing:1px}
+  .ns-subtitle{font-size:10.5px;color:var(--muted)}
+  .ns-meta{font-family:'Space Mono',monospace;font-size:10px;color:#fbbf24;margin-left:auto;background:rgba(245,158,11,.10);padding:3px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.22);cursor:help;white-space:nowrap}
+  .ns-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .ns-filter-btn{font-size:10.5px;padding:3px 9px;border-radius:12px;background:rgba(30,45,69,.5);color:var(--muted);border:1px solid var(--border);cursor:pointer;user-select:none;transition:all .15s;font-family:'Space Mono',monospace}
+  .ns-filter-btn:hover{background:rgba(30,45,69,.8);color:#fff}
+  .ns-filter-btn.active{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.5);color:#fca5a5;font-weight:700}
+  .ns-table-wrap{overflow-x:auto;background:rgba(15,24,40,.55);border-radius:8px;border:1px solid var(--border)}
+  .ns-table{width:100%;border-collapse:collapse;font-size:11.5px;min-width:560px}
+  .ns-table thead th{background:rgba(239,68,68,.08);color:#fca5a5;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;padding:7px 10px;text-align:left;border-bottom:1px solid rgba(239,68,68,.22);white-space:nowrap}
+  .ns-table tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,45,69,.45);vertical-align:middle;line-height:1.4}
+  .ns-table tbody tr:hover td{background:rgba(239,68,68,.05)}
+  .ns-table tbody tr:last-child td{border-bottom:none}
+  .ns-level-pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:9.5px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.3px;white-space:nowrap}
+  .ns-level-high{background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+  .ns-level-medium{background:rgba(245,158,11,.22);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+  .ns-level-low{background:rgba(100,116,139,.18);color:#94a3b8;border:1px solid rgba(100,116,139,.3)}
+  .ns-level-none{background:rgba(30,45,69,.4);color:var(--muted);border:1px solid rgba(30,45,69,.5);opacity:.7}
+  .ns-name{font-family:'Noto Sans TC',sans-serif;font-weight:700;color:#fff;font-size:12px;white-space:nowrap}
+  .ns-code{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--accent1);background:rgba(14,165,233,.12);padding:1px 5px;border-radius:3px;margin-left:4px}
+  .ns-news-title{color:#cbd5e1;font-size:11px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}
+  .ns-news-title a{color:#cbd5e1;text-decoration:none}
+  .ns-news-title a:hover{color:var(--accent1);text-decoration:underline}
+  .ns-news-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap}
+  .ns-news-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+  .ns-news-tag{font-size:8.5px;padding:1px 5px;border-radius:3px;background:rgba(0,212,255,.12);color:var(--accent1);font-family:'Space Mono',monospace}
+  .ns-count-badge{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--muted);background:rgba(30,45,69,.4);padding:1px 5px;border-radius:3px;white-space:nowrap}
+  .ns-no-news{color:var(--muted);font-size:10.5px;opacity:.6;font-style:italic}
+  @media (max-width:768px){
+    .ns-table thead th,.ns-table tbody td{padding:6px 7px;font-size:10.5px}
+    .ns-name{font-size:11px}
+    .ns-news-title{font-size:10px}
+    .ns-news-date{font-size:9px}
+    .ns-news-tag{font-size:8px}
+    .ns-level-pill{font-size:9px;padding:1px 5px}
+  }
+  /* 第 1、2 欄黏性（公司 + 重要性）*/
+  .ns-table thead th:nth-child(1),.ns-table tbody td:nth-child(1){position:sticky;left:0;z-index:2;background:#0a1a2e;will-change:transform;transform:translateZ(0)}
+  .ns-table thead th:nth-child(1){z-index:3}
+  .ns-table tbody td:nth-child(1){background:#0f1828}
+  .ns-table tbody tr:hover td:nth-child(1){background:rgba(239,68,68,.08)}
   .upcoming-unblind-section{margin:24px 0 28px;padding:16px 18px;background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(139,92,246,.05));border:1px solid rgba(0,212,255,.32);border-radius:10px;box-shadow:0 0 24px rgba(0,212,255,.06)}
   .uu-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
   .uu-title{font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px}
@@ -511,6 +555,35 @@
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
   </div>
   <!-- 🔵 今年解盲（2026 全年）-->
+  <!-- 📰 27 家最新新聞表格（放在「今年解盲」上方）-->
+  <div class="news-summary-section" id="news-summary-section" style="display:none">
+    <div class="ns-header">
+      <span class="ns-title">📰 27 家最新新聞</span>
+      <span class="ns-subtitle">每日 08:00 自動掃描 Google News · 依重要性排序</span>
+      <span class="ns-meta" id="ns-meta" title="📰 自動掃描：每天 08:00 TST&#10;🔴 高：解盲/期中分析/藥證/授權&#10;🟠 中：試驗啟動/合作/FDA 互動&#10;⚪ 低：法說/人事/募資">⏱ 載入中…</span>
+    </div>
+    <div class="ns-controls" id="ns-filters">
+      <span class="ns-filter-btn active" data-filter="all">全部</span>
+      <span class="ns-filter-btn" data-filter="high">🔴 重要</span>
+      <span class="ns-filter-btn" data-filter="medium">🟠 中等</span>
+      <span class="ns-filter-btn" data-filter="haveNews">📰 僅有新聞</span>
+    </div>
+    <div class="ns-table-wrap">
+      <table class="ns-table" id="ns-table">
+        <thead>
+          <tr>
+            <th>公司</th>
+            <th>重要性</th>
+            <th>最新新聞</th>
+            <th>日期</th>
+            <th>筆數</th>
+          </tr>
+        </thead>
+        <tbody id="ns-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="upcoming-unblind-section" id="upcoming-unblind-section">
     <div class="uu-header">
       <span class="uu-title">🔵 今年解盲（2026）</span>
@@ -878,6 +951,64 @@ function renderRanking(){
 
 // =========================================
 // 🎯 動態投資評分引擎 dashboard
+// =========================================
+// 📰 27 家最新新聞 — 渲染表格
+// =========================================
+let _nsFilter='all';
+function renderNewsSummary(){
+  const sec=document.getElementById('news-summary-section');
+  const tbody=document.getElementById('ns-tbody');
+  const meta=document.getElementById('ns-meta');
+  const data=window._newsSummary;
+  if(!sec||!tbody||!data||!data.companies){return;}
+  sec.style.display='block';
+  // 徽章
+  if(meta){
+    if(data.lastRun){
+      meta.innerHTML='⏱ 掃描：'+data.lastRun+' <span style="opacity:.55;font-size:.85em;margin-left:2px">'+(data.tz||'UTC+8')+'</span>';
+    } else { meta.textContent='⏱ 尚未掃描'; }
+  }
+  // 篩選
+  let rows=data.companies;
+  if(_nsFilter==='high') rows=rows.filter(r=>r.importance==='high');
+  else if(_nsFilter==='medium') rows=rows.filter(r=>r.importance==='medium' || r.importance==='high');
+  else if(_nsFilter==='haveNews') rows=rows.filter(r=>r.newsCount>0);
+  // 渲染
+  const levelInfo={
+    high:    {cls:'ns-level-high',    label:'🔴 重要'},
+    medium:  {cls:'ns-level-medium',  label:'🟠 中等'},
+    low:     {cls:'ns-level-low',     label:'⚪ 一般'},
+    none:    {cls:'ns-level-none',    label:'— 無'},
+  };
+  tbody.innerHTML=rows.map(r=>{
+    const lv=levelInfo[r.importance]||levelInfo.none;
+    const tn=r.topNews;
+    const titleHtml=tn?`<a href="${tn.link}" target="_blank" rel="noopener">${tn.title}</a>`:`<span class="ns-no-news">本週無臨床新聞</span>`;
+    const tagsHtml=(tn&&tn.tags&&tn.tags.length)?`<div class="ns-news-tags">${tn.tags.map(t=>`<span class="ns-news-tag">${t}</span>`).join('')}</div>`:'';
+    const dateHtml=tn?`<span class="ns-news-date">${tn.date}</span>`:`<span class="ns-news-date">—</span>`;
+    const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" style="color:inherit;text-decoration:none">${r.code}</a>`;
+    return `<tr>
+      <td><span class="ns-name">${r.name}</span><span class="ns-code">${codeLink}</span></td>
+      <td><span class="ns-level-pill ${lv.cls}">${lv.label}</span></td>
+      <td><div class="ns-news-title">${titleHtml}</div>${tagsHtml}</td>
+      <td>${dateHtml}</td>
+      <td><span class="ns-count-badge">${r.newsCount} 則</span></td>
+    </tr>`;
+  }).join('');
+  // 篩選按鈕事件
+  document.querySelectorAll('.ns-filter-btn').forEach(btn=>{
+    if(!btn._bound){
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.ns-filter-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        _nsFilter=btn.dataset.filter;
+        renderNewsSummary();
+      });
+      btn._bound=true;
+    }
+  });
+}
+
 // =========================================
 // 🌾 AI 評估糧草先行 — 渲染 TOP 8
 // =========================================
@@ -2028,13 +2159,16 @@ Promise.all([
   fetch('date.json?v='+Date.now()).then(r=>r.json()),
   fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('scores.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
-  fetch('provisions.json?v='+Date.now()).then(r=>r.json()).catch(()=>({candidates:[]}))
-]).then(([statusData, newsData, timelineData, cashflowData, scoresData, provisionsData])=>{
+  fetch('provisions.json?v='+Date.now()).then(r=>r.json()).catch(()=>({candidates:[]})),
+  fetch('news_summary.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:[]}))
+]).then(([statusData, newsData, timelineData, cashflowData, scoresData, provisionsData, newsSummaryData])=>{
   window._cashflowData = cashflowData;
   window._scoresData = scoresData;
   window._provisionsData = provisionsData;
+  window._newsSummary = newsSummaryData;
   setTimeout(()=>{ try { renderScores(); } catch(e){ console.warn('renderScores fail', e); } }, 0);
   setTimeout(()=>{ try { renderProvisions(); } catch(e){ console.warn('renderProvisions fail', e); } }, 0);
+  setTimeout(()=>{ try { renderNewsSummary(); } catch(e){ console.warn('renderNewsSummary fail', e); } }, 0);
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;

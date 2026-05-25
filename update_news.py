@@ -23,6 +23,7 @@ except Exception:
 TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "news_status.json")
+SUMMARY_PATH = os.path.join(os.path.dirname(__file__), "news_summary.json")
 DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
 DAYS_FRESH = 14  # 14天內的新聞算「新動態」
 
@@ -36,6 +37,46 @@ CLINICAL_KEYWORDS = [
     "新藥", "細胞", "ADC", "CAR-T", "基因",
     "AACR", "ASCO", "ASH", "ESMO",
 ]
+
+# 重要性評分 keyword 字典（影響「📰 27 家最新新聞」排序）
+NEWS_IMPORTANCE_KEYWORDS = {
+    # 🔴 極重要：催化兌現（直接影響股價）
+    "high": [
+        "解盲", "期中分析", "IDMC", "達標", "通過", "DSMB",
+        "藥證", "核准", "獲准", "BTD", "突破性",
+        "授權", "簽約", "里程碑",
+        "收案完成", "完成收案", "達主要終點",
+    ],
+    # 🟠 中等：進度更新（中期影響）
+    "medium": [
+        "啟動", "申請", "送件", "進入", "推進",
+        "合作", "策略夥伴", "Term Sheet",
+        "Phase 1", "Phase 2", "Phase 3", "1期", "2期", "3期",
+        "FDA", "EMA", "TFDA", "IND", "NDA",
+        "ORR", "PFS", "OS", "療效",
+        "AACR", "ASCO", "ASH", "ESMO",  # 重要會議
+    ],
+    # ⚪ 一般：例行公告
+    "low": [
+        "法說", "說明會", "投資人", "財報",
+        "更換", "人事", "改名", "增資", "募資",
+    ],
+}
+
+def score_news_importance(title):
+    """計算新聞重要性等級
+    回傳：('high'|'medium'|'low', [hit keywords])
+    """
+    if not title:
+        return ('low', [])
+    high_hits = [k for k in NEWS_IMPORTANCE_KEYWORDS["high"] if k in title]
+    if high_hits:
+        return ('high', high_hits)
+    med_hits = [k for k in NEWS_IMPORTANCE_KEYWORDS["medium"] if k in title]
+    if med_hits:
+        return ('medium', med_hits)
+    low_hits = [k for k in NEWS_IMPORTANCE_KEYWORDS["low"] if k in title]
+    return ('low', low_hits)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -183,6 +224,70 @@ def main():
 
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, separators=(",", ":"))
+
+    # ───────────────────────────────────────────
+    # 📰 生成「最新新聞摘要」(news_summary.json)
+    # 每家公司挑一條最重要的新聞，依重要性 → 新舊排序
+    # ───────────────────────────────────────────
+    name_map = {code: name for code, name in companies}
+    summary_rows = []
+    importance_rank = {'high': 0, 'medium': 1, 'low': 2}
+    for code, name in companies:
+        comp = result["companies"].get(code, {})
+        news = comp.get("news", [])
+        if not news:
+            summary_rows.append({
+                "code": code, "name": name,
+                "importance": "none", "rankIdx": 3,
+                "topNews": None, "newsCount": 0,
+            })
+            continue
+        # 對每條新聞評重要性，挑最高的（同級則取最新；news 已按 ts 降冪排序）
+        scored = []
+        for i, n in enumerate(news):
+            level, hits = score_news_importance(n.get("title", ""))
+            scored.append({
+                "title": n.get("title"),
+                "link": n.get("link"),
+                "date": n.get("date"),
+                "level": level,
+                "hits": hits,
+                "rank": importance_rank[level],
+                "order": i,  # 原始順序（i 越小越新）
+            })
+        scored.sort(key=lambda x: (x['rank'], x['order']))
+        top = scored[0]
+        summary_rows.append({
+            "code": code, "name": name,
+            "importance": top['level'],
+            "rankIdx": top['rank'],
+            "topNews": {
+                "title": top['title'],
+                "link": top['link'],
+                "date": top['date'],
+                "tags": top['hits'][:4],  # 最多顯示 4 個 keyword 標籤
+            },
+            "newsCount": len(news),
+        })
+
+    # 排序：重要性高 → 新聞數多 → 代號
+    summary_rows.sort(key=lambda r: (r['rankIdx'], -r['newsCount'], r['code']))
+
+    summary = {
+        "lastRun": run_time,
+        "lastRunDate": today_short,
+        "tz": "UTC+8",
+        "companies": summary_rows,
+    }
+    with open(SUMMARY_PATH, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, separators=(",", ":"))
+
+    high_cnt = sum(1 for r in summary_rows if r['importance'] == 'high')
+    med_cnt = sum(1 for r in summary_rows if r['importance'] == 'medium')
+    low_cnt = sum(1 for r in summary_rows if r['importance'] == 'low')
+    none_cnt = sum(1 for r in summary_rows if r['importance'] == 'none')
+    print(f"\n 📰 新聞重要性分布：🔴 {high_cnt}  🟠 {med_cnt}  ⚪ {low_cnt}  —  {none_cnt}")
+    print(f" 📁 寫入摘要 {SUMMARY_PATH}")
 
     # 更新狀態
     try:
