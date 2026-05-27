@@ -1620,6 +1620,11 @@ function renderLevelTabs(){
 
 function renderHolders(H){
   _hHistory=H;
+  window._hHistory=H;   // 讓 renderStatusBar 可讀
+  // holders 載入後重算頂部徽章（補上「N 家 · N 週」資訊）
+  if(window._statusData && typeof renderStatusBar==='function'){
+    try { renderStatusBar(window._statusData, window._newsStatus, window._timelineData); } catch(e){}
+  }
   // 填入週次選擇器
   const sel=document.getElementById('holders-week');
   sel.innerHTML=H.weeks.map((w,i)=>{
@@ -2134,47 +2139,97 @@ function renderStatusBar(status, newsData, timelineData){
   if(!bar) return;
   const pills=[];
   const tzTag='<span style="opacity:.55;font-size:.85em;margin-left:3px">UTC+8</span>';
+
+  // 總公司家數
+  let totalCompanies=0;
+  if(timelineData){
+    timelineData.forEach(sec=>{ totalCompanies+=(sec.companies||[]).length; });
+  }
+
   // 💰 股價（主時程表 + 今年解盲）
   if(status && status.prices && status.prices.lastRun){
-    let priceCount=0, totalCount=0;
+    let priceCount=0;
     if(timelineData && status.prices.lastRunDate){
       const target=status.prices.lastRunDate;
       timelineData.forEach(sec=>{
-        (sec.companies||[]).forEach(c=>{
-          totalCount++;
-          if(c.priceDate===target) priceCount++;
-        });
+        (sec.companies||[]).forEach(c=>{ if(c.priceDate===target) priceCount++; });
       });
     }
-    const cntTag=priceCount?` · 💹 ${priceCount}/${totalCount} 家`:'';
+    const cntTag=priceCount?` · 💹 ${priceCount}/${totalCompanies} 家`:'';
     pills.push(`<span class="scan-pill scan-prices" title="影響：🗓️ 主時程表 · 🔵 今年解盲 · 📈 近 5 日收盤條紋&#10;排程：平日 06:00、15:00 TST"><span class="dot"></span>💰 股價更新：${status.prices.lastRun}${tzTag}${cntTag}</span>`);
   }
+
   // 📰 新聞（27 家最新新聞 + 新聞觸發 highlights）
   if(status && status.news && status.news.lastRun){
     const newsCount=Object.values((newsData||{}).companies||{}).filter(c=>c.news&&c.news.length).length;
-    pills.push(`<span class="scan-pill scan-news" title="影響：📰 27 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 TST"><span class="dot"></span>📰 新聞掃描：${status.news.lastRun}${tzTag}${newsCount?' · 🆕 '+newsCount+' 家':''}</span>`);
+    let totalNews=0;
+    Object.values((newsData||{}).companies||{}).forEach(c=>{ totalNews+=(c.news||[]).length; });
+    const cntTag=newsCount?` · 🆕 ${newsCount}/${totalCompanies} 家 · ${totalNews} 則`:'';
+    pills.push(`<span class="scan-pill scan-news" title="影響：📰 27 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 TST"><span class="dot"></span>📰 新聞掃描：${status.news.lastRun}${tzTag}${cntTag}</span>`);
   }
-  // ⭐ 本週值得注意（highlights 標記）
+
+  // ⭐ 本週值得注意（highlights 標記）— 算 highlightThisWeek 事件數
   if(status && status.highlights && status.highlights.lastRun){
-    pills.push(`<span class="scan-pill scan-highlights" title="影響：⭐ 本週值得注意&#10;排程：每天 06:00 TST（新聞掃描後接力）"><span class="dot"></span>⭐ 本週標記：${status.highlights.lastRun}${tzTag}</span>`);
+    let hlEvents=0; const hlCompanies=new Set();
+    if(timelineData){
+      timelineData.forEach(sec=>{
+        (sec.companies||[]).forEach(c=>{
+          const evs=c.events||{};
+          let hit=false;
+          Object.values(evs).forEach(ev=>{
+            if(ev && ev.highlightThisWeek){ hlEvents++; hit=true; }
+          });
+          if(hit) hlCompanies.add(c.code);
+        });
+      });
+    }
+    const cntTag=hlEvents?` · ⭐ ${hlCompanies.size} 家 · ${hlEvents} 件事件`:'';
+    pills.push(`<span class="scan-pill scan-highlights" title="影響：⭐ 本週值得注意&#10;排程：每天 06:00 TST（新聞掃描後接力）"><span class="dot"></span>⭐ 本週標記：${status.highlights.lastRun}${tzTag}${cntTag}</span>`);
   }
-  // 🎯 AI 動態評分
+
+  // 🎯 AI 動態評分 — 算評分家數 + 分級
   if(status && status.scores && status.scores.lastRun){
-    pills.push(`<span class="scan-pill scan-scores" title="影響：🎯 AI 動態訊號評估引擎 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 週六 10:00 TST"><span class="dot"></span>🎯 AI 評分：${status.scores.lastRun}${tzTag}</span>`);
+    const sd=window._scoresData||{};
+    const companies=sd.companies||{};
+    const scoredCount=Object.keys(companies).length;
+    const top80=Object.values(companies).filter(c=>c.total>=80).length;
+    const top65=Object.values(companies).filter(c=>c.total>=65 && c.total<80).length;
+    const cntTag=scoredCount?` · 🎯 ${scoredCount} 家 · ≥80:${top80} · ≥65:${top65}`:'';
+    pills.push(`<span class="scan-pill scan-scores" title="影響：🎯 AI 動態訊號評估引擎 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 週六 10:00 TST"><span class="dot"></span>🎯 AI 評分：${status.scores.lastRun}${tzTag}${cntTag}</span>`);
   }
-  // 🌾 AI 糧草先行
+
+  // 🌾 AI 糧草先行 — 候選總數 + TOP 1 分數
   if(status && status.provisions && status.provisions.lastRun){
-    pills.push(`<span class="scan-pill scan-provisions" title="影響：🌾 AI 評估糧草先行 TOP 5&#10;排程：每天 06:00 + 週六 10:00 TST"><span class="dot"></span>🌾 糧草先行：${status.provisions.lastRun}${tzTag}</span>`);
+    const pd=window._provisionsData||{};
+    const cands=pd.candidates||[];
+    const top=cands[0];
+    const cntTag=cands.length?` · 🌾 ${cands.length} 候選 · TOP:${top?top.provisionScore:'?'}`:'';
+    pills.push(`<span class="scan-pill scan-provisions" title="影響：🌾 AI 評估糧草先行 TOP 5&#10;排程：每天 06:00 + 週六 10:00 TST"><span class="dot"></span>🌾 糧草先行：${status.provisions.lastRun}${tzTag}${cntTag}</span>`);
   }
-  // 🏦 集保戶持股
+
+  // 🏦 集保戶持股 — 算當週家數 + 週數
   if(status && status.holders && status.holders.lastRun){
     const dd=status.holders.dataDate?' · 資料：'+status.holders.dataDate:'';
-    pills.push(`<span class="scan-pill scan-holders" title="影響：🏦 集保戶持股統計 · 🏆 27 家總股東排行 · 💡 AI 市場訊號解讀&#10;排程：週六 10:00 TST"><span class="dot"></span>🏦 集保統計：${status.holders.lastRun}${tzTag}${dd}</span>`);
+    let holderCount=0, weekCount=0;
+    if(window._hHistory && window._hHistory.weeks){
+      weekCount=window._hHistory.weeks.length;
+      if(window._hHistory.weeks[0]){
+        holderCount=(window._hHistory.weeks[0].data||[]).length;
+      }
+    }
+    const cntTag=holderCount?` · 🏦 ${holderCount} 家 · ${weekCount} 週`:'';
+    pills.push(`<span class="scan-pill scan-holders" title="影響：🏦 集保戶持股統計 · 🏆 27 家總股東排行 · 💡 AI 市場訊號解讀&#10;排程：週六 10:00 TST"><span class="dot"></span>🏦 集保統計：${status.holders.lastRun}${tzTag}${dd}${cntTag}</span>`);
   }
-  // 💧 現金流餘額
+
+  // 💧 現金流餘額 — 有資料家數 + 有 Q1 的家數
   if(status && status.cashflow && status.cashflow.lastRun){
-    pills.push(`<span class="scan-pill scan-cashflow" title="影響：💰 27 家現金流餘額排行 · 🎯 AI 動態評分（現金跑道模組）&#10;排程：週六 10:00 TST"><span class="dot"></span>💧 現金流：${status.cashflow.lastRun}${tzTag}</span>`);
+    const cf=(window._cashflowData||{}).companies||{};
+    const cfCount=Object.keys(cf).length;
+    const hasQ1=Object.values(cf).filter(c=>(c.cash_2026||{}).value).length;
+    const cntTag=cfCount?` · 💧 ${cfCount} 家 · Q1:${hasQ1}`:'';
+    pills.push(`<span class="scan-pill scan-cashflow" title="影響：💰 27 家現金流餘額排行 · 🎯 AI 動態評分（現金跑道模組）&#10;排程：週六 10:00 TST"><span class="dot"></span>💧 現金流：${status.cashflow.lastRun}${tzTag}${cntTag}</span>`);
   }
+
   bar.innerHTML=pills.join('');
 }
 
@@ -2198,6 +2253,7 @@ Promise.all([
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;
+  window._timelineData = timelineData;  // 給 renderStatusBar 二次呼叫用
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
   // 🗓️ 主時程表抓取時間徽章（比照 27 家總股東排行格式）
