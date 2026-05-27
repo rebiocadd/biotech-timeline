@@ -3,7 +3,7 @@
 """
 update_news.py - 每日自動掃描公司臨床進度新聞
 資料來源：Google News RSS
-執行時機：每天上午 08:00 TST
+執行時機：每天上午 06:00 TST
 
 用法：
   python update_news.py          # 更新 news_status.json

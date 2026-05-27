@@ -111,13 +111,13 @@ biotech-timeline/
 │
 └── 【Python 後端腳本】
     ├── _status_helper.py           更新 status.json 的共用模組
-    ├── update_prices.py            股價（每日平日 09:00 / 15:00）
-    ├── update_news.py              新聞掃描（每天 08:00）
-    ├── update_highlights.py        新聞自動標記 highlights（每天 08:00 接力）
-    ├── update_scores.py            動態評分（每天 08:00 + 週六 10:00）
+    ├── update_prices.py            股價（每日平日 06:00 / 15:00）
+    ├── update_news.py              新聞掃描（每天 06:00）
+    ├── update_highlights.py        新聞自動標記 highlights（每天 06:00 接力）
+    ├── update_scores.py            動態評分（每天 06:00 + 週六 10:00）
     ├── update_holders.py           TDCC 千張資料（週六 10:00）
     ├── update_cashflow.py          FinMind 現金部位（週六 10:00）
-    └── update_provisions.py        糧草先行評分（每天 08:00 + 週六 10:00）
+    └── update_provisions.py        糧草先行評分（每天 06:00 + 週六 10:00）
 ```
 
 ---
@@ -130,11 +130,11 @@ biotech-timeline/
 │  3 個 job × cron │
 └─────────┬────────┘
           │
-          ├─→ 平日 09:00/15:00 ──→ update_prices.py ──→ date.json (price/change/240日歷史)
+          ├─→ 平日 06:00/15:00 ──→ update_prices.py ──→ date.json (price/change/240日歷史)
           │                                                ↓
           │                                          (events 部分人工維護)
           │
-          ├─→ 每天 08:00 ────→ update_news.py ──→ news_status.json
+          ├─→ 每天 06:00 ────→ update_news.py ──→ news_status.json
           │                ↓
           │              update_highlights.py ────→ date.json (highlights 標記)
           │                ↓
@@ -247,7 +247,7 @@ biotech-timeline/
 ## 六、6 個 Python 後端腳本
 
 ### 1. `update_prices.py` — 股價更新（最頻繁）
-- **何時跑**: 平日 09:00 / 15:00 TST
+- **何時跑**: 平日 06:00 / 15:00 TST
 - **資料源優先序**: Yahoo Finance (主) → TWSE/TPEX 官方 (驗證) → 玩股網 (備援)
 - **輸出**: 更新 `date.json` 的 `price`/`change`/`priceDate`/`priceHistory`（240 日交易日）
 - **重要常數**:
@@ -256,19 +256,19 @@ biotech-timeline/
   - `REQUEST_DELAY`: 0.8 秒（避免被封鎖）
 
 ### 2. `update_news.py` — 新聞掃描
-- **何時跑**: 每天 08:00 TST
+- **何時跑**: 每天 06:00 TST
 - **資料源**: Google News RSS
 - **掃描 keywords**: 臨床、解盲、藥證、授權、收案、IDMC 等
 - **輸出**: `news_status.json`（每家公司 7 天內新聞列表）
 
 ### 3. `update_highlights.py` — 自動標記 highlights
-- **何時跑**: 每天 08:00 TST（在 news 之後）
+- **何時跑**: 每天 06:00 TST（在 news 之後）
 - **邏輯**: 從新聞標題抽 keywords → 比對 events.label → 若匹配且分數高 → 設 `highlightThisWeek: true`
 - **輸出**: 修改 `date.json` 中對應 events 的 `highlightThisWeek` 標記
 - **重要**: 永不覆蓋人工設定的 `highlightThisWeek`（有 `_manual_highlight` 標記時）
 
 ### 4. `update_scores.py` — 動態評分引擎
-- **何時跑**: 每天 08:00 + 週六 10:00 TST
+- **何時跑**: 每天 06:00 + 週六 10:00 TST
 - **7 個評分模組**:
   - catalyst（催化）: 25%
   - cashRunway（現金跑道）: 20%
@@ -299,7 +299,7 @@ biotech-timeline/
 - **輸出**: `cashflow.json`
 
 ### 7. `update_provisions.py` — 糧草先行評分（最新加入）
-- **何時跑**: 每天 08:00 + 週六 10:00 TST
+- **何時跑**: 每天 06:00 + 週六 10:00 TST
 - **篩選**: 公司 events 中含 tag-resolve 或 tag-data + 解盲關鍵字
 - **7 維度評分**:
   - imminence（催化迫近）25%
@@ -527,7 +527,7 @@ biotech-timeline/
 
 #### Job 1: `update-prices`
 ```yaml
-cron: '0 1 * * 1-5'   # 平日 09:00 TST（早盤）
+cron: '0 22 * * 0-4'   # 平日 06:00 TST（早盤）
 cron: '0 7 * * 1-5'   # 平日 15:00 TST（收盤）
 
 執行：
@@ -539,7 +539,7 @@ cron: '0 7 * * 1-5'   # 平日 15:00 TST（收盤）
 
 #### Job 2: `update-news`
 ```yaml
-cron: '0 0 * * *'   # 每天 08:00 TST
+cron: '0 22 * * *'   # 每天 06:00 TST
 
 執行：
   python update_news.py
@@ -568,9 +568,9 @@ cron: '0 2 * * 6'   # 週六 10:00 TST
 
 | 時間 (TST) | 日期 | 動作 | 影響檔案 |
 |---|---|---|---|
-| 平日 09:00 | 週一-五 | 早盤股價 | `date.json` |
+| 平日 06:00 | 週一-五 | 早盤股價 | `date.json` |
 | 平日 15:00 | 週一-五 | 收盤股價 | `date.json` |
-| 每天 08:00 | 每天 | 新聞 + highlights + 評分 + 糧草 | `news_status.json`, `date.json`, `scores.json`, `provisions.json` |
+| 每天 06:00 | 每天 | 新聞 + highlights + 評分 + 糧草 | `news_status.json`, `date.json`, `scores.json`, `provisions.json` |
 | 週六 10:00 | 週六 | 千張 + 現金 + 評分 + 糧草 | `holders.json`, `holders_history.json`, `cashflow.json`, `scores.json`, `provisions.json` |
 
 **每週自動更新次數**：約 18 次 commits（含失敗重試實際更多）

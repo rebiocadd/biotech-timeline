@@ -2,9 +2,9 @@ name: 自動更新（股價/新聞/千張）
 
 on:
   schedule:
-    - cron: '0 1 * * 1-5'   # 09:00 TST prices
-    - cron: '0 7 * * 1-5'   # 15:00 TST prices
-    - cron: '0 0 * * *'     # 08:00 TST news
+    - cron: '0 22 * * 0-4'  # 06:00 TST prices (週一-五，UTC 22:00 為前一日)
+    - cron: '0 7 * * 1-5'   # 15:00 TST prices (收盤後)
+    - cron: '0 22 * * *'    # 06:00 TST news/highlights/scores/provisions/news_summary
     - cron: '0 2 * * 6'     # 10:00 TST holders (Sat)
   workflow_dispatch:
     inputs:
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   update-prices:
-    if: github.event_name == 'schedule' && (github.event.schedule == '0 1 * * 1-5' || github.event.schedule == '0 7 * * 1-5') || github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'prices' || github.event.inputs.task == 'all')
+    if: github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 0-4' || github.event.schedule == '0 7 * * 1-5') || github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'prices' || github.event.inputs.task == 'all')
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
@@ -54,7 +54,7 @@ jobs:
     needs: update-prices
     if: |
       always() && (
-        (github.event_name == 'schedule' && github.event.schedule == '0 0 * * *') ||
+        (github.event_name == 'schedule' && github.event.schedule == '0 22 * * *') ||
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'news' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest

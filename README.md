@@ -39,9 +39,9 @@ GitHub Actions workflow: `.github/workflows/update-prices.yml`
 
 | 任務 | 頻率 | 時間（UTC+8） | 腳本 | 寫入檔案 |
 |------|------|---------------|------|---------|
-| 💰 **股價** | 平日 (一~五) ×2 | 09:00 / 15:00 | `update_prices.py` | `date.json` (price/change/priceDate/**priceHistory**) |
-| 📡 **新聞掃描** | 每日 | 08:00 | `update_news.py` | `news_status.json` |
-| ⭐ **自動標記** | 跟在新聞後 | 08:00+ | `update_highlights.py` | `date.json` (highlightThisWeek/_autoSource) |
+| 💰 **股價** | 平日 (一~五) ×2 | 06:00 / 15:00 | `update_prices.py` | `date.json` (price/change/priceDate/**priceHistory**) |
+| 📡 **新聞掃描** | 每日 | 06:00 | `update_news.py` | `news_status.json`, `news_summary.json` |
+| ⭐ **自動標記** | 跟在新聞後 | 06:00+ | `update_highlights.py` | `date.json` (highlightThisWeek/_autoSource) |
 | 🏦 **集保戶持股** | 每週六 | 10:00 | `update_holders.py` | `holders.json`, `holders_history.json` |
 
 所有腳本都會更新 `status.json` 記錄最後執行時間。

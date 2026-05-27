@@ -79,7 +79,7 @@ InvestmentScore = 0.25*Catalyst + 0.20*CashRunway + 0.15*PricePosition
 
 ## ⏰ 自動化
 
-GitHub Actions cron（`.github/workflows/update-prices.yml` 的 `update-news` job）每日 08:00 (UTC+8)：
+GitHub Actions cron（`.github/workflows/update-prices.yml` 的 `update-news` job）每日 06:00 (UTC+8)：
 
 ```
 1. update_news.py        ← 抓 Google News

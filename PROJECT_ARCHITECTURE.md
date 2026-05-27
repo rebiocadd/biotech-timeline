@@ -61,8 +61,8 @@ biotech-timeline/
 │
 └── 【後端 Python 腳本】
     ├── _status_helper.py           更新 status.json 的共用模組
-    ├── update_prices.py            抓股價（每日 09:00, 15:00）
-    ├── update_news.py              掃描新聞（每天 08:00）
+    ├── update_prices.py            抓股價（每日 06:00, 15:00）
+    ├── update_news.py              掃描新聞（每天 06:00）
     ├── update_highlights.py        新聞→自動標記 highlights
     ├── update_scores.py            重算動態評分
     ├── update_holders.py           抓 TDCC 千張資料（週六 10:00）
@@ -79,9 +79,9 @@ biotech-timeline/
 │   4 條 cron      │
 └─────────┬────────┘
           │
-          ├─→ 每日 09:00/15:00 ─→ update_prices.py ─→ date.json (price/change/history)
+          ├─→ 每日 06:00/15:00 ─→ update_prices.py ─→ date.json (price/change/history)
           │
-          ├─→ 每天 08:00 ──→ update_news.py ──────→ news_status.json
+          ├─→ 每天 06:00 ──→ update_news.py ──────→ news_status.json
           │                ↓
           │              update_highlights.py ────→ date.json (highlights 標記)
           │                ↓
@@ -109,11 +109,11 @@ biotech-timeline/
 
 | # | 區塊（HTML 順序） | 資料源 JSON | 由哪個 .py 更新 | 自動排程 |
 |---|---|---|---|---|
-| 1 | **🔵 今年解盲（2026）** | `date.json` (篩 tag-resolve / tag-data) | events 手動 + `update_prices.py` 補股價 | 平日 09:00, 15:00 |
-| 2 | **🎯 AI 自動化動態訊號評估引擎** | `scores.json` | `update_scores.py`（讀 date+holders+cashflow+news 整合）| 每日 08:00 + 週六 10:00 |
-| 3 | **💡 AI 全自動市場訊號解讀** | `holders_history.json` + `news_status.json` | `update_holders.py` + `update_news.py` | 週六 10:00 + 每日 08:00 |
-| 4 | **⭐ 本週值得注意** | `date.json` (`highlightThisWeek:true` 事件) | `update_highlights.py` | 每日 08:00 |
-| 5 | **🗓️ 主時程表**（上市 + 興櫃合一網格）| `date.json` (events 主表 + price/change/history)| events 手動 + `update_prices.py` 補股價 | 平日 09:00, 15:00 |
+| 1 | **🔵 今年解盲（2026）** | `date.json` (篩 tag-resolve / tag-data) | events 手動 + `update_prices.py` 補股價 | 平日 06:00, 15:00 |
+| 2 | **🎯 AI 自動化動態訊號評估引擎** | `scores.json` | `update_scores.py`（讀 date+holders+cashflow+news 整合）| 每日 06:00 + 週六 10:00 |
+| 3 | **💡 AI 全自動市場訊號解讀** | `holders_history.json` + `news_status.json` | `update_holders.py` + `update_news.py` | 週六 10:00 + 每日 06:00 |
+| 4 | **⭐ 本週值得注意** | `date.json` (`highlightThisWeek:true` 事件) | `update_highlights.py` | 每日 06:00 |
+| 5 | **🗓️ 主時程表**（上市 + 興櫃合一網格）| `date.json` (events 主表 + price/change/history)| events 手動 + `update_prices.py` 補股價 | 平日 06:00, 15:00 |
 | 6 | **🏦 集保戶持股統計**（15 持股等級切換）| `holders_history.json` | `update_holders.py` | 週六 10:00 |
 | 7 | **🏆 27 家總股東排行**（三週快照） | `holders_history.json` | `update_holders.py` | 週六 10:00 |
 | 8 | **💰 27 家現金流餘額排行**（4 年度）| `cashflow.json` | `update_cashflow.py`（FinMind 主 + yfinance 備）| 週六 10:00 |
@@ -262,8 +262,8 @@ git push origin main
 
 **會自動補齊嗎？**
 是，但要等到：
-- 下次平日 09:00/15:00 → `update_prices.py` 自動補股價
-- 下次每天 08:00 → 自動補新聞 + 評分
+- 下次平日 06:00/15:00 → `update_prices.py` 自動補股價
+- 下次每天 06:00 → 自動補新聞 + 評分
 - 下次週六 10:00 → 自動補千張 + 現金流
 
 **所以新加入公司一定要手動觸發**，否則使用者最久要等 6 天（下個週六）才看到完整資料。
@@ -313,9 +313,9 @@ git push origin main
 # .github/workflows/update-prices.yml
 on:
   schedule:
-    - cron: '0 1 * * 1-5'   # 平日 09:00 TST → 早盤股價
+    - cron: '0 22 * * 0-4'   # 平日 06:00 TST → 早盤股價
     - cron: '0 7 * * 1-5'   # 平日 15:00 TST → 收盤股價
-    - cron: '0 0 * * *'     # 每天 08:00 TST → 新聞 + highlights + scores
+    - cron: '0 22 * * *'     # 每天 06:00 TST → 新聞 + highlights + scores
     - cron: '0 2 * * 6'     # 週六 10:00 TST → holders + cashflow + scores
   workflow_dispatch:        # 也允許手動觸發
 ```
