@@ -25,7 +25,7 @@ TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 JSON_PATH = os.path.join(os.path.dirname(__file__), "news_status.json")
 SUMMARY_PATH = os.path.join(os.path.dirname(__file__), "news_summary.json")
 DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
-DAYS_FRESH = 14  # 14天內的新聞算「新動態」
+DAYS_FRESH = 21  # 21 天內的新聞算「新動態」（擴大掃描範圍，原 14 天）
 
 # 臨床相關關鍵字（命中才算臨床新聞）
 CLINICAL_KEYWORDS = [
@@ -83,14 +83,41 @@ HEADERS = {
 }
 
 def load_companies():
-    """從 date.json 讀取所有公司清單"""
+    """從 date.json 讀取所有公司清單（含藥物代號等別名作 query 擴充）"""
     with open(DATE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
     companies = []
     for section in data:
         for c in section["companies"]:
-            companies.append((c["code"], c["name"]))
+            # 抽出 events 內所有藥物代號（補強搜尋）
+            drug_codes = set()
+            events = c.get("events") or {}
+            for ev in events.values():
+                if isinstance(ev, dict):
+                    d = ev.get("drug") or ""
+                    if d and len(d) <= 30:
+                        # 取 / 之前的主代號（"PL001/PP011" → "PL001"）
+                        drug_codes.add(d.split("/")[0].strip())
+            companies.append({
+                "code": c["code"],
+                "name": c["name"],
+                "drugs": list(drug_codes)[:3],   # 最多 3 個藥物代號
+            })
     return companies
+
+
+def short_name(name):
+    """取短名：藥祇生醫 → 藥祇 / 仲恩生醫 → 仲恩
+    若已經 ≤3 個字直接回傳"""
+    if len(name) <= 3:
+        return name
+    # 去掉常見的「生技/生醫/醫藥/新藥/科技」尾綴
+    for suffix in ['生技', '生醫', '醫藥', '新藥', '科技', '製藥']:
+        if name.endswith(suffix):
+            stripped = name[:-len(suffix)]
+            if len(stripped) >= 2:
+                return stripped
+    return name
 
 def fetch_rss(query):
     """抓取 Google News RSS"""
@@ -136,35 +163,95 @@ def parse_rss_date(s):
 def is_clinical(title):
     return any(kw in title for kw in CLINICAL_KEYWORDS)
 
-def scan_company(code, name):
-    """掃描單家公司的最新臨床新聞"""
+
+def fetch_all_for_company(company):
+    """多重 query 搜尋一家公司：
+       Q1. 全名 + code      (例：藥祇生醫 7878)
+       Q2. 短名 + code      (例：藥祇 7878)
+       Q3. 短名 + 生技/生醫 (例：藥祇生醫)
+       Q4. 主要藥物代號     (例：PS-001 / OBI-858)
+    回傳去重後的 items 列表
+    """
+    name = company["name"]
+    code = company["code"]
+    drugs = company.get("drugs", [])
+    short = short_name(name)
+
+    queries = []
+    queries.append(f"{name} {code}")
+    if short != name:
+        queries.append(f"{short} {code}")
+        queries.append(f"{short} 生技")
+    # 藥物代號（如 PS-001 / OBI-858）— 通常會帶公司名一起出現
+    for d in drugs:
+        if d and len(d) >= 3:
+            queries.append(f"{d} {short}")
+
+    seen_links = set()
+    all_items = []
+    for q in queries[:5]:
+        try:
+            xml = fetch_rss(q)
+            items = parse_rss(xml)
+            for it in items[:25]:
+                link = it.get("link") or ""
+                # 取 link 前 80 字當 dedup key（Google News redirect 完整 URL 太長）
+                key = link[:120]
+                if key in seen_links:
+                    continue
+                seen_links.add(key)
+                all_items.append(it)
+        except Exception:
+            continue
+    return all_items
+
+
+def scan_company(code, name, drugs=None):
+    """掃描單家公司的最新新聞（強化版）
+    - 多重 query
+    - 14 天視窗
+    - 公司名/短名/藥物代號 命中即收
+    """
     try:
-        xml = fetch_rss(f"{name} {code}")
+        items = fetch_all_for_company({"code": code, "name": name, "drugs": drugs or []})
     except Exception as e:
         return {"error": str(e), "news": []}
 
-    items = parse_rss(xml)
     now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=30)
+    cutoff = now - timedelta(days=DAYS_FRESH)
+    short = short_name(name)
 
     fresh_news = []
-    for it in items[:15]:
+    for it in items:
         pub = parse_rss_date(it["pubDate"])
         if not pub or pub < cutoff:
             continue
-        if not is_clinical(it["title"]):
+        title = it.get("title", "")
+        # 命中條件：含「短名」或「代號」或臨床關鍵字
+        name_hit = (short in title) or (name in title) or (code in title)
+        drug_hit = any(d in title for d in (drugs or []) if d)
+        clinical_hit = is_clinical(title)
+        if not (name_hit or drug_hit or clinical_hit):
             continue
-        # 將 UTC 新聞時間轉為 UTC+8 顯示
         pub_taipei = pub.astimezone(TAIPEI_TZ)
         fresh_news.append({
-            "title": it["title"][:120],
+            "title": title[:140],
             "link": it["link"],
             "date": pub_taipei.strftime("%m/%d"),
             "ts": int(pub.timestamp()),
         })
 
     fresh_news.sort(key=lambda x: x["ts"], reverse=True)
-    return {"news": fresh_news[:5]}
+    # 移除重複標題（不同來源同一新聞）
+    seen_titles = set()
+    deduped = []
+    for n in fresh_news:
+        title_key = re.sub(r'[\s\-—–\|]+', '', n["title"][:50])
+        if title_key in seen_titles:
+            continue
+        seen_titles.add(title_key)
+        deduped.append(n)
+    return {"news": deduped[:8]}
 
 def main():
     auto_push = "--push" in sys.argv
@@ -189,9 +276,10 @@ def main():
     }
     has_news_count = 0
 
-    for code, name in companies:
+    for c in companies:
+        code, name, drugs = c["code"], c["name"], c.get("drugs", [])
         print(f"  [{code}] {name}...", end=" ", flush=True)
-        r = scan_company(code, name)
+        r = scan_company(code, name, drugs)
         if r.get("error"):
             print(f"❌ {r['error']}")
             result["companies"][code] = {"checked": today_short, "news": []}
@@ -229,10 +317,11 @@ def main():
     # 📰 生成「最新新聞摘要」(news_summary.json)
     # 每家公司挑一條最重要的新聞，依重要性 → 新舊排序
     # ───────────────────────────────────────────
-    name_map = {code: name for code, name in companies}
+    name_map = {c["code"]: c["name"] for c in companies}
     summary_rows = []
     importance_rank = {'high': 0, 'medium': 1, 'low': 2}
-    for code, name in companies:
+    for c in companies:
+        code, name = c["code"], c["name"]
         comp = result["companies"].get(code, {})
         news = comp.get("news", [])
         if not news:
