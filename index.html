@@ -576,7 +576,7 @@
   <!-- 📰 27 家最新新聞表格（放在「今年解盲」上方）-->
   <div class="news-summary-section" id="news-summary-section" style="display:none">
     <div class="ns-header">
-      <span class="ns-title">📰 27 家最新新聞</span>
+      <span class="ns-title" id="ns-title">📰 28 家最新新聞</span>
       <span class="ns-subtitle">每日 06:00 + 15:00 自動掃描 Google News · 依重要性排序</span>
       <span class="ns-meta" id="ns-meta" title="📰 自動掃描：每天 06:00 + 15:00 TST（一日兩次）&#10;🔴 高：解盲/期中分析/藥證/授權&#10;🟠 中：試驗啟動/合作/FDA 互動&#10;⚪ 低：法說/人事/募資">⏱ 載入中…</span>
     </div>
@@ -675,7 +675,7 @@
   <!-- 🗓️ 主時程表 -->
   <div class="timeline-section-header" style="display:flex;align-items:center;gap:10px;margin:18px 0 8px;flex-wrap:wrap">
     <span style="font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px">🗓️ 主時程表</span>
-    <span style="font-size:10.5px;color:var(--muted)" id="timeline-subtitle">27 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細</span>
+    <span style="font-size:10.5px;color:var(--muted)" id="timeline-subtitle">28 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細</span>
     <span class="ranking-meta" id="timeline-meta" title="股價：平日 06:00、15:00（UTC+8）自動更新&#10;事件文字：人工維護">⏱ 抓取中…</span>
   </div>
   <div class="quarters-header">
@@ -980,6 +980,9 @@ function renderNewsSummary(){
   const data=window._newsSummary;
   if(!sec||!tbody||!data||!data.companies){return;}
   sec.style.display='block';
+  // 動態更新標題（依資料源實際家數）
+  const titleEl=document.getElementById('ns-title');
+  if(titleEl) titleEl.textContent=`📰 ${data.companies.length} 家最新新聞`;
   // 徽章
   if(meta){
     if(data.lastRun){
@@ -2295,6 +2298,13 @@ Promise.all([
   window._timelineData = timelineData;  // 給 renderStatusBar 二次呼叫用
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
+  // 動態更新主時程表副標家數
+  const _tsub = document.getElementById('timeline-subtitle');
+  if(_tsub && timelineData){
+    let tcnt=0;
+    timelineData.forEach(sec=>{ tcnt+=(sec.companies||[]).length; });
+    _tsub.textContent = `${tcnt} 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細`;
+  }
   // 🗓️ 主時程表抓取時間徽章（比照 27 家總股東排行格式）
   const _tmeta = document.getElementById('timeline-meta');
   if(_tmeta){
