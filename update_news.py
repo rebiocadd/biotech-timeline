@@ -227,16 +227,23 @@ def scan_company(code, name, drugs=None):
     short = short_name(name)
 
     fresh_news = []
+    # 排除明確污染關鍵字（會跨多家撞名的熱門詞）
+    NOISE_KEYWORDS = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '張忠謀', '蘋果', 'Apple',
+                       'TSMC', '台積電', '鴻海', '聯發科', '台達電', '富邦', '玉山', '中華電',
+                       '凱基證', '凱基銀', '券商分點', '00919', '00407', 'ETF']
     for it in items:
         pub = parse_rss_date(it["pubDate"])
         if not pub or pub < cutoff:
             continue
         title = it.get("title", "")
-        # 命中條件：含「短名」或「代號」或臨床關鍵字
+        # ★ 嚴格過濾：必須命中「該公司專屬識別」（移除 clinical fallback，避免撞名污染）
+        # 公司名/代號 命中
         name_hit = (short in title) or (name in title) or (code in title)
-        drug_hit = any(d in title for d in (drugs or []) if d)
-        clinical_hit = is_clinical(title)
-        if not (name_hit or drug_hit or clinical_hit):
+        drug_hit = any(d in title for d in (drugs or []) if d and len(d) >= 3)
+        if not (name_hit or drug_hit):
+            continue
+        # 二次過濾：排除標題含明確污染詞的新聞（即使含公司短名也擋）
+        if any(noise in title for noise in NOISE_KEYWORDS):
             continue
         pub_taipei = pub.astimezone(TAIPEI_TZ)
         fresh_news.append({
