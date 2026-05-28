@@ -577,8 +577,8 @@
   <div class="news-summary-section" id="news-summary-section" style="display:none">
     <div class="ns-header">
       <span class="ns-title">📰 27 家最新新聞</span>
-      <span class="ns-subtitle">每日 06:00 自動掃描 Google News · 依重要性排序</span>
-      <span class="ns-meta" id="ns-meta" title="📰 自動掃描：每天 06:00 TST&#10;🔴 高：解盲/期中分析/藥證/授權&#10;🟠 中：試驗啟動/合作/FDA 互動&#10;⚪ 低：法說/人事/募資">⏱ 載入中…</span>
+      <span class="ns-subtitle">每日 06:00 + 15:00 自動掃描 Google News · 依重要性排序</span>
+      <span class="ns-meta" id="ns-meta" title="📰 自動掃描：每天 06:00 + 15:00 TST（一日兩次）&#10;🔴 高：解盲/期中分析/藥證/授權&#10;🟠 中：試驗啟動/合作/FDA 互動&#10;⚪ 低：法說/人事/募資">⏱ 載入中…</span>
     </div>
     <div class="ns-controls" id="ns-filters">
       <span class="ns-filter-btn active" data-filter="all">全部</span>
@@ -642,7 +642,7 @@
     <div class="signals-header">
       <span class="signals-title">💡 AI 自動化市場訊號解讀</span>
       <span class="signals-subtitle">本週總股東人數變化 Top 5 · 自動分析</span>
-      <span class="signals-meta" id="signals-meta" title="資料同步來源：&#10;🏦 集保戶持股（全 15 級總股東）：每週六 10:00（UTC+8）&#10;📡 新聞掃描：每日 06:00（UTC+8）&#10;💰 股價：平日 06:00、15:00（UTC+8）">⏱ 資料同步中…</span>
+      <span class="signals-meta" id="signals-meta" title="資料同步來源：&#10;🏦 集保戶持股（全 15 級總股東）：每週六 10:00（UTC+8）&#10;📡 新聞掃描：每日 06:00 + 15:00（UTC+8）&#10;💰 股價：平日 06:00、15:00（UTC+8）">⏱ 資料同步中…</span>
     </div>
     <div class="signals-tagline">幾個有趣的訊號：</div>
     <div class="signals-table" id="signals-grid"></div>
@@ -668,7 +668,7 @@
     <div class="highlights-header">
       <span class="highlights-title">⭐ 本週值得注意</span>
       <span class="highlights-subtitle">近期高催化強度 / 已標記事件 · 每次載入自動篩選</span>
-      <span class="highlights-meta" id="highlights-meta" title="自動化排程說明：&#10;💰 股價：平日 06:00、15:00（UTC+8）&#10;📡 新聞掃描：每日 06:00（UTC+8）&#10;⭐ 自動標記：新聞掃描完成後（依關鍵字評分）&#10;🔒 人工標記：永不被自動腳本覆蓋&#10;🏦 集保統計：每週六 10:00（UTC+8）">⏱ 資料同步中…</span>
+      <span class="highlights-meta" id="highlights-meta" title="自動化排程說明：&#10;💰 股價：平日 06:00、15:00（UTC+8）&#10;📡 新聞掃描：每日 06:00 + 15:00（UTC+8）&#10;⭐ 自動標記：新聞掃描完成後（依關鍵字評分）&#10;🔒 人工標記：永不被自動腳本覆蓋&#10;🏦 集保統計：每週六 10:00（UTC+8）">⏱ 資料同步中…</span>
     </div>
     <div class="highlights-list" id="highlights-list"></div>
   </div>
@@ -2187,9 +2187,9 @@ function renderStatusBar(status, newsData, timelineData){
     Object.values((newsData||{}).companies||{}).forEach(c=>{ totalNews+=(c.news||[]).length; });
     const stats=newsCount?`🆕 ${newsCount}/${totalCompanies} 家有新聞 · 共 ${totalNews} 則`:'尚無新聞';
     pills.push(buildPill('scan-news',
-      '📰 新聞掃描', '🔄 每天 ×1 (06時)',
+      '📰 新聞掃描', '🔄 每天 ×2 (06/15時)',
       status.news.lastRun, stats,
-      '影響：📰 27 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 TST'));
+      '影響：📰 27 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 15:00 TST（一日兩次掃描）'));
   }
 
   // 3. ⭐ 本週標記
@@ -2209,9 +2209,9 @@ function renderStatusBar(status, newsData, timelineData){
     }
     const stats=hlEvents?`⭐ ${hlCompanies.size} 家 · 共 ${hlEvents} 件本週重點事件`:'本週尚無重點事件';
     pills.push(buildPill('scan-highlights',
-      '⭐ 本週標記', '🔄 每天 ×1 (06時)',
+      '⭐ 本週標記', '🔄 每天 ×2 (06/15時)',
       status.highlights.lastRun, stats,
-      '影響：⭐ 本週值得注意&#10;排程：每天 06:00 TST（新聞掃描後接力）'));
+      '影響：⭐ 本週值得注意&#10;排程：每天 06:00 + 15:00 TST（新聞掃描後接力）'));
   }
 
   // 4. 🎯 AI 評分
@@ -2223,9 +2223,9 @@ function renderStatusBar(status, newsData, timelineData){
     const top65=Object.values(companies).filter(c=>c.total>=65 && c.total<80).length;
     const stats=scoredCount?`🎯 ${scoredCount} 家 · 高度:${top80} · 可觀察:${top65}`:'尚無評分';
     pills.push(buildPill('scan-scores',
-      '🎯 AI 評分', '🔄 每天+週六 (06/10時)',
+      '🎯 AI 評分', '🔄 每天×2+週六 (06/15/10)',
       status.scores.lastRun, stats,
-      '影響：🎯 AI 動態訊號評估引擎 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 週六 10:00 TST'));
+      '影響：🎯 AI 動態訊號評估引擎 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 15:00 + 週六 10:00 TST'));
   }
 
   // 5. 🌾 糧草先行
@@ -2235,9 +2235,9 @@ function renderStatusBar(status, newsData, timelineData){
     const top=cands[0];
     const stats=cands.length?`🌾 ${cands.length} 候選 · TOP: ${top?top.provisionScore:'?'} 分 (${top?top.name:'-'})`:'尚無候選';
     pills.push(buildPill('scan-provisions',
-      '🌾 糧草先行', '🔄 每天+週六 (06/10時)',
+      '🌾 糧草先行', '🔄 每天×2+週六 (06/15/10)',
       status.provisions.lastRun, stats,
-      '影響：🌾 AI 評估糧草先行 TOP 5&#10;排程：每天 06:00 + 週六 10:00 TST'));
+      '影響：🌾 AI 評估糧草先行 TOP 5&#10;排程：每天 06:00 + 15:00 + 週六 10:00 TST'));
   }
 
   // 6. 🏦 集保統計
