@@ -170,6 +170,8 @@ def fetch_all_for_company(company):
        Q2. 短名 + code      (例：藥祇 7878)
        Q3. 短名 + 生技/生醫 (例：藥祇生醫)
        Q4. 主要藥物代號     (例：PS-001 / OBI-858)
+       Q5. site:ctee.com.tw 短名      (工商時報專門)
+       Q6. site:gbimonthly.com 短名   (環球生技月刊)
     回傳去重後的 items 列表
     """
     name = company["name"]
@@ -186,10 +188,13 @@ def fetch_all_for_company(company):
     for d in drugs:
         if d and len(d) >= 3:
             queries.append(f"{d} {short}")
+    # 重要生技媒體專門搜尋（補強 generic query 漏抓）
+    queries.append(f"site:ctee.com.tw {short}")        # 工商時報（user 指定）
+    queries.append(f"site:gbimonthly.com {short}")     # 環球生技月刊
 
     seen_links = set()
     all_items = []
-    for q in queries[:5]:
+    for q in queries[:8]:   # 最多 8 個 query
         try:
             xml = fetch_rss(q)
             items = parse_rss(xml)
