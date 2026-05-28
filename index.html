@@ -1009,12 +1009,20 @@ function renderNewsSummary(){
     // 若該家另有更重要的新聞，加一個小提示
     const bn=r.bestNews;
     const bnHtml=bn?`<div style="margin-top:4px;font-size:9.5px;color:#fbbf24;opacity:.85"><a href="${bn.link}" target="_blank" rel="noopener" style="color:#fbbf24;text-decoration:none">⭐ 另有 ${bn.date} ${bn.level==='high'?'🔴 重要':'🟠 中等'}：${bn.title.substring(0,40)}…</a></div>`:'';
+    // 補充新聞（僅特定公司有此欄位，如藥祇 7878）
+    const sn=r.secondaryNews||[];
+    const snHtml=sn.length?`<div style="margin-top:5px;padding-top:5px;border-top:1px dashed rgba(0,212,255,.18);display:flex;flex-direction:column;gap:2px">
+      ${sn.map(s=>{
+        const lvDot=s.level==='high'?'🔴':(s.level==='medium'?'🟠':'⚪');
+        return `<div style="font-size:9.5px;color:#94a3b8;line-height:1.4">↳ <span style="color:var(--muted)">${s.date}</span> ${lvDot} <a href="${s.link}" target="_blank" rel="noopener" style="color:#cbd5e1;text-decoration:none">${s.title.substring(0,55)}${s.title.length>55?'…':''}</a></div>`;
+      }).join('')}
+    </div>`:'';
     const dateHtml=tn?`<span class="ns-news-date">${tn.date}</span>`:`<span class="ns-news-date">—</span>`;
     const codeLink=`<a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" style="color:inherit;text-decoration:none">${r.code}</a>`;
     return `<tr>
       <td><span class="ns-name">${r.name}</span><span class="ns-code">${codeLink}</span></td>
       <td><span class="ns-level-pill ${lv.cls}">${lv.label}</span></td>
-      <td><div class="ns-news-title">${titleHtml}</div>${tagsHtml}${bnHtml}</td>
+      <td><div class="ns-news-title">${titleHtml}</div>${tagsHtml}${bnHtml}${snHtml}</td>
       <td>${dateHtml}</td>
       <td><span class="ns-count-badge">${r.newsCount} 則</span></td>
     </tr>`;

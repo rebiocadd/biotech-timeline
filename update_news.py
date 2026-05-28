@@ -364,6 +364,18 @@ def main():
         best_rank = min(s['rank'] for s in scored)
         # 找出該家最重要的一條當「highlight 提示」（給前端可選顯示）
         best_news = min(scored, key=lambda x: (x['rank'], x['order']))
+        # 額外：藥祇生醫 7878 特別關注，補充 4 條子新聞顯示在主列底下
+        # 其他公司不顯示 secondary（保持表格簡潔）
+        WATCHLIST_EXTRA_NEWS = {'7878'}   # 之後想加其他公司可在此集合加 code
+        secondary = []
+        if code in WATCHLIST_EXTRA_NEWS:
+            for s in scored[1:5]:   # 取 index 1~4（最多 4 條補充）
+                secondary.append({
+                    "title": s['title'],
+                    "link": s['link'],
+                    "date": s['date'],
+                    "level": s['level'],
+                })
         summary_rows.append({
             "code": code, "name": name,
             "importance": top['level'],          # 顯示「最新一條」的重要性
@@ -374,6 +386,7 @@ def main():
                 "date": top['date'],
                 "tags": top['hits'][:4],
             },
+            "secondaryNews": secondary,           # 補充 2-3 條新聞（顯示為小字 sub-rows）
             "bestNews": {                        # 額外：該家最重要的新聞（讓前端有選擇彈性）
                 "title": best_news['title'],
                 "link": best_news['link'],
