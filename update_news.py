@@ -331,7 +331,7 @@ def main():
                 "topNews": None, "newsCount": 0,
             })
             continue
-        # 對每條新聞評重要性，挑最高的（同級則取最新；news 已按 ts 降冪排序）
+        # 對每條新聞評重要性
         scored = []
         for i, n in enumerate(news):
             level, hits = score_news_importance(n.get("title", ""))
@@ -342,20 +342,32 @@ def main():
                 "level": level,
                 "hits": hits,
                 "rank": importance_rank[level],
-                "order": i,  # 原始順序（i 越小越新）
+                "order": i,  # 0 = 最新（news 已按 ts 降冪）
             })
-        scored.sort(key=lambda x: (x['rank'], x['order']))
-        top = scored[0]
+        # ★ topNews 改為「最新一條」（news[0]，已按 ts 降冪），不再「按重要性挑」
+        # 重要性 pill 改用「該條本身」的等級，使用者看到的是真實最新動態
+        top = scored[0]  # 最新一條
+        # 排序用的 rankIdx：取該家所有新聞中「最高」重要性
+        # → 重要事件多的家還是能排前面，但表格內顯示的是最新動態
+        best_rank = min(s['rank'] for s in scored)
+        # 找出該家最重要的一條當「highlight 提示」（給前端可選顯示）
+        best_news = min(scored, key=lambda x: (x['rank'], x['order']))
         summary_rows.append({
             "code": code, "name": name,
-            "importance": top['level'],
-            "rankIdx": top['rank'],
+            "importance": top['level'],          # 顯示「最新一條」的重要性
+            "rankIdx": best_rank,                # 排序用「該家最高重要性」
             "topNews": {
                 "title": top['title'],
                 "link": top['link'],
                 "date": top['date'],
-                "tags": top['hits'][:4],  # 最多顯示 4 個 keyword 標籤
+                "tags": top['hits'][:4],
             },
+            "bestNews": {                        # 額外：該家最重要的新聞（讓前端有選擇彈性）
+                "title": best_news['title'],
+                "link": best_news['link'],
+                "date": best_news['date'],
+                "level": best_news['level'],
+            } if best_news['rank'] < top['rank'] else None,
             "newsCount": len(news),
         })
 
