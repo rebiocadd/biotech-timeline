@@ -359,8 +359,17 @@ def main():
             "newsCount": len(news),
         })
 
-    # 排序：重要性高 → 新聞數多 → 代號
-    summary_rows.sort(key=lambda r: (r['rankIdx'], -r['newsCount'], r['code']))
+    # 排序：① 重要性高 → ② 日期新 → ③ 代號（穩定 tie-break）
+    # 日期格式 "MM/DD" 轉成整數方便降冪比較（同年內準確；跨年罕見，week=21 天視窗內幾乎無影響）
+    def _date_num(r):
+        if not r.get('topNews'):
+            return 0
+        d = r['topNews'].get('date', '')
+        try:
+            return int(d.replace('/', ''))  # "05/27" → 527, "12/31" → 1231
+        except Exception:
+            return 0
+    summary_rows.sort(key=lambda r: (r['rankIdx'], -_date_num(r), r['code']))
 
     summary = {
         "lastRun": run_time,
