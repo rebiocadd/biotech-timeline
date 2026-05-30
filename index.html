@@ -588,7 +588,7 @@
     <details class="csec csec-status" id="scan-details">
       <summary class="csec-head">
         <span class="csec-arrow">▶</span>
-        <span class="csec-title" style="font-size:12.5px">📡 資料更新狀態</span>
+        <span class="csec-title" style="font-size:12.5px">📡 監控自動化更新狀態</span>
         <span class="csec-sum" id="scan-sum"></span>
       </summary>
       <div id="scan-bar" class="scan-bar"></div>
@@ -615,7 +615,7 @@
   <!-- 📰 27 家最新新聞表格（放在「今年解盲」上方）-->
   <div class="news-summary-section" id="news-summary-section" style="display:none">
     <div class="ns-header">
-      <span class="ns-title" id="ns-title">📰 28 家最新新聞</span>
+      <span class="ns-title" id="ns-title">📰 28 家生技公司最新新聞</span>
       <span class="ns-subtitle">每日 06:00 + 15:00 自動掃描 Google News · 依重要性排序</span>
       <span class="ns-meta" id="ns-meta" title="📰 自動掃描：每天 06:00 + 15:00 TST（一日兩次）&#10;🔴 高：解盲/期中分析/藥證/授權&#10;🟠 中：試驗啟動/合作/FDA 互動&#10;⚪ 低：法說/人事/募資">⏱ 載入中…</span>
     </div>
@@ -713,7 +713,7 @@
   </div>
   <!-- 🗓️ 主時程表 -->
   <div class="timeline-section-header" style="display:flex;align-items:center;gap:10px;margin:18px 0 8px;flex-wrap:wrap">
-    <span style="font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px">🗓️ 28 家臨床進度</span>
+    <span style="font-size:14px;font-weight:700;color:var(--accent1);font-family:'Space Mono',monospace;letter-spacing:1px">🗓️ 28 家台灣生技臨床進度矩陣</span>
     <span style="font-size:10.5px;color:var(--muted)" id="timeline-subtitle">28 家公司 × 2026 全年事件矩陣 · 點任一格子查看詳細</span>
     <span class="ranking-meta" id="timeline-meta" title="股價：平日 06:00、15:00（UTC+8）自動更新&#10;事件文字：人工維護">⏱ 抓取中…</span>
   </div>
@@ -923,7 +923,7 @@ function loadWeek(idx){
   // 動態更新集保戶持股統計標題加上家數（27 家 / 28 家...）
   const _htitle=document.getElementById('holders-title');
   if(_htitle){
-    _htitle.textContent=`🏦 ${curr.data.length} 家集保戶持股統計`;
+    _htitle.textContent=`🏦 ${curr.data.length} 家集保戶股權分散追蹤`;
   }
   document.getElementById('holders-compare-info').textContent='｜對比：'+curr.date+(prev?' vs '+prev.date:'（無上週資料）');
 
@@ -1021,7 +1021,7 @@ function renderNewsSummary(){
   sec.style.display='block';
   // 動態更新標題（依資料源實際家數）
   const titleEl=document.getElementById('ns-title');
-  if(titleEl) titleEl.textContent=`📰 ${data.companies.length} 家最新新聞`;
+  if(titleEl) titleEl.textContent=`📰 ${data.companies.length} 家生技公司最新新聞`;
   // 徽章
   if(meta){
     if(data.lastRun){
@@ -1304,7 +1304,7 @@ function renderHolderRanking(){
 
   // 動態更新標題
   const titleEl=document.getElementById('ranking-title-A');
-  if(titleEl) titleEl.textContent=`🏆 ${rows.length} 家總股東排行`;
+  if(titleEl) titleEl.textContent=`🏆 ${rows.length} 家總股東人數排行`;
 
   // 排名固定依最新一週 (w0_h) 由大到小（沒資料排最後）
   const rankBy={};
@@ -2381,15 +2381,15 @@ window.setupCollapsibles=function(){
     }
     // 3. 依序包裝 10 個區塊
     [
-      ['news-summary-section','📰 28 家最新新聞','csum-news'],
-      ['upcoming-unblind-section','🔵 今年解盲（2026）','csum-unblind'],
+      ['news-summary-section','📰 28 家生技公司最新新聞','csum-news'],
+      ['upcoming-unblind-section','🔵 2026 解盲與數據讀出事件','csum-unblind'],
       ['score-section','🎯 AI 動態訊號評估引擎','csum-score'],
-      ['signals-section','💡 AI 市場訊號解讀','csum-signals'],
+      ['signals-section','💡 AI 生技市場人數訊號解讀','csum-signals'],
       ['provisions-section','🌾 AI 評估糧草先行 TOP 5','csum-prov'],
       ['highlights-section','⭐ 本週值得注意','csum-hl'],
-      ['__timeline-box','🗓️ 28 家臨床進度','csum-timeline'],
-      ['holders-section','🏦 28 家集保戶持股統計','csum-holders'],
-      ['ranking-section','🏆 28 家總股東排行','csum-rankA'],
+      ['__timeline-box','🗓️ 28 家台灣生技臨床進度矩陣','csum-timeline'],
+      ['holders-section','🏦 28 家集保戶股權分散追蹤 (大股東是否異動)','csum-holders'],
+      ['ranking-section','🏆 28 家總股東人數排行','csum-rankA'],
       ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
     ].forEach(([id,title,sumId])=>{
       const el=document.getElementById(id);
