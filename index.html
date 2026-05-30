@@ -525,6 +525,36 @@
   .scan-highlights{background:linear-gradient(90deg,rgba(251,191,36,.18),rgba(245,158,11,.1));border-color:rgba(251,191,36,.4);color:#fde047}
   .scan-highlights .dot{background:#fde047}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* 🗂️ 可收合區塊（10 個 table/卡片點擊展開）*/
+  .csec-toolbar{display:flex;justify-content:flex-end;gap:8px;margin:16px 0 6px}
+  .csec-toggle-btn{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent1);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);border-radius:14px;padding:5px 13px;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .csec-toggle-btn:hover{background:rgba(0,212,255,.18);color:#fff}
+  .csec{margin:8px 0;border:1px solid var(--border);border-radius:10px;background:rgba(15,24,40,.45);overflow:hidden}
+  .csec[open]{background:rgba(15,24,40,.25);border-color:rgba(0,212,255,.25)}
+  .csec-head{cursor:pointer;list-style:none;padding:13px 16px;display:flex;align-items:center;gap:10px;user-select:none;transition:background .15s}
+  .csec-head::-webkit-details-marker{display:none}
+  .csec-head::marker{content:''}
+  .csec-head:hover{background:rgba(0,212,255,.06)}
+  .csec-arrow{flex-shrink:0;color:var(--accent1);font-size:11px;transition:transform .2s;line-height:1}
+  .csec[open] .csec-arrow{transform:rotate(90deg)}
+  .csec-title{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;font-family:'Noto Sans TC',sans-serif}
+  .csec-sum{font-size:10.5px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:auto;text-align:right;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .csec[open] .csec-sum{opacity:.5}
+  /* 收進收合框後，去掉內層區塊自己的邊框/底色/外距，避免「框中框」*/
+  .csec > .news-summary-section,.csec > .upcoming-unblind-section,.csec > .score-section,
+  .csec > .signals-section,.csec > .provisions-section,.csec > .highlights-section,
+  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox{
+    border:none!important;background:none!important;margin:0!important;border-radius:0!important;box-shadow:0 0 0 0!important;padding:0 14px 14px!important}
+  /* 內層自己的標題列隱藏（收合框 summary 已顯示標題），保留副標/徽章/控制項 */
+  .csec .ns-title,.csec .uu-title,.csec .score-title,.csec .signals-title,
+  .csec .prov-title,.csec .highlights-title,.csec .holders-title{display:none}
+  .csec #ranking-title-A,.csec #ranking-title-B{display:none}
+  .csec .timeline-section-header > span:first-child{display:none}
+  @media(max-width:700px){
+    .csec-title{font-size:12.5px}
+    .csec-sum{font-size:8.5px}
+    .csec-head{padding:11px 12px;gap:7px}
+  }
   .news-badge{display:inline-block;background:rgba(245,158,11,.18);color:var(--accent4);font-family:'Space Mono',monospace;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;margin-left:3px;cursor:pointer}
   .news-badge:hover{background:rgba(245,158,11,.3)}
   /* 新聞彈窗 */
@@ -1675,6 +1705,8 @@ function renderHolders(H){
   renderLevelTabs();
 
   loadWeek(0); // 預設顯示最新一週
+  // 集保資料載入後刷新收合區塊摘要（🏦/🏆/💰）
+  if(typeof window.updateCsecSummaries==='function') window.updateCsecSummaries();
 }
 // 優先載入歷史；失敗則嘗試舊格式
 fetch('holders_history.json?v='+Date.now())
@@ -2286,6 +2318,134 @@ function renderStatusBar(status, newsData, timelineData){
   bar.innerHTML=pills.join('');
 }
 
+// =========================================
+// 🗂️ 可收合區塊：把 10 個 table/卡片包成點擊展開（全部預設收合）
+// =========================================
+function _csecWrap(rootEl, titleHtml, sumId){
+  if(!rootEl || rootEl.dataset.csecWrapped) return null;
+  const det=document.createElement('details');
+  det.className='csec';
+  const sum=document.createElement('summary');
+  sum.className='csec-head';
+  sum.innerHTML=`<span class="csec-arrow">▶</span><span class="csec-title">${titleHtml}</span><span class="csec-sum"${sumId?` id="${sumId}"`:''}></span>`;
+  rootEl.parentNode.insertBefore(det, rootEl);
+  det.appendChild(sum);
+  det.appendChild(rootEl);
+  rootEl.dataset.csecWrapped='1';
+  rootEl.style.display='';   // 取消原本 display:none，展開時可見
+  return det;
+}
+window.setupCollapsibles=function(){
+  try{
+    // 1. 主時程表：3 個裸 div 先收進一個容器
+    const tHead=document.querySelector('.timeline-section-header');
+    if(tHead && !tHead.dataset.csecWrapped){
+      const qh=tHead.nextElementSibling;      // quarters-header
+      const tr=document.getElementById('timeline');
+      const box=document.createElement('div');
+      box.className='csec-timeline'; box.id='__timeline-box';
+      tHead.parentNode.insertBefore(box, tHead);
+      box.appendChild(tHead); if(qh)box.appendChild(qh); if(tr)box.appendChild(tr);
+      tHead.dataset.csecWrapped='1';
+    }
+    // 2. ranking-section（🏆+💰）移出 holders-section，再把 💰 拆出
+    const holders=document.getElementById('holders-section');
+    const ranking=document.getElementById('ranking-section');
+    if(holders && ranking && ranking.parentNode===holders && !ranking.dataset.csecMoved){
+      holders.parentNode.insertBefore(ranking, holders.nextSibling);
+      ranking.dataset.csecMoved='1';
+      const kids=Array.from(ranking.children);   // [🏆head,🏆wrap,💰head,💰wrap]
+      if(kids.length>=4){
+        const cashBox=document.createElement('div');
+        cashBox.className='csec-cashbox'; cashBox.id='__cash-box';
+        ranking.parentNode.insertBefore(cashBox, ranking.nextSibling);
+        cashBox.appendChild(kids[2]); cashBox.appendChild(kids[3]);
+      }
+    }
+    // 3. 依序包裝 10 個區塊
+    [
+      ['news-summary-section','📰 28 家最新新聞','csum-news'],
+      ['upcoming-unblind-section','🔵 今年解盲（2026）','csum-unblind'],
+      ['score-section','🎯 AI 動態訊號評估引擎','csum-score'],
+      ['signals-section','💡 AI 市場訊號解讀','csum-signals'],
+      ['provisions-section','🌾 AI 評估糧草先行 TOP 5','csum-prov'],
+      ['highlights-section','⭐ 本週值得注意','csum-hl'],
+      ['__timeline-box','🗓️ 主時程表','csum-timeline'],
+      ['holders-section','🏦 28 家集保戶持股統計','csum-holders'],
+      ['ranking-section','🏆 28 家總股東排行','csum-rankA'],
+      ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
+    ].forEach(([id,title,sumId])=>{
+      const el=document.getElementById(id);
+      if(el) _csecWrap(el, title, sumId);
+    });
+    // 4. 「全部展開/收合」按鈕（只加一次）
+    if(!document.getElementById('csec-toggle-all')){
+      const firstDet=document.querySelector('.csec');
+      if(firstDet){
+        const bar=document.createElement('div');
+        bar.className='csec-toolbar';
+        bar.innerHTML='<button id="csec-toggle-all" class="csec-toggle-btn">⊕ 全部展開</button>';
+        firstDet.parentNode.insertBefore(bar, firstDet);
+        document.getElementById('csec-toggle-all').addEventListener('click',()=>{
+          const dets=document.querySelectorAll('.csec');
+          const anyClosed=Array.from(dets).some(d=>!d.open);
+          dets.forEach(d=>{ d.open=anyClosed; });
+          document.getElementById('csec-toggle-all').textContent=anyClosed?'⊖ 全部收合':'⊕ 全部展開';
+        });
+      }
+    }
+    window.updateCsecSummaries();
+  }catch(e){ console.warn('setupCollapsibles fail', e); }
+};
+window.updateCsecSummaries=function(){
+  try{
+    const S=window._statusData||{};
+    const set=(id,txt)=>{const e=document.getElementById(id);if(e&&txt)e.textContent=txt;};
+    // 📰 新聞
+    const ns=window._newsSummary;
+    if(ns&&ns.companies){
+      const have=ns.companies.filter(r=>r.newsCount>0).length;
+      const hi=ns.companies.filter(r=>r.importance==='high').length;
+      set('csum-news',`${have} 家有新聞 · 🔴 ${hi} 則重要`);
+    }
+    // 🎯 評分
+    const sd=window._scoresData;
+    if(sd&&sd.companies){
+      const arr=Object.values(sd.companies);
+      const t80=arr.filter(c=>c.total>=80).length, t65=arr.filter(c=>c.total>=65&&c.total<80).length;
+      set('csum-score',`${arr.length} 家 · 高度 ${t80} · 可觀察 ${t65}`);
+    }
+    // 🌾 糧草先行
+    const pd=window._provisionsData;
+    if(pd&&pd.candidates&&pd.candidates.length){
+      const top=pd.candidates[0];
+      set('csum-prov',`${pd.candidates.length} 候選 · TOP ${top.provisionScore} (${top.name})`);
+    }
+    // ⭐ 本週值得注意（數 highlightThisWeek）
+    if(window._timelineData){
+      let hc=0; const hs=new Set();
+      window._timelineData.forEach(sec=>(sec.companies||[]).forEach(c=>{
+        let hit=false; Object.values(c.events||{}).forEach(ev=>{if(ev&&ev.highlightThisWeek){hc++;hit=true;}});
+        if(hit)hs.add(c.code);
+      }));
+      if(hc)set('csum-hl',`${hs.size} 家 · ${hc} 件重點`);
+      let tc=0; window._timelineData.forEach(s=>tc+=(s.companies||[]).length);
+      set('csum-timeline',`${tc} 家 × 5 季`);
+    }
+    // 🏦 / 🏆 / 💰
+    if(S.holders) set('csum-holders',`資料 ${S.holders.dataDate||''}`);
+    if(window._hHistory&&window._hHistory.weeks&&window._hHistory.weeks[0]){
+      set('csum-rankA',`${window._hHistory.weeks[0].data.length} 家 · ${window._hHistory.weeks.length} 週`);
+    }
+    const cf=(window._cashflowData||{}).companies;
+    if(cf){
+      const n=Object.keys(cf).length;
+      const q1=Object.values(cf).filter(c=>(c.cash_2026||{}).value).length;
+      set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
+    }
+  }catch(e){}
+};
+
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -2334,6 +2494,8 @@ Promise.all([
     const sel=document.getElementById('holders-week');
     loadWeek(parseInt((sel&&sel.value)||'0'));
   }
+  // 🗂️ 全部區塊包成可收合（預設收合）
+  window.setupCollapsibles();
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';});
 </script>
 </body>
