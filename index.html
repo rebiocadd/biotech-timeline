@@ -1023,6 +1023,8 @@ function renderNewsSummary(){
   // 動態更新標題（依資料源實際家數）
   const titleEl=document.getElementById('ns-title');
   if(titleEl) titleEl.textContent=`📰 ${data.companies.length} 家生技公司最新新聞`;
+  const _nsT=document.getElementById('csum-news-title');
+  if(_nsT) _nsT.textContent=`📰 ${data.companies.length} 家生技公司最新新聞(每天AI自動追蹤兩次)`;
   // 徽章
   if(meta){
     if(data.lastRun){
@@ -1921,6 +1923,11 @@ function renderHighlights(){
     return {ev, score, key:k};
   }).filter(x=>x&&x.score>=3).sort((a,b)=>b.score-a.score).slice(0,6);
 
+  // 暴露實際顯示家數，給收合框標題用
+  window._highlightCount=scored.length;
+  const _hlTitle=document.getElementById('csum-hl-title');
+  if(_hlTitle) _hlTitle.textContent=`⭐ ${scored.length} 家生技公司本週值得注意`;
+
   if(scored.length===0){
     list.innerHTML='<div class="highlight-empty">本週暫無特別標記事件。</div>';
     return;
@@ -2345,7 +2352,7 @@ function _csecWrap(rootEl, titleHtml, sumId){
   det.className='csec';
   const sum=document.createElement('summary');
   sum.className='csec-head';
-  sum.innerHTML=`<span class="csec-arrow">▶</span><span class="csec-title">${titleHtml}</span><span class="csec-sum"${sumId?` id="${sumId}"`:''}></span>`;
+  sum.innerHTML=`<span class="csec-arrow">▶</span><span class="csec-title"${sumId?` id="${sumId}-title"`:''}>${titleHtml}</span><span class="csec-sum"${sumId?` id="${sumId}"`:''}></span>`;
   rootEl.parentNode.insertBefore(det, rootEl);
   det.appendChild(sum);
   det.appendChild(rootEl);
@@ -2382,12 +2389,12 @@ window.setupCollapsibles=function(){
     }
     // 3. 依序包裝 10 個區塊
     [
-      ['news-summary-section','📰 28 家生技公司最新新聞','csum-news'],
+      ['news-summary-section','📰 28 家生技公司最新新聞(每天AI自動追蹤兩次)','csum-news'],
       ['upcoming-unblind-section','🔵 2026 解盲與數據讀出事件','csum-unblind'],
       ['score-section','🎯 AI 動態訊號評估引擎','csum-score'],
       ['signals-section','💡 AI 生技市場人數訊號解讀','csum-signals'],
       ['provisions-section','🌾 AI 評估糧草先行 TOP 5','csum-prov'],
-      ['highlights-section','⭐ 本週值得注意','csum-hl'],
+      ['highlights-section','⭐ 6 家生技公司本週值得注意','csum-hl'],
       ['__timeline-box','🗓️ 28 家台灣生技臨床進度矩陣','csum-timeline'],
       ['holders-section','🏦 28 家集保戶股權分散追蹤 (大股東是否異動)','csum-holders'],
       ['ranking-section','🏆 28 家總股東人數排行','csum-rankA'],
@@ -2425,6 +2432,11 @@ window.updateCsecSummaries=function(){
       const have=ns.companies.filter(r=>r.newsCount>0).length;
       const hi=ns.companies.filter(r=>r.importance==='high').length;
       set('csum-news',`${have} 家有新聞 · 🔴 ${hi} 則重要`);
+      set('csum-news-title',`📰 ${ns.companies.length} 家生技公司最新新聞(每天AI自動追蹤兩次)`);
+    }
+    // ⭐ 本週值得注意標題（顯示家數，上限 6）
+    if(typeof window._highlightCount==='number'){
+      set('csum-hl-title',`⭐ ${window._highlightCount} 家生技公司本週值得注意`);
     }
     // 🎯 評分
     const sd=window._scoresData;
