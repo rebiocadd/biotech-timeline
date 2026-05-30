@@ -6,7 +6,7 @@ on:
     - cron: '0 7 * * 1-5'   # 15:00 TST prices (收盤後)
     - cron: '0 22 * * *'    # 06:00 TST news/highlights/scores/provisions/news_summary（每天）
     - cron: '0 7 * * *'     # 15:00 TST news/highlights/scores/provisions/news_summary（每天，下午二次掃描）
-    - cron: '0 2 * * 6'     # 10:00 TST holders (Sat)
+    - cron: '0 22 * * 5'    # 06:00 TST Sat holders/cashflow (UTC 22:00 Fri = TST 06:00 Sat)
   workflow_dispatch:
     inputs:
       task:
@@ -93,7 +93,7 @@ jobs:
     needs: update-news
     if: |
       always() && (
-        (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 6') ||
+        (github.event_name == 'schedule' && github.event.schedule == '0 22 * * 5') ||
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'holders' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest
