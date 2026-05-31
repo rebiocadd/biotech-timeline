@@ -396,7 +396,8 @@ def main():
             "newsCount": len(news),
         })
 
-    # 排序：① 重要性高 → ② 日期新 → ③ 代號（穩定 tie-break）
+    # 排序：① 日期新 → ② 重要性高 → ③ 代號（穩定 tie-break）
+    # ★ 改為「日期優先」：避免今天的低重要性新聞被昨天的重要新聞蓋過而誤看
     # 日期格式 "MM/DD" 轉成整數方便降冪比較（同年內準確；跨年罕見，week=21 天視窗內幾乎無影響）
     def _date_num(r):
         if not r.get('topNews'):
@@ -406,7 +407,7 @@ def main():
             return int(d.replace('/', ''))  # "05/27" → 527, "12/31" → 1231
         except Exception:
             return 0
-    summary_rows.sort(key=lambda r: (r['rankIdx'], -_date_num(r), r['code']))
+    summary_rows.sort(key=lambda r: (-_date_num(r), r['rankIdx'], r['code']))
 
     summary = {
         "lastRun": run_time,
