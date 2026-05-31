@@ -526,7 +526,8 @@
   .scan-highlights .dot{background:#fde047}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   /* 🗂️ 可收合區塊（10 個 table/卡片點擊展開）*/
-  .csec-toolbar{display:flex;justify-content:flex-end;gap:8px;margin:16px 0 6px}
+  .csec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
+  .csec-hint{font-size:11px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:4px}
   .csec-toggle-btn{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent1);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);border-radius:14px;padding:5px 13px;cursor:pointer;transition:all .15s;white-space:nowrap}
   .csec-toggle-btn:hover{background:rgba(0,212,255,.18);color:#fff}
   .csec{margin:8px 0;border:1px solid var(--border);border-radius:10px;background:rgba(15,24,40,.45);overflow:hidden}
@@ -2421,7 +2422,7 @@ window.setupCollapsibles=function(){
       if(firstDet){
         const bar=document.createElement('div');
         bar.className='csec-toolbar';
-        bar.innerHTML='<button id="csec-toggle-all" class="csec-toggle-btn">⊕ 全部展開</button>';
+        bar.innerHTML='<span class="csec-hint">👇 點各區塊標題可展開／收合</span><button id="csec-toggle-all" class="csec-toggle-btn">⊕ 全部展開</button>';
         firstDet.parentNode.insertBefore(bar, firstDet);
         document.getElementById('csec-toggle-all').addEventListener('click',()=>{
           const dets=[...document.querySelectorAll('.csec')].filter(d=>d.id!=='scan-details');
