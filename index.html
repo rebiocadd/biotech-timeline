@@ -2078,7 +2078,7 @@ function renderUpcomingUnblind(){
       <td><span class="uu-quarter-pill uu-q-${qKey}">${qShort}</span></td>
       <td><div class="uu-company-name">${c.name}${star}</div>${codeLink}</td>
       <td><div class="uu-drug">${ev.drug||'-'}</div><div class="uu-phase">${ev.label||''}</div>${tfdaHtml}${announcedNoteHtml}${expectedNoteHtml}</td>
-      <td><div class="uu-indication">${c.indication||'-'}</div>${reason?`<div class="uu-reason" title="${escAttr(reason)}">${reason}</div>`:''}</td>
+      <td><div class="uu-indication">${ev.eventIndication||c.indication||'-'}</div>${reason?`<div class="uu-reason" title="${escAttr(reason)}">${reason}</div>`:''}</td>
       <td><span class="ec-status-pill ${statusCls}">${x.status}</span></td>
       <td class="uu-price-cell">${buildPriceStrip(c)}</td>
       <td class="uu-col-catalyst">${cat?`<span class="cat-level ${catCls}">${cat}</span>`:'-'}</td>
