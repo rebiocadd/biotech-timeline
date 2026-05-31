@@ -670,7 +670,7 @@
   <!-- 🎯 AI 自動化動態投資評分引擎 -->
   <div class="score-section" id="score-section" style="display:none">
     <div class="score-header">
-      <span class="score-title">🎯 28 家生技公司AI多維度評分</span>
+      <span class="score-title">🎯 AI 生技公司多維度評分</span>
       <span class="score-subtitle">7 維度加權 0~100 · 每日 06:00 自動評分 · 不是投資建議，僅供研究與風險排序</span>
       <span class="score-meta" id="score-meta" title="自動評分排程：&#10;⏰ 每日 06:00 UTC+8&#10;📊 7 維度: 催化/現金/股價/趨勢/籌碼/新聞/臨床&#10;💾 保留 90 天評分歷史">⏱ 載入中…</span>
     </div>
@@ -2298,7 +2298,7 @@ function renderStatusBar(status, newsData, timelineData){
     pills.push(buildPill('scan-scores',
       '🎯 AI 評分', '🔄 每天×2 (06/15時)',
       status.scores.lastRun, stats,
-      '影響：🎯 28 家生技公司AI多維度評分 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 15:00 TST（週六同步含集保+現金流）'));
+      '影響：🎯 AI 生技公司多維度評分 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 15:00 TST（週六同步含集保+現金流）'));
   }
 
   // 5. 🌾 糧草先行
@@ -2404,7 +2404,7 @@ window.setupCollapsibles=function(){
     [
       ['news-summary-section','📰 28 家生技公司最新新聞(每天AI自動追蹤兩次)','csum-news'],
       ['upcoming-unblind-section','🔵 2026 解盲與臨床數據讀出事件(Q1/Q2/Q3/Q4)','csum-unblind'],
-      ['score-section','🎯 28 家生技公司AI多維度評分','csum-score'],
+      ['score-section','🎯 AI 生技公司多維度評分','csum-score'],
       ['signals-section','💡 AI 生技市場人數訊號解讀','csum-signals'],
       ['provisions-section','🌾 AI 評估糧草先行 TOP 5','csum-prov'],
       ['highlights-section','⭐ 6 家生技公司本週值得注意','csum-hl'],
@@ -2457,7 +2457,6 @@ window.updateCsecSummaries=function(){
       const arr=Object.values(sd.companies);
       const t80=arr.filter(c=>c.total>=80).length, t65=arr.filter(c=>c.total>=65&&c.total<80).length;
       set('csum-score',`${arr.length} 家 · 高度 ${t80} · 可觀察 ${t65}`);
-      set('csum-score-title',`🎯 ${arr.length} 家生技公司AI多維度評分`);
     }
     // 🌾 糧草先行
     const pd=window._provisionsData;
