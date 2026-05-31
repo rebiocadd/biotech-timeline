@@ -2248,11 +2248,20 @@ function renderStatusBar(status, newsData, timelineData){
     const newsCount=Object.values((newsData||{}).companies||{}).filter(c=>c.news&&c.news.length).length;
     let totalNews=0;
     Object.values((newsData||{}).companies||{}).forEach(c=>{ totalNews+=(c.news||[]).length; });
-    const stats=newsCount?`🆕 ${newsCount}/${totalCompanies} 家有新聞 · 共 ${totalNews} 則`:'尚無新聞';
+    // 今日新聞統計（date === 掃描日 lastRunDate）
+    const todayD=(status.news.lastRunDate)||'';
+    let todayItems=0; const todayCos=new Set();
+    Object.entries((newsData||{}).companies||{}).forEach(([code,c])=>{
+      (c.news||[]).forEach(n=>{ if(n.date===todayD){ todayItems++; todayCos.add(code); } });
+    });
+    const todayTxt = todayItems
+      ? `🔥 今日(${todayD}) ${todayCos.size} 家 ${todayItems} 筆`
+      : `今日(${todayD}) 0 筆（週末新聞少）`;
+    const stats=newsCount?`${todayTxt}　·　🆕 近期 ${newsCount}/${totalCompanies} 家 · 共 ${totalNews} 則`:'尚無新聞';
     pills.push(buildPill('scan-news',
       '📰 新聞掃描', '🔄 每天 ×2 (06/15時)',
       status.news.lastRun, stats,
-      '影響：📰 27 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;排程：每天 06:00 + 15:00 TST（一日兩次掃描）'));
+      '影響：📰 28 家最新新聞 · ⭐ 本週值得注意 · 💡 AI 市場訊號解讀&#10;「今日 N 筆」= 標題日期是今天的新聞數&#10;排程：每天 06:00 + 15:00 TST（一日兩次掃描）'));
   }
 
   // 3. ⭐ 本週標記
@@ -2333,13 +2342,16 @@ function renderStatusBar(status, newsData, timelineData){
   }
 
   bar.innerHTML=pills.join('');
-  // 收合框摘要：項數 + 最新一筆更新時間
+  // 收合框摘要：項數 + 今日已更新幾項 + 最新一筆時間
   const ssum=document.getElementById('scan-sum');
   if(ssum && status){
-    const runs=['prices','news','highlights','scores','provisions','holders','cashflow']
-      .map(k=>status[k]&&status[k].lastRun).filter(Boolean);
+    const keys=['prices','news','highlights','scores','provisions','holders','cashflow'];
+    const runs=keys.map(k=>status[k]&&status[k].lastRun).filter(Boolean);
     const latest=runs.sort().slice(-1)[0]||'';
-    ssum.textContent=`${pills.length} 項 · 最新 ${latest}`;
+    // 以「新聞掃描日」當今天基準（新聞每天都跑）
+    const refToday=(status.news&&status.news.lastRunDate)||'';
+    const ranToday=keys.filter(k=>status[k]&&status[k].lastRunDate===refToday).length;
+    ssum.textContent=`${pills.length} 項 · 今日已更新 ${ranToday} 項 · 最新 ${latest}`;
   }
 }
 
