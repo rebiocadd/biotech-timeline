@@ -505,7 +505,7 @@
   .sp-title{font-weight:700;font-size:11.5px;letter-spacing:.3px}
   .sp-freq{font-size:8.5px;font-weight:600;padding:2px 7px;border-radius:9px;background:rgba(15,24,40,.55);border:1px solid rgba(255,255,255,.15);color:#cbd5e1;white-space:nowrap;font-family:'Space Mono',monospace}
   .sp-time{font-size:10px;opacity:.85;letter-spacing:.2px}
-  .sp-stats{font-size:9.5px;opacity:.75;letter-spacing:.2px}
+  .sp-stats{font-size:9.5px;opacity:.75;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media(max-width:480px){
     .scan-bar{grid-template-columns:1fr}
     .scan-pill{padding:7px 10px}
@@ -2255,9 +2255,9 @@ function renderStatusBar(status, newsData, timelineData){
       (c.news||[]).forEach(n=>{ if(n.date===todayD){ todayItems++; todayCos.add(code); } });
     });
     const todayTxt = todayItems
-      ? `🔥 今日(${todayD}) ${todayCos.size} 家 ${todayItems} 筆`
-      : `今日(${todayD}) 0 筆（週末新聞少）`;
-    const stats=newsCount?`${todayTxt}　·　🆕 近期 ${newsCount}/${totalCompanies} 家 · 共 ${totalNews} 則`:'尚無新聞';
+      ? `🔥 今日 ${todayItems} 筆`
+      : `今日 0 筆(週末少)`;
+    const stats=newsCount?`${todayTxt} · 近期 ${totalNews} 則 (${newsCount}/${totalCompanies}家)`:'尚無新聞';
     pills.push(buildPill('scan-news',
       '📰 新聞掃描', '🔄 每天 ×2 (06/15時)',
       status.news.lastRun, stats,
