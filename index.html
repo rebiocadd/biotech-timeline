@@ -544,15 +544,40 @@
   /* 收進收合框後，去掉內層區塊自己的邊框/底色/外距，避免「框中框」*/
   .csec > .news-summary-section,.csec > .upcoming-unblind-section,.csec > .score-section,
   .csec > .signals-section,.csec > .provisions-section,.csec > .highlights-section,
-  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox{
+  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox,.csec > .vc-section{
     border:none!important;background:none!important;margin:0!important;border-radius:0!important;box-shadow:0 0 0 0!important;padding:0 14px 14px!important}
   .csec > .scan-bar{margin:0!important;padding:0 14px 14px!important}
   .csec-status{margin:12px 0 0}
   /* 內層自己的標題列隱藏（收合框 summary 已顯示標題），保留副標/徽章/控制項 */
   .csec .ns-title,.csec .uu-title,.csec .score-title,.csec .signals-title,
-  .csec .prov-title,.csec .highlights-title,.csec .holders-title{display:none}
+  .csec .prov-title,.csec .highlights-title,.csec .holders-title,.csec .vc-title{display:none}
   .csec #ranking-title-A,.csec #ranking-title-B{display:none}
   .csec .timeline-section-header > span:first-child{display:none}
+  /* 💼 創投母公司 × 投資組合 */
+  .vc-section{margin:18px 0;border:1px solid var(--border);border-radius:12px;background:rgba(15,24,40,.5);padding:16px 18px}
+  .vc-header{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+  .vc-title{font-size:16px;font-weight:700;color:#fff}
+  .vc-subtitle{font-size:11px;color:var(--muted);line-height:1.55}
+  .vc-table-wrap{overflow-x:auto}
+  table.vc-table{width:100%;border-collapse:collapse;font-family:'Noto Sans TC',sans-serif}
+  .vc-table th{font-size:11px;color:var(--muted);font-weight:700;text-align:left;padding:6px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .vc-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  .vc-table tr:last-child td{border-bottom:none}
+  .vc-parent{white-space:nowrap;min-width:92px}
+  .vc-parent .nm{font-weight:700;color:#fff;font-size:14px}
+  .vc-parent .code{color:var(--accent1);font-family:'Space Mono',monospace;font-size:11px;margin-left:5px}
+  .vc-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:5px;white-space:nowrap;border:1px solid transparent}
+  .vc-b-vc{background:rgba(0,212,255,.12);color:#5fd8ff;border-color:rgba(0,212,255,.35)}
+  .vc-b-hold{background:rgba(46,213,115,.12);color:#4cd98a;border-color:rgba(46,213,115,.35)}
+  .vc-b-ma{background:rgba(255,159,67,.12);color:#ffb56b;border-color:rgba(255,159,67,.35)}
+  .vc-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .vc-chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 9px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:#cdd6e4;white-space:nowrap}
+  .vc-chip .pc{color:var(--accent1);font-family:'Space Mono',monospace;font-size:10px}
+  .vc-chip .pct{color:var(--muted);font-size:9.5px}
+  .vc-chip.tracked{background:rgba(255,193,7,.12);border-color:rgba(255,193,7,.45);color:#ffd64a}
+  .vc-chip.ext{opacity:.72}
+  .vc-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--border);padding-top:10px}
+  .vc-note b{color:#cdd6e4}
   @media(max-width:700px){
     .csec-title{font-size:12.5px}
     .csec-sum{font-size:8.5px}
@@ -728,6 +753,77 @@
     <div class="quarter-label h2-label">下半年</div>
   </div>
   <div class="timeline-rows" id="timeline"></div>
+  <div class="vc-section" id="vc-parents-section" style="display:none">
+    <div class="vc-header">
+      <span class="vc-title">💼 創投母公司 × 投資組合</span>
+      <span class="vc-subtitle">控股／孵化／併購型生技公司及其主要轉投資。⭐ = 你正在追蹤的子公司；母公司常領先反映子公司利多。持股%為約略值、會變動，僅供研究非投資建議。</span>
+    </div>
+    <div class="vc-table-wrap">
+      <table class="vc-table">
+        <thead><tr><th>母公司</th><th>主要轉投資 / 子公司（約略持股%）</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">晟德</span><span class="code">4123</span></div><span class="vc-badge vc-b-hold">投資控股</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip tracked">⭐順藥<span class="pc">6535</span><span class="pct">34%</span></span>
+              <span class="vc-chip tracked">⭐奧孟亞<span class="pc">7776</span></span>
+              <span class="vc-chip">永昕<span class="pc">4726</span><span class="pct">20%</span></span>
+              <span class="vc-chip">博晟<span class="pc">6733</span><span class="pct">30%</span></span>
+              <span class="vc-chip">益安<span class="pc">6499</span><span class="pct">26%</span></span>
+              <span class="vc-chip ext">東曜藥業<span class="pc">1875.HK</span><span class="pct">28%</span></span>
+              <span class="vc-chip ext">加科思<span class="pc">1167.HK</span></span>
+              <span class="vc-chip ext">寶濟藥業<span class="pct">港股</span></span>
+              <span class="vc-chip ext">建誼<span class="pct">18%</span></span>
+              <span class="vc-chip ext">玉晟<span class="pct">100%</span></span>
+              <span class="vc-chip ext">…等約 20 家</span>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">台灣東洋</span><span class="code">4105</span></div><span class="vc-badge vc-b-hold">孵化集團</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip tracked">⭐智擎<span class="pc">4162</span><span class="pct">19%</span></span>
+              <span class="vc-chip">東生華<span class="pc">8432</span><span class="pct">56%</span></span>
+              <span class="vc-chip ext">創益生技<span class="pct">28%</span></span>
+              <span class="vc-chip ext">榮港生技<span class="pct">100%</span></span>
+              <span class="vc-chip ext">美台生技</span>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">中天</span><span class="code">4128</span></div><span class="vc-badge vc-b-hold">控股母公司</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip">合一<span class="pc">4743</span><span class="pct">21%</span></span>
+              <span class="vc-chip">泉盛<span class="pc">4159</span></span>
+              <span class="vc-chip">鑽石生技<span class="pc">6901</span><span class="pct">34%</span></span>
+              <span class="vc-chip ext">醣基生醫</span>
+              <span class="vc-chip ext">棉花田<span class="pct">有機通路</span></span>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">鑽石生技投資</span><span class="code">6901</span></div><span class="vc-badge vc-b-vc">純生技創投</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip">合一<span class="pc">4743</span></span>
+              <span class="vc-chip">泉盛<span class="pc">4159</span></span>
+              <span class="vc-chip ext">協和新藥</span>
+              <span class="vc-chip ext">地天泰農業生技</span>
+              <span class="vc-chip ext">鑽石一號／高新<span class="pct">100%</span></span>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">保瑞</span><span class="code">6472</span></div><span class="vc-badge vc-b-ma">併購整合</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip">泰福<span class="pc">6541</span><span class="pct">31%</span></span>
+              <span class="vc-chip ext">晨暉生技<span class="pct">保健</span></span>
+              <span class="vc-chip ext">伊甸生醫<span class="pct">CDMO</span></span>
+              <span class="vc-chip ext">保瑞聯邦</span>
+              <span class="vc-chip ext">Pyros<span class="pct">美·罕病</span></span>
+              <span class="vc-chip ext">MacroGenics 廠<span class="pct">美·CDMO</span></span>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="vc-note">💡 <b>派系</b>：林榮錦打造 <b>東洋 → 晟德</b> 兩大孵化系；路孔明系 <b>中天 → 鑽石 → 合一</b>（中天持鑽石約 34%，故合一／泉盛同時出現在中天與鑽石）。<b>保瑞</b> 偏併購整合（roll-up），性質更接近 PE。<br>資料來源：各公司法說／年報、環球生技月刊、GeneOnline；持股%為約略值，請以公司最新公告為準。</div>
+    </div>
+  </div>
   <div class="holders-section" id="holders-section">
     <div class="holders-header">
       <span class="holders-title" id="holders-title">🏦 集保戶持股統計</span>
@@ -2412,6 +2508,7 @@ window.setupCollapsibles=function(){
       ['holders-section','🏦 28 家集保戶股權分散追蹤 (大股東是否異動)','csum-holders'],
       ['ranking-section','🏆 28 家總股東人數排行','csum-rankA'],
       ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
+      ['vc-parents-section','💼 創投母公司 × 投資組合（控股／孵化／併購型）','csum-vc'],
     ].forEach(([id,title,sumId])=>{
       const el=document.getElementById(id);
       if(el) _csecWrap(el, title, sumId);
@@ -2486,6 +2583,7 @@ window.updateCsecSummaries=function(){
       const q1=Object.values(cf).filter(c=>(c.cash_2026||{}).value).length;
       set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
     }
+    set('csum-vc','5 母公司 · 30+ 轉投資/子公司');
   }catch(e){}
 };
 
