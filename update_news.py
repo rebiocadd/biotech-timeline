@@ -279,6 +279,8 @@ VC_SUBS_SCAN = [
     {"key": "chopharma", "match": ["醣基生醫", "醣基", "6586"],                   "queries": ["醣基生醫 6586", "醣基生醫", "醣基 CHO"]},
     {"key": "cybiotech", "match": ["創益生技", "6566"],                           "queries": ["創益生技 6566", "創益生技", "創益生技 東生華"]},
     {"key": "chenhui",   "match": ["晨暉生技", "晨暉生物", "1271"],               "queries": ["晨暉生技 1271", "晨暉生技", "晨暉 保瑞"]},
+    {"key": "sinew",     "match": ["欣耀生醫", "6634", "SNP-610", "SNP-810"],     "queries": ["欣耀生醫 6634", "欣耀生醫 MASH", "欣耀生醫 鑽石"]},
+    {"key": "stemcyte",  "match": ["永笙生技", "永笙-KY", "4178", "StemCyte", "RegeneCyte"], "queries": ["永笙-KY 4178", "永笙生技 StemCyte", "永笙 RegeneCyte"]},
 ]
 VC_NOISE = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '台積電', '鴻海', '美台關係',
             '美台斷交', '美台貿易', '美台軍售', '川普', '關稅', 'ETF', '00919',

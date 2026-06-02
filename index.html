@@ -828,10 +828,13 @@
             <td class="vc-parent"><div><span class="nm">鑽石生技投資</span><span class="code">6901</span></div><span class="vc-badge vc-b-vc">純生技創投</span></td>
             <td><div class="vc-chips">
               <span class="vc-chip">合一<span class="pc">4743</span></span>
-              <span class="vc-chip">泉盛<span class="pc">4159</span></span>
-              <span class="vc-chip ext">協和新藥</span>
-              <span class="vc-chip ext">地天泰農業生技</span>
-              <span class="vc-chip ext">鑽石一號／高新<span class="pct">100%</span></span>
+              <span class="vc-chip">醣基<span class="pc">6586</span></span>
+              <span class="vc-chip">欣耀<span class="pc">6634</span></span>
+              <span class="vc-chip">永笙-KY<span class="pc">4178</span></span>
+              <span class="vc-chip">優億<span class="pct">疫苗佐劑</span></span>
+              <span class="vc-chip ext">地天泰<span class="pct">農業</span></span>
+              <span class="vc-chip ext">Rejuvenate<span class="pct">美·基因</span></span>
+              <span class="vc-chip ext">Bilayer<span class="pct">美·傳輸</span></span>
             </div></td>
           </tr>
           <tr>
@@ -2629,7 +2632,7 @@ window.updateCsecSummaries=function(){
       set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
     }
     set('csum-vc','6 母公司 · 35+ 轉投資/子公司');
-    set('csum-vcsub','7 未上市 · 3 已興櫃');
+    set('csum-vcsub','7 未上市 · 5 已興櫃/上櫃');
   }catch(e){}
 };
 
@@ -2694,7 +2697,19 @@ const VC_SUBS=[
    listing:'2021/01/18 登錄興櫃（代號 1271）',listingNote:'保瑞聯邦已換股併入晨暉',
    web:'未公開',fund:'2025/8 以 6.5 億取得望德斯（威德代理商）30% 股權',
    field:'保健食品（紅麴 NTU568／益生菌 NTU101·台大潘子明團隊·非新藥）',
-   seedNews:{title:'保瑞旗下晨暉 6.5 億取得望德斯 30% 股權 衝保健市占',date:'2025-08',url:'https://money.udn.com/money/story/10871/8950027'}}
+   seedNews:{title:'保瑞旗下晨暉 6.5 億取得望德斯 30% 股權 衝保健市占',date:'2025-08',url:'https://money.udn.com/money/story/10871/8950027'}},
+  {key:'sinew',tier:'emerging',name:'欣耀生醫',group:'鑽石系',parent:'鑽石生技投資 6901 早期主要創投股東（持股%未公開）',
+   status:{label:'已興櫃 6634',cls:'emerging'},
+   listing:'2017/06/29 登錄興櫃（代號 6634）',listingNote:'',
+   web:'https://www.sinewpharma.com/',fund:'實收資本額約 7.13 億',
+   field:'代謝/MASH 新藥 SNP-6（含 SNP-610·二期）+ 高肝安全性止痛 SNP-810（完成台灣關鍵試驗·赴美 FDA）',
+   seedNews:{title:'台灣之光！欣耀生醫波士頓發表 MASH 新藥成果獲國際大廠關注',date:'2025-09-26',url:'https://www.ctee.com.tw/news/20250926701041-431205'}},
+  {key:'stemcyte',tier:'emerging',name:'永笙-KY StemCyte',group:'中天／鑽石系',parent:'中天 4128 集團；鑽石 6901 持約 10%',
+   status:{label:'已上櫃 4178',cls:'emerging'},
+   listing:'2024/12 興櫃 → 2026/04/29 上櫃（代號 4178）',listingNote:'由興櫃轉上櫃',
+   web:'https://www.stemcyte.com.tw/',fund:'完成 8.2 億現增（鑽石參與 2 億）',
+   field:'臍帶血儲存+細胞治療；RegeneCyte 已獲美 FDA 藥證；長新冠 P2a+RMAT、缺血性中風 P2、腦麻 P1',
+   seedNews:{title:'全球最大私有公捐臍帶血細胞庫！永笙-KY 預計 4 月底掛牌上市',date:'2026-04-08',url:'https://finance.technews.tw/2026/04/08/regenecyte'}}
 ];
 function _vcEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function renderVCSubs(){
@@ -2720,7 +2735,7 @@ function renderVCSubs(){
   const A=VC_SUBS.filter(s=>s.tier==='pre'), B=VC_SUBS.filter(s=>s.tier==='emerging');
   body.innerHTML =
     `<div class="vcsub-grouptitle">🌱 未上市 · 觀察登興櫃（${A.length}）</div><div class="vcsub-grid">${A.map(card).join('')}</div>`+
-    `<div class="vcsub-grouptitle">📈 其實已登錄興櫃（${B.length}·已可查/交易）</div><div class="vcsub-grid">${B.map(card).join('')}</div>`+
+    `<div class="vcsub-grouptitle">📈 已登錄興櫃／上櫃（${B.length}·已可查/交易）</div><div class="vcsub-grid">${B.map(card).join('')}</div>`+
     `<div class="vcsub-note">⚠️ best-effort 整理：標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠公開資料、未臆測。每日 06:00 隨新聞掃描更新各公司最新一則新聞。資料來源：各公司官網／法說、環球生技、GeneOnline、經濟日報等。</div>`;
 }
 // 並行載入所有資料，再渲染時間表
