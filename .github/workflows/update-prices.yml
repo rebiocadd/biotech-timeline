@@ -74,7 +74,7 @@ jobs:
             python update_highlights.py || echo "⚠️ highlights step failed, continue"
             python update_scores.py || echo "⚠️ scores step failed, continue"
             python update_provisions.py || echo "⚠️ provisions step failed, continue"
-            git add news_status.json news_summary.json date.json status.json scores.json provisions.json
+            git add news_status.json news_summary.json date.json status.json scores.json provisions.json vc_news.json
             if git diff --staged --quiet; then
               echo "No changes, skipping"; break
             fi

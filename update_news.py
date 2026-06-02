@@ -25,6 +25,7 @@ TAIPEI_TZ = timezone(timedelta(hours=8))   # UTC+8
 JSON_PATH = os.path.join(os.path.dirname(__file__), "news_status.json")
 SUMMARY_PATH = os.path.join(os.path.dirname(__file__), "news_summary.json")
 DATE_PATH = os.path.join(os.path.dirname(__file__), "date.json")
+VC_NEWS_PATH = os.path.join(os.path.dirname(__file__), "vc_news.json")
 DAYS_FRESH = 21  # 21 天內的新聞算「新動態」（擴大掃描範圍，原 14 天）
 
 # 臨床相關關鍵字（命中才算臨床新聞）
@@ -265,6 +266,80 @@ def scan_company(code, name, drugs=None):
         deduped.append(n)
     return {"news": deduped[:8]}
 
+# 🔬 創投子公司每日新聞掃描（寫入 vc_news.json）
+# 這些公司多無股票代號、短名易撞名（美台/協和/榮港），故要求標題命中「完整名稱或代號」避免污染。
+VC_SUBS_SCAN = [
+    {"key": "krisan",    "match": ["建誼生技", "建誼生醫"],                       "queries": ["建誼生技", "建誼生技 ADC", "建誼生技 晟德"]},
+    {"key": "eden",      "match": ["伊甸生醫", "伊甸生物醫藥", "Eden Biologics"], "queries": ["伊甸生醫", "伊甸生醫 保瑞", "Eden Biologics 保瑞"]},
+    {"key": "tetanti",   "match": ["地天泰"],                                     "queries": ["地天泰農業生技", "地天泰 鑽石", "地天泰 酵素"]},
+    {"key": "harmony",   "match": ["協和新藥"],                                   "queries": ["協和新藥", "協和新藥 核酸", "協和新藥 合一"]},
+    {"key": "rongkang",  "match": ["榮港生技"],                                   "queries": ["榮港生技", "榮港生技 東洋"]},
+    {"key": "atb",       "match": ["美台生技"],                                   "queries": ["美台生技", "美台生技 東洋", "美台生技 學名藥"]},
+    {"key": "chopharma", "match": ["醣基生醫", "醣基", "6586"],                   "queries": ["醣基生醫 6586", "醣基生醫", "醣基 CHO"]},
+    {"key": "cybiotech", "match": ["創益生技", "6566"],                           "queries": ["創益生技 6566", "創益生技", "創益生技 東生華"]},
+    {"key": "chenhui",   "match": ["晨暉生技", "晨暉生物", "1271"],               "queries": ["晨暉生技 1271", "晨暉生技", "晨暉 保瑞"]},
+]
+VC_NOISE = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '台積電', '鴻海', '美台關係',
+            '美台斷交', '美台貿易', '美台軍售', '川普', '關稅', 'ETF', '00919']
+
+def scan_vc_subs():
+    """每家子公司抓最新一則新聞；要求標題含完整名稱或代號，避免短名撞名污染。"""
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=120)   # 子公司新聞量少，放寬到 120 天
+    out = {}
+    for sub in VC_SUBS_SCAN:
+        seen, items = set(), []
+        for q in sub["queries"]:
+            try:
+                its = parse_rss(fetch_rss(q))
+            except Exception:
+                continue
+            for it in its[:25]:
+                k = (it.get("link") or "")[:120]
+                if k in seen:
+                    continue
+                seen.add(k)
+                items.append(it)
+        best = None
+        for it in items:
+            title = it.get("title", "")
+            if not any(m in title for m in sub["match"]):
+                continue
+            if any(nz in title for nz in VC_NOISE):
+                continue
+            pub = parse_rss_date(it.get("pubDate", ""))
+            if not pub or pub < cutoff:
+                continue
+            if best is None or pub.timestamp() > best[0]:
+                best = (pub.timestamp(), title, it.get("link", ""), pub)
+        if best:
+            out[sub["key"]] = {
+                "title": best[1][:140],
+                "date": best[3].astimezone(TAIPEI_TZ).strftime("%Y/%m/%d"),
+                "url": best[2],
+            }
+    return out
+
+def write_vc_news():
+    """掃描子公司新聞並合併寫入 vc_news.json（抓到的覆蓋舊值，沒抓到的保留舊值）。"""
+    try:
+        with open(VC_NEWS_PATH, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+        if not isinstance(existing, dict):
+            existing = {}
+    except Exception:
+        existing = {}
+    try:
+        found = scan_vc_subs()
+    except Exception as e:
+        print(f"⚠️ 子公司新聞掃描失敗：{e}")
+        return
+    existing.update(found)
+    with open(VC_NEWS_PATH, "w", encoding="utf-8") as f:
+        json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
+    print(f" 🔬 子公司新聞：本次更新 {len(found)} 家（vc_news.json 共 {len(existing)} 家）")
+
+
 def main():
     auto_push = "--push" in sys.argv
     now = datetime.now(TAIPEI_TZ)
@@ -425,6 +500,12 @@ def main():
     none_cnt = sum(1 for r in summary_rows if r['importance'] == 'none')
     print(f"\n 📰 新聞重要性分布：🔴 {high_cnt}  🟠 {med_cnt}  ⚪ {low_cnt}  —  {none_cnt}")
     print(f" 📁 寫入摘要 {SUMMARY_PATH}")
+
+    # 🔬 創投子公司新聞掃描 → vc_news.json（失敗不影響主流程）
+    try:
+        write_vc_news()
+    except Exception as e:
+        print(f"⚠️ write_vc_news 失敗：{e}")
 
     # 更新狀態
     try:
