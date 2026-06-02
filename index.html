@@ -2632,7 +2632,7 @@ window.updateCsecSummaries=function(){
       set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
     }
     set('csum-vc','6 母公司 · 35+ 轉投資/子公司');
-    set('csum-vcsub','2 未上市 · 5 已興櫃/上櫃');
+    try{const _nw=window._vcNews||{};const _v=VC_SUBS.filter(s=>!s.onlyNews||(_nw[s.key]&&_nw[s.key].title));set('csum-vcsub',`${_v.filter(s=>s.tier==='pre').length} 未上市 · ${_v.filter(s=>s.tier==='emerging').length} 已興櫃/上櫃`);}catch(_e){set('csum-vcsub','2 未上市 · 5 已興櫃/上櫃');}
   }catch(e){}
 };
 
@@ -2679,7 +2679,23 @@ const VC_SUBS=[
    listing:'2024/12 興櫃 → 2026/04/29 上櫃（代號 4178）',listingNote:'由興櫃轉上櫃',
    web:'https://www.stemcyte.com.tw/',fund:'完成 8.2 億現增（鑽石參與 2 億）',
    field:'臍帶血儲存+細胞治療；RegeneCyte 已獲美 FDA 藥證；長新冠 P2a+RMAT、缺血性中風 P2、腦麻 P1',
-   seedNews:{title:'全球最大私有公捐臍帶血細胞庫！永笙-KY 預計 4 月底掛牌上市',date:'2026-04-08',url:'https://finance.technews.tw/2026/04/08/regenecyte'}}
+   seedNews:{title:'全球最大私有公捐臍帶血細胞庫！永笙-KY 預計 4 月底掛牌上市',date:'2026-04-08',url:'https://finance.technews.tw/2026/04/08/regenecyte'}},
+  // —— 以下 5 家平時隱藏，僅當每日掃描抓到最新消息時才自動顯示（onlyNews）——
+  {key:'eden',tier:'pre',onlyNews:true,name:'伊甸生醫 Eden Biologics',group:'保瑞系',parent:'保瑞 2022 收購其 CDMO 資產 → 保瑞生技承接',
+   status:{label:'已被併購整合',cls:'merged'},listing:'不單獨掛牌（併入保瑞生技）',listingNote:'',
+   web:'https://www.edenbiologics.com/tw/',fund:'2022/5 保瑞約 15 億收購 CDMO 在台資產',field:'大分子生物藥 CDMO（非新藥）',seedNews:null},
+  {key:'tetanti',tier:'pre',onlyNews:true,name:'地天泰農業生技',group:'鑽石系',parent:'中興大學衍生；鑽石 6901 + 富邦創投等',
+   status:{label:'規劃中',cls:'plan'},listing:'未確認 IPO 時程',listingNote:'',
+   web:'https://www.ttt3tops.com/',fund:'首輪募資 3 億',field:'農業生技／環保標靶酵素（非新藥）',seedNews:null},
+  {key:'harmony',tier:'pre',onlyNews:true,name:'協和新藥',group:'中天／合一系',parent:'中天集團相關；技術已併入合一 4743',
+   status:{label:'資料稀少',cls:'unknown'},listing:'未公開',listingNote:'',
+   web:'未公開',fund:'未公開',field:'小核酸新藥（技術源頭）',seedNews:null},
+  {key:'rongkang',tier:'pre',onlyNews:true,name:'榮港生技',group:'東洋系',parent:'台灣東洋 4105 持股 100%',
+   status:{label:'未公開',cls:'unknown'},listing:'未公開',listingNote:'',
+   web:'未公開',fund:'未公開',field:'大中華創新劑型（抗感染／CNS／肝病）',seedNews:null},
+  {key:'atb',tier:'pre',onlyNews:true,name:'美台生技 ATB',group:'東洋系',parent:'台灣東洋 4105 轉投資（東南亞）',
+   status:{label:'未公開',cls:'unknown'},listing:'未公開',listingNote:'',
+   web:'http://www.atbpharma.co.th/en/',fund:'未公開',field:'東南亞學名藥行銷（非新藥）',seedNews:null}
 ];
 function _vcEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function renderVCSubs(){
@@ -2702,11 +2718,14 @@ function renderVCSubs(){
       <div class="vcsub-foot">${webHtml}${newsHtml}</div>
     </div>`;
   };
-  const A=VC_SUBS.filter(s=>s.tier==='pre'), B=VC_SUBS.filter(s=>s.tier==='emerging');
+  // onlyNews 公司：平時隱藏，僅當 vc_news.json 抓到最新消息時才納入顯示
+  const _vis=VC_SUBS.filter(s=>!s.onlyNews || (news[s.key] && news[s.key].title));
+  const A=_vis.filter(s=>s.tier==='pre'), B=_vis.filter(s=>s.tier==='emerging');
   body.innerHTML =
     `<div class="vcsub-grouptitle">🌱 未上市 · 觀察登興櫃（${A.length}）</div><div class="vcsub-grid">${A.map(card).join('')}</div>`+
     `<div class="vcsub-grouptitle">📈 已登錄興櫃／上櫃（${B.length}·已可查/交易）</div><div class="vcsub-grid">${B.map(card).join('')}</div>`+
-    `<div class="vcsub-note">⚠️ best-effort 整理：標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠公開資料、未臆測。每日 06:00 隨新聞掃描更新各公司最新一則新聞。資料來源：各公司官網／法說、環球生技、GeneOnline、經濟日報等。</div>`;
+    `<div class="vcsub-note">⚠️ best-effort 整理：標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠公開資料、未臆測。每日 06:00 隨新聞掃描更新各公司最新一則新聞。部分子公司（如美台/榮港/協和/地天泰/伊甸）平時隱藏，僅在掃到最新消息時才自動出現。資料來源：各公司官網／法說、環球生技、GeneOnline、經濟日報等。</div>`;
+  const _sm=document.getElementById('csum-vcsub'); if(_sm) _sm.textContent=`${A.length} 未上市 · ${B.length} 已興櫃/上櫃`;
 }
 // 並行載入所有資料，再渲染時間表
 Promise.all([

@@ -276,7 +276,15 @@ VC_SUBS_SCAN = [
     {"key": "chenhui",   "match": ["晨暉生技", "晨暉生物", "1271"],               "queries": ["晨暉生技 1271", "晨暉生技", "晨暉 保瑞"]},
     {"key": "sinew",     "match": ["欣耀生醫", "6634", "SNP-610", "SNP-810"],     "queries": ["欣耀生醫 6634", "欣耀生醫 MASH", "欣耀生醫 鑽石"]},
     {"key": "stemcyte",  "match": ["永笙生技", "永笙-KY", "4178", "StemCyte", "RegeneCyte"], "queries": ["永笙-KY 4178", "永笙生技 StemCyte", "永笙 RegeneCyte"]},
+    # —— 以下 5 家平時不顯示，僅在掃到最新消息時才冒出（ONLY_NEWS）——
+    {"key": "eden",      "match": ["伊甸生醫", "伊甸生物醫藥", "Eden Biologics"], "queries": ["伊甸生醫", "伊甸生醫 保瑞", "Eden Biologics 保瑞"]},
+    {"key": "tetanti",   "match": ["地天泰"],                                     "queries": ["地天泰農業生技", "地天泰 鑽石", "地天泰 酵素"]},
+    {"key": "harmony",   "match": ["協和新藥"],                                   "queries": ["協和新藥", "協和新藥 核酸", "協和新藥 合一"]},
+    {"key": "rongkang",  "match": ["榮港生技"],                                   "queries": ["榮港生技", "榮港生技 東洋"]},
+    {"key": "atb",       "match": ["美台生技"],                                   "queries": ["美台生技", "美台生技 東洋", "美台生技 學名藥"]},
 ]
+# 這幾家平時隱藏，僅在「本次掃描」抓到最新消息時才顯示；掃不到就從 vc_news.json 清掉（不殘留舊聞）
+ONLY_NEWS = {"eden", "tetanti", "harmony", "rongkang", "atb"}
 VC_NOISE = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '台積電', '鴻海', '美台關係',
             '美台斷交', '美台貿易', '美台軍售', '川普', '關稅', 'ETF', '00919',
             '股市爆料同學會', '爆料同學會', '存股', '當沖', '飆股', '抽籤',
@@ -344,6 +352,9 @@ def write_vc_news():
     except Exception as e:
         print(f"⚠️ 子公司新聞掃描失敗：{e}")
         return
+    # ONLY_NEWS 公司：先清掉舊聞，只有本次掃到才會重新加入（確保只反映最新消息，不殘留）
+    for k in ONLY_NEWS:
+        existing.pop(k, None)
     existing.update(found)
     with open(VC_NEWS_PATH, "w", encoding="utf-8") as f:
         json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
