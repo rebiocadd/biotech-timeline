@@ -269,6 +269,7 @@ def scan_company(code, name, drugs=None):
 # 🔬 創投子公司每日新聞掃描（寫入 vc_news.json）
 # 這些公司多無股票代號、短名易撞名（美台/協和/榮港），故要求標題命中「完整名稱或代號」避免污染。
 VC_SUBS_SCAN = [
+    {"key": "immunadd",  "match": ["優億生技", "優億股份", "Immunadd", "IA-05"],  "queries": ["優億生技 鑽石", "優億 疫苗佐劑", "優億生技 募資", "Immunadd 佐劑"]},
     {"key": "krisan",    "match": ["建誼生技", "建誼生醫"],                       "queries": ["建誼生技", "建誼生技 ADC", "建誼生技 晟德"]},
     {"key": "eden",      "match": ["伊甸生醫", "伊甸生物醫藥", "Eden Biologics"], "queries": ["伊甸生醫", "伊甸生醫 保瑞", "Eden Biologics 保瑞"]},
     {"key": "tetanti",   "match": ["地天泰"],                                     "queries": ["地天泰農業生技", "地天泰 鑽石", "地天泰 酵素"]},
@@ -280,7 +281,15 @@ VC_SUBS_SCAN = [
     {"key": "chenhui",   "match": ["晨暉生技", "晨暉生物", "1271"],               "queries": ["晨暉生技 1271", "晨暉生技", "晨暉 保瑞"]},
 ]
 VC_NOISE = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '台積電', '鴻海', '美台關係',
-            '美台斷交', '美台貿易', '美台軍售', '川普', '關稅', 'ETF', '00919']
+            '美台斷交', '美台貿易', '美台軍售', '川普', '關稅', 'ETF', '00919',
+            '股市爆料同學會', '爆料同學會', '存股', '當沖', '飆股', '抽籤',
+            '最具洞見', '文章集合', '市場趨勢文章']  # 論壇/抽籤/SEO 內容農場雜訊
+# 正派媒體白名單：子公司新聞只收來源屬下列媒體者，避免論壇/內容農場（Google News 標題格式為「標題 - 媒體」）
+VC_SOURCE_OK = ['經濟日報', '工商時報', '工商', '中央社', '鉅亨', 'Anue', '環球生技', 'GeneOnline',
+                '自由時報', '自由財經', '聯合報', '聯合新聞網', 'ETtoday', '中時', '中國時報',
+                '財訊', '今周刊', '科技新報', 'TechNews', '富聯網', 'Yahoo', '民視', '三立',
+                '風傳媒', 'MoneyDJ', '鏡週刊', '信傳媒', 'NOWnews', '數位時代', 'PChome',
+                '理財周刊', '生技投資', 'Genet', '新聞網', '時報', '日報', '中央通訊社']
 
 def scan_vc_subs():
     """每家子公司抓最新一則新聞；要求標題含完整名稱或代號，避免短名撞名污染。"""
@@ -306,6 +315,10 @@ def scan_vc_subs():
             if not any(m in title for m in sub["match"]):
                 continue
             if any(nz in title for nz in VC_NOISE):
+                continue
+            # 來源白名單：只收正派媒體（標題尾端「 - 媒體」），擋論壇/內容農場
+            src = title.rsplit(" - ", 1)[-1] if " - " in title else ""
+            if not any(s in src for s in VC_SOURCE_OK):
                 continue
             pub = parse_rss_date(it.get("pubDate", ""))
             if not pub or pub < cutoff:

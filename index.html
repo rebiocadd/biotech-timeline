@@ -845,9 +845,20 @@
               <span class="vc-chip ext">MacroGenics 廠<span class="pct">美·CDMO</span></span>
             </div></td>
           </tr>
+          <tr>
+            <td class="vc-parent"><div><span class="nm">倍利創投</span><span class="code">7882</span></div><span class="vc-badge vc-b-vc">純生技創投</span></td>
+            <td><div class="vc-chips">
+              <span class="vc-chip tracked">⭐仁新醫藥<span class="pc">6696</span></span>
+              <span class="vc-chip">台寶生醫<span class="pc">6892</span></span>
+              <span class="vc-chip">寶泰生醫<span class="pc">7850</span></span>
+              <span class="vc-chip">麗寶新藥<span class="pc">7888</span></span>
+              <span class="vc-chip ext">祥宏健康</span>
+              <span class="vc-chip ext">…等約 18 家</span>
+            </div></td>
+          </tr>
         </tbody>
       </table>
-      <div class="vc-note">💡 <b>派系</b>：林榮錦打造 <b>東洋 → 晟德</b> 兩大孵化系；路孔明系 <b>中天 → 鑽石 → 合一</b>（中天持鑽石約 34%，故合一／泉盛同時出現在中天與鑽石）。<b>保瑞</b> 偏併購整合（roll-up），性質更接近 PE。<br>資料來源：各公司法說／年報、環球生技月刊、GeneOnline；持股%為約略值，請以公司最新公告為準。</div>
+      <div class="vc-note">💡 <b>派系</b>：林榮錦打造 <b>東洋 → 晟德</b> 兩大孵化系；路孔明系 <b>中天 → 鑽石 → 合一</b>（中天持鑽石約 34%，故合一／泉盛同時出現在中天與鑽石）。<b>保瑞</b> 偏併購整合（roll-up），性質更接近 PE。<b>倍利創投 7882</b>（福邦證券黃顯華）為新生代永續型生技創投，2025/12 登錄興櫃。<br>資料來源：各公司法說／年報、環球生技月刊、GeneOnline；持股%為約略值，請以公司最新公告為準。</div>
     </div>
   </div>
   <div class="vcsub-section" id="vcsub-section" style="display:none">
@@ -2617,13 +2628,19 @@ window.updateCsecSummaries=function(){
       const q1=Object.values(cf).filter(c=>(c.cash_2026||{}).value).length;
       set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
     }
-    set('csum-vc','5 母公司 · 30+ 轉投資/子公司');
-    set('csum-vcsub','6 未上市 · 3 已興櫃');
+    set('csum-vc','6 母公司 · 35+ 轉投資/子公司');
+    set('csum-vcsub','7 未上市 · 3 已興櫃');
   }catch(e){}
 };
 
 // 🔬 創投子公司情報（靜態策展資料；每日新聞由 vc_news.json 覆蓋 seedNews）
 const VC_SUBS=[
+  {key:'immunadd',tier:'pre',name:'優億 Immunadd',group:'鑽石系',parent:'鑽石生技投資 6901（2025 加碼超額募資）',
+   status:{label:'未上市·剛募資',cls:'plan'},
+   listing:'未公開（2022 成立·早期階段，未公告興櫃時程）',listingNote:'',
+   web:'http://www.immunadd.com/',fund:'2025/9 鑽石加碼，超額募資達 4.5 億元',
+   field:'疫苗佐劑（全合成皂苷佐劑 IA-05·微脂體/脂質奈米佐劑平台·人用+動物用）',
+   seedNews:{title:'鑽石投資加碼 優億生技超額募資達 4.5 億元',date:'2025-09-30',url:'https://www.diamondbiofund.com/2025investment/%E5%84%AA%E5%84%84%E8%82%A1%E4%BB%BD%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/'}},
   {key:'krisan',tier:'pre',name:'建誼生技',group:'晟德系',parent:'晟德 4123 約17.5% + 永昕 4726 約17.4%（合計近四成）',
    status:{label:'IPO輔導中',cls:'plan'},
    listing:'2026 後上櫃（推估·公司未公告明確時程）',listingNote:'晟德定位集團小金雞、已委券商 IPO 輔導；竹北 ADC DP 產線 2025Q4 完工後衝刺資本市場',
