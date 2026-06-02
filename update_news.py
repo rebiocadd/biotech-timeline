@@ -271,11 +271,6 @@ def scan_company(code, name, drugs=None):
 VC_SUBS_SCAN = [
     {"key": "immunadd",  "match": ["優億生技", "優億股份", "Immunadd", "IA-05"],  "queries": ["優億生技 鑽石", "優億 疫苗佐劑", "優億生技 募資", "Immunadd 佐劑"]},
     {"key": "krisan",    "match": ["建誼生技", "建誼生醫"],                       "queries": ["建誼生技", "建誼生技 ADC", "建誼生技 晟德"]},
-    {"key": "eden",      "match": ["伊甸生醫", "伊甸生物醫藥", "Eden Biologics"], "queries": ["伊甸生醫", "伊甸生醫 保瑞", "Eden Biologics 保瑞"]},
-    {"key": "tetanti",   "match": ["地天泰"],                                     "queries": ["地天泰農業生技", "地天泰 鑽石", "地天泰 酵素"]},
-    {"key": "harmony",   "match": ["協和新藥"],                                   "queries": ["協和新藥", "協和新藥 核酸", "協和新藥 合一"]},
-    {"key": "rongkang",  "match": ["榮港生技"],                                   "queries": ["榮港生技", "榮港生技 東洋"]},
-    {"key": "atb",       "match": ["美台生技"],                                   "queries": ["美台生技", "美台生技 東洋", "美台生技 學名藥"]},
     {"key": "chopharma", "match": ["醣基生醫", "醣基", "6586"],                   "queries": ["醣基生醫 6586", "醣基生醫", "醣基 CHO"]},
     {"key": "cybiotech", "match": ["創益生技", "6566"],                           "queries": ["創益生技 6566", "創益生技", "創益生技 東生華"]},
     {"key": "chenhui",   "match": ["晨暉生技", "晨暉生物", "1271"],               "queries": ["晨暉生技 1271", "晨暉生技", "晨暉 保瑞"]},
