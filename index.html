@@ -544,13 +544,13 @@
   /* 收進收合框後，去掉內層區塊自己的邊框/底色/外距，避免「框中框」*/
   .csec > .news-summary-section,.csec > .upcoming-unblind-section,.csec > .score-section,
   .csec > .signals-section,.csec > .provisions-section,.csec > .highlights-section,
-  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox,.csec > .vc-section{
+  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox,.csec > .vc-section,.csec > .vcsub-section{
     border:none!important;background:none!important;margin:0!important;border-radius:0!important;box-shadow:0 0 0 0!important;padding:0 14px 14px!important}
   .csec > .scan-bar{margin:0!important;padding:0 14px 14px!important}
   .csec-status{margin:12px 0 0}
   /* 內層自己的標題列隱藏（收合框 summary 已顯示標題），保留副標/徽章/控制項 */
   .csec .ns-title,.csec .uu-title,.csec .score-title,.csec .signals-title,
-  .csec .prov-title,.csec .highlights-title,.csec .holders-title,.csec .vc-title{display:none}
+  .csec .prov-title,.csec .highlights-title,.csec .holders-title,.csec .vc-title,.csec .vcsub-title{display:none}
   .csec #ranking-title-A,.csec #ranking-title-B{display:none}
   .csec .timeline-section-header > span:first-child{display:none}
   /* 💼 創投母公司 × 投資組合 */
@@ -578,6 +578,32 @@
   .vc-chip.ext{opacity:.72}
   .vc-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--border);padding-top:10px}
   .vc-note b{color:#cdd6e4}
+  /* 🔬 未上市子公司情報 */
+  .vcsub-section{margin:18px 0;border:1px solid var(--border);border-radius:12px;background:rgba(15,24,40,.5);padding:16px 18px}
+  .vcsub-header{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+  .vcsub-title{font-size:16px;font-weight:700;color:#fff}
+  .vcsub-subtitle{font-size:11px;color:var(--muted);line-height:1.55}
+  .vcsub-grouptitle{font-size:12.5px;font-weight:700;color:#9fb3c8;margin:14px 0 8px;padding-left:2px}
+  .vcsub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+  .vcsub-card{border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px}
+  .vcsub-top{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+  .vcsub-name{font-weight:700;color:#fff;font-size:13.5px}
+  .vcsub-parent{font-size:10px;color:var(--muted);width:100%;margin-top:2px}
+  .vcsub-badge{font-size:9.5px;padding:2px 7px;border-radius:9px;white-space:nowrap;border:1px solid transparent}
+  .vcsub-emerging{background:rgba(46,213,115,.13);color:#4cd98a;border-color:rgba(46,213,115,.4)}
+  .vcsub-plan{background:rgba(255,193,7,.13);color:#ffd64a;border-color:rgba(255,193,7,.4)}
+  .vcsub-merged{background:rgba(160,160,200,.12);color:#aab2c8;border-color:rgba(160,160,200,.3)}
+  .vcsub-unknown{background:rgba(120,130,150,.1);color:#8b96a8;border-color:rgba(120,130,150,.3)}
+  .vcsub-row{display:flex;gap:7px;font-size:11px;line-height:1.5;margin:3px 0}
+  .vcsub-row .vk{color:var(--muted);white-space:nowrap;flex-shrink:0}
+  .vcsub-row .vv{color:#cdd6e4}
+  .vcsub-row .vnote{display:block;color:#7e8aa0;font-size:10px;margin-top:1px}
+  .vcsub-foot{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)}
+  .vcsub-web,.vcsub-news{font-size:10.5px;color:var(--accent1);text-decoration:none}
+  .vcsub-news{color:#cdd6e4}
+  .vcsub-web:hover,.vcsub-news:hover{text-decoration:underline}
+  .vcsub-na{font-size:10.5px;color:#6b7688}
+  .vcsub-note{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:14px;border-top:1px dashed var(--border);padding-top:10px}
   @media(max-width:700px){
     .csec-title{font-size:12.5px}
     .csec-sum{font-size:8.5px}
@@ -823,6 +849,13 @@
       </table>
       <div class="vc-note">💡 <b>派系</b>：林榮錦打造 <b>東洋 → 晟德</b> 兩大孵化系；路孔明系 <b>中天 → 鑽石 → 合一</b>（中天持鑽石約 34%，故合一／泉盛同時出現在中天與鑽石）。<b>保瑞</b> 偏併購整合（roll-up），性質更接近 PE。<br>資料來源：各公司法說／年報、環球生技月刊、GeneOnline；持股%為約略值，請以公司最新公告為準。</div>
     </div>
+  </div>
+  <div class="vcsub-section" id="vcsub-section" style="display:none">
+    <div class="vcsub-header">
+      <span class="vcsub-title">🔬 創投子公司情報</span>
+      <span class="vcsub-subtitle">母公司旗下未上市／興櫃子公司的網址·興櫃推估·募資·臨床進度·最新新聞。標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠資料、未臆測。每日 06:00 掃描更新新聞。僅供研究、非投資建議。</span>
+    </div>
+    <div id="vcsub-body"></div>
   </div>
   <div class="holders-section" id="holders-section">
     <div class="holders-header">
@@ -2509,6 +2542,7 @@ window.setupCollapsibles=function(){
       ['ranking-section','🏆 28 家總股東人數排行','csum-rankA'],
       ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
       ['vc-parents-section','💼 創投母公司 × 投資組合（控股／孵化／併購型）','csum-vc'],
+      ['vcsub-section','🔬 創投子公司情報（網址·興櫃·募資·臨床·每日新聞）','csum-vcsub'],
     ].forEach(([id,title,sumId])=>{
       const el=document.getElementById(id);
       if(el) _csecWrap(el, title, sumId);
@@ -2584,9 +2618,94 @@ window.updateCsecSummaries=function(){
       set('csum-cash',`${n} 家 · 含 Q1 ${q1} 家`);
     }
     set('csum-vc','5 母公司 · 30+ 轉投資/子公司');
+    set('csum-vcsub','6 未上市 · 3 已興櫃');
   }catch(e){}
 };
 
+// 🔬 創投子公司情報（靜態策展資料；每日新聞由 vc_news.json 覆蓋 seedNews）
+const VC_SUBS=[
+  {key:'krisan',tier:'pre',name:'建誼生技',group:'晟德系',parent:'晟德 4123 約17.5% + 永昕 4726 約17.4%（合計近四成）',
+   status:{label:'IPO輔導中',cls:'plan'},
+   listing:'2026 後上櫃（推估·公司未公告明確時程）',listingNote:'晟德定位集團小金雞、已委券商 IPO 輔導；竹北 ADC DP 產線 2025Q4 完工後衝刺資本市場',
+   web:'https://www.krisanbiotech.com/',fund:'資本額約 5.4~5.7 億；投資約 6 億建台南 HPAPI/ADC 原料藥廠',
+   field:'次世代 ADC／HPAPI 生物藥 CDMO（非新藥）',
+   seedNews:{title:'建誼與日本 CMIC Bio 簽 MOU 打造亞洲 ADC 戰略聯盟',date:'2025-04-29',url:'https://news.pchome.com.tw/living/cnews/20250429/index-74591547970423227009.html'}},
+  {key:'eden',tier:'pre',name:'伊甸生醫 Eden Biologics',group:'保瑞系',parent:'保瑞 2022 收購其 CDMO 資產 → 子公司保瑞生技承接',
+   status:{label:'已被併購整合',cls:'merged'},
+   listing:'不單獨掛牌（CDMO 資產併入保瑞生技，2025/1 與泰福 6541 換股整合大分子一條龍）',listingNote:'',
+   web:'https://www.edenbiologics.com/tw/',fund:'2022/5 保瑞以 5,000 萬美金（約 15 億）收購 CDMO 在台資產',
+   field:'大分子生物藥 CDMO（非新藥）',
+   seedNews:{title:'保瑞收購伊甸生醫 CDMO 廠 跨足大分子生物藥',date:'2022-05-10',url:'https://finance.ettoday.net/news/2248371'}},
+  {key:'tetanti',tier:'pre',name:'地天泰農業生技',group:'鑽石系',parent:'中興大學衍生企業；鑽石 6901 + 富邦創投等首輪投資',
+   status:{label:'規劃中',cls:'plan'},
+   listing:'曾宣示 2022 年朝上市櫃（推估·最新進度未公開）',listingNote:'2019 新廠啟用稱「3 年內朝上市櫃」，迄今未確認 IPO',
+   web:'https://www.ttt3tops.com/',fund:'首輪募資 3 億（資本額約 2.5 億）',
+   field:'農業生技／環保標靶酵素（非新藥·已商業化量產）',
+   seedNews:{title:'鑽石轉投資地天泰 跨足印尼市場獲億美元合約',date:'2023-12',url:'https://udn.com/news/story/7241/7672228'}},
+  {key:'harmony',tier:'pre',name:'協和新藥',group:'中天／合一系',parent:'中天集團相關；核酸新藥技術與團隊已併入合一 4743',
+   status:{label:'資料稀少',cls:'unknown'},
+   listing:'未公開',listingNote:'本體興櫃/上市無公開資訊；成果由合一承接',
+   web:'未公開',fund:'未公開',
+   field:'小核酸新藥（技術源頭；衍生 SNS812 已美 FDA 一期 → 二期）',
+   seedNews:{title:'合一新冠藥 SNS812 准在美臨床（源自協和核酸技術）',date:'2022-09-23',url:'https://udn.com/news/story/7254/6635997'}},
+  {key:'rongkang',tier:'pre',name:'榮港生技',group:'東洋系',parent:'台灣東洋 4105 持股 100%',
+   status:{label:'未公開',cls:'unknown'},
+   listing:'未公開',listingNote:'東洋 100% 子公司，無公開興櫃計畫',
+   web:'未公開',fund:'未公開',
+   field:'大中華創新劑型（抗感染／CNS／肝病）',
+   seedNews:null},
+  {key:'atb',tier:'pre',name:'美台生技 ATB',group:'東洋系',parent:'台灣東洋 4105 轉投資（東南亞）',
+   status:{label:'未公開',cls:'unknown'},
+   listing:'未公開',listingNote:'東南亞學名藥行銷，無公開興櫃計畫',
+   web:'http://www.atbpharma.co.th/en/',fund:'未公開',
+   field:'東南亞學名藥行銷／開發（抗癌為主·非新藥）',
+   seedNews:null},
+  {key:'chopharma',tier:'emerging',name:'醣基生醫',group:'鑽石系',parent:'鑽石 6901 約 11%、潤泰約 18-19%；技術源中研院',
+   status:{label:'已興櫃 6586',cls:'emerging'},
+   listing:'2017/09/27 登錄興櫃（代號 6586）',listingNote:'',
+   web:'http://www.chopharma.com',fund:'實收資本額約 21.4 億',
+   field:'醣分子新藥；CHO-H01 台美一/二期、CHO-A04 一期（2026/02 獲准）',
+   seedNews:{title:'醣基 6586 CHO-A04 抗癌新藥獲 TFDA 同意進行一期臨床',date:'2026-02-26',url:'https://www.genetinfo.com/investment/company-news/item/93193.html'}},
+  {key:'cybiotech',tier:'emerging',name:'創益生技',group:'東洋系',parent:'透過東生華 8432 持有（早期東洋約 27.84%）',
+   status:{label:'已興櫃 6566',cls:'emerging'},
+   listing:'2020/01/20 登錄興櫃（代號 6566）',listingNote:'',
+   web:'https://www.cybiotech.com.tw/',fund:'2019 現增普通股 400 萬股',
+   field:'自費處方藥／指示藥／益生菌保健（流感疫苗·腸胃·過敏免疫·非新藥）',
+   seedNews:{title:'東生華公告 創益生技董事會推舉董事長',date:'2024-04-12',url:'https://www.tshbiopharm.com/ec99/rwd1427/news.asp?newsno=188'}},
+  {key:'chenhui',tier:'emerging',name:'晨暉生技',group:'保瑞系',parent:'保瑞 6472 持約 36%（最大股東）',
+   status:{label:'已興櫃 1271',cls:'emerging'},
+   listing:'2021/01/18 登錄興櫃（代號 1271）',listingNote:'保瑞聯邦已換股併入晨暉',
+   web:'未公開',fund:'2025/8 以 6.5 億取得望德斯（威德代理商）30% 股權',
+   field:'保健食品（紅麴 NTU568／益生菌 NTU101·台大潘子明團隊·非新藥）',
+   seedNews:{title:'保瑞旗下晨暉 6.5 億取得望德斯 30% 股權 衝保健市占',date:'2025-08',url:'https://money.udn.com/money/story/10871/8950027'}}
+];
+function _vcEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderVCSubs(){
+  const body=document.getElementById('vcsub-body');
+  if(!body) return;
+  const news=window._vcNews||{};
+  const card=(s)=>{
+    const n = (news[s.key] && news[s.key].title) ? news[s.key] : s.seedNews;
+    const webHtml = (s.web && s.web!=='未公開')
+      ? `<a href="${_vcEsc(s.web)}" target="_blank" rel="noopener" class="vcsub-web">🔗 官網</a>`
+      : `<span class="vcsub-na">🔗 官網未公開</span>`;
+    const newsHtml = n
+      ? `<a href="${_vcEsc(n.url)}" target="_blank" rel="noopener" class="vcsub-news" title="${_vcEsc(n.title)}">📰 ${_vcEsc(n.date||'')}｜${_vcEsc((n.title||'').slice(0,28))}${(n.title||'').length>28?'…':''}</a>`
+      : `<span class="vcsub-na">📰 暫無公開新聞</span>`;
+    const rows=[['📅 興櫃/上市',s.listing,s.listingNote],['💰 募資',s.fund,''],['🧪 領域/進度',s.field,'']]
+      .map(([k,v,note])=>`<div class="vcsub-row"><span class="vk">${k}</span><span class="vv">${_vcEsc(v)||'未公開'}${note?`<span class="vnote">${_vcEsc(note)}</span>`:''}</span></div>`).join('');
+    return `<div class="vcsub-card">
+      <div class="vcsub-top"><span class="vcsub-name">${_vcEsc(s.name)}</span><span class="vcsub-badge vcsub-${s.status.cls}">${_vcEsc(s.status.label)}</span><span class="vcsub-parent">${_vcEsc(s.group)}｜${_vcEsc(s.parent)}</span></div>
+      ${rows}
+      <div class="vcsub-foot">${webHtml}${newsHtml}</div>
+    </div>`;
+  };
+  const A=VC_SUBS.filter(s=>s.tier==='pre'), B=VC_SUBS.filter(s=>s.tier==='emerging');
+  body.innerHTML =
+    `<div class="vcsub-grouptitle">🌱 未上市 · 觀察登興櫃（${A.length}）</div><div class="vcsub-grid">${A.map(card).join('')}</div>`+
+    `<div class="vcsub-grouptitle">📈 其實已登錄興櫃（${B.length}·已可查/交易）</div><div class="vcsub-grid">${B.map(card).join('')}</div>`+
+    `<div class="vcsub-note">⚠️ best-effort 整理：標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠公開資料、未臆測。每日 06:00 隨新聞掃描更新各公司最新一則新聞。資料來源：各公司官網／法說、環球生技、GeneOnline、經濟日報等。</div>`;
+}
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -2595,8 +2714,9 @@ Promise.all([
   fetch('cashflow.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('scores.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:{}})),
   fetch('provisions.json?v='+Date.now()).then(r=>r.json()).catch(()=>({candidates:[]})),
-  fetch('news_summary.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:[]}))
-]).then(([statusData, newsData, timelineData, cashflowData, scoresData, provisionsData, newsSummaryData])=>{
+  fetch('news_summary.json?v='+Date.now()).then(r=>r.json()).catch(()=>({companies:[]})),
+  fetch('vc_news.json?v='+Date.now()).then(r=>r.json()).catch(()=>({}))
+]).then(([statusData, newsData, timelineData, cashflowData, scoresData, provisionsData, newsSummaryData, vcNewsData])=>{
   window._cashflowData = cashflowData;
   window._scoresData = scoresData;
   window._provisionsData = provisionsData;
@@ -2604,6 +2724,8 @@ Promise.all([
   setTimeout(()=>{ try { renderScores(); } catch(e){ console.warn('renderScores fail', e); } }, 0);
   setTimeout(()=>{ try { renderProvisions(); } catch(e){ console.warn('renderProvisions fail', e); } }, 0);
   setTimeout(()=>{ try { renderNewsSummary(); } catch(e){ console.warn('renderNewsSummary fail', e); } }, 0);
+  window._vcNews = vcNewsData;
+  setTimeout(()=>{ try { renderVCSubs(); } catch(e){ console.warn('renderVCSubs fail', e); } }, 0);
   _newsStatus = newsData;
   window._newsStatus = newsData;
   window._statusData = statusData;
