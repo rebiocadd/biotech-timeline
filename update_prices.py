@@ -59,20 +59,23 @@ def fetch_yahoo(code):
             timestamps = result[0].get("timestamp") or []
             quote = result[0].get("indicators", {}).get("quote", [{}])[0]
             raw_closes = quote.get("close") or []
+            raw_vols = quote.get("volume") or []
             if not raw_closes:
                 continue
-            # 對齊 timestamps 和 closes，過濾掉 None
+            # 對齊 timestamps / closes / volumes，過濾掉 None（成交量單位：股→張）
             pairs = []
-            for ts, c in zip(timestamps, raw_closes):
+            for i, (ts, c) in enumerate(zip(timestamps, raw_closes)):
                 if c is None:
                     continue
+                v = raw_vols[i] if i < len(raw_vols) else None
+                lots = int(round(v / 1000)) if v else None
                 dt = datetime.fromtimestamp(ts, TAIPEI_TZ)
-                pairs.append((dt.strftime("%m/%d"), round(float(c), 2)))
+                pairs.append((dt.strftime("%m/%d"), round(float(c), 2), lots))
             if not pairs:
                 continue
             # 保留最多 240 個交易日
             pairs = pairs[-240:]
-            history = [{"date": d, "close": c} for d, c in pairs]
+            history = [{"date": d, "close": c, "vol": v} for d, c, v in pairs]
             close = pairs[-1][1]
             prev = pairs[-2][1] if len(pairs) >= 2 else close
             chg = round((close - prev) / prev * 100, 2) if prev else 0.0
@@ -229,7 +232,10 @@ def main():
                 company["change"]    = f"{chg:+.2f}" if chg >= 0 else f"{chg:.2f}"
                 company["priceDate"] = TODAY_STR
                 if history:
-                    company["priceHistory"] = history
+                    # priceHistory 維持收盤價（餵 MA/條紋），不夾帶量避免肥大
+                    company["priceHistory"] = [{"date": h["date"], "close": h["close"]} for h in history]
+                    # volHistory：近 10 個交易日成交量（張），供「5 日波動表」用
+                    company["volHistory"] = [{"date": h["date"], "vol": h.get("vol")} for h in history[-10:]]
                 ok_count += 1
             else:
                 fail_list.append(f"{name}({code})")

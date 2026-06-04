@@ -546,13 +546,13 @@
   /* 收進收合框後，去掉內層區塊自己的邊框/底色/外距，避免「框中框」*/
   .csec > .news-summary-section,.csec > .upcoming-unblind-section,.csec > .score-section,
   .csec > .signals-section,.csec > .provisions-section,.csec > .highlights-section,
-  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox,.csec > .vc-section,.csec > .vcsub-section{
+  .csec > .holders-section,.csec > .ranking-section,.csec > .csec-timeline,.csec > .csec-cashbox,.csec > .vc-section,.csec > .vcsub-section,.csec > .wave-section{
     border:none!important;background:none!important;margin:0!important;border-radius:0!important;box-shadow:0 0 0 0!important;padding:0 14px 14px!important}
   .csec > .scan-bar{margin:0!important;padding:0 14px 14px!important}
   .csec-status{margin:12px 0 0}
   /* 內層自己的標題列隱藏（收合框 summary 已顯示標題），保留副標/徽章/控制項 */
   .csec .ns-title,.csec .uu-title,.csec .score-title,.csec .signals-title,
-  .csec .prov-title,.csec .highlights-title,.csec .holders-title,.csec .vc-title,.csec .vcsub-title{display:none}
+  .csec .prov-title,.csec .highlights-title,.csec .holders-title,.csec .vc-title,.csec .vcsub-title,.csec .wave-title{display:none}
   .csec #ranking-title-A,.csec #ranking-title-B{display:none}
   .csec .timeline-section-header > span:first-child{display:none}
   /* 💼 創投母公司 × 投資組合 */
@@ -612,6 +612,28 @@
   .vcsub-na{font-size:10.5px;color:#6b7688}
   .vcsub-note{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:14px;border-top:1px dashed var(--border);padding-top:10px}
   .vc-scan,.vcsub-scan{font-size:10px;color:var(--accent1);font-family:'Space Mono',monospace;margin-top:5px;display:block;opacity:.85}
+  /* 📊 5 日股價/張數波動表 */
+  .wave-section{margin:18px 0;border:1px solid var(--border);border-radius:12px;background:rgba(15,24,40,.5);padding:16px 18px}
+  .wave-header{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+  .wave-title{font-size:16px;font-weight:700;color:#fff}
+  .wave-subtitle{font-size:11px;color:var(--muted);line-height:1.5}
+  .wave-table-wrap{overflow-x:auto}
+  table.wave-table{width:100%;border-collapse:collapse;font-family:'Noto Sans TC',sans-serif;font-size:12px;min-width:560px}
+  .wave-table th{background:#0f1828;color:#9fb3c8;font-size:11px;font-weight:700;padding:8px 10px;text-align:right;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:2px solid var(--border);transition:color .12s}
+  .wave-table th:first-child{text-align:left}
+  .wave-table th:hover{color:var(--accent1)}
+  .wave-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.05);text-align:right;white-space:nowrap}
+  .wave-table td.num{font-family:'Space Mono',monospace}
+  .wave-table tr:hover td{background:rgba(0,212,255,.05)}
+  .wave-co{text-align:left!important}
+  .wave-rank{color:var(--muted);font-size:10px;margin-right:5px;font-family:'Space Mono',monospace}
+  .wave-co-link{color:#fff;text-decoration:none;font-weight:600}
+  .wave-co-link:hover{color:var(--accent1);text-decoration:underline}
+  .wave-code{color:var(--accent1);font-family:'Space Mono',monospace;font-size:10px;margin-left:5px}
+  .wave-up{color:#ef4444}
+  .wave-down{color:#10b981}
+  .wave-warm{color:#fbbf24;font-weight:700}
+  .wave-hot{color:#f87171;font-weight:700}
   @media(max-width:700px){
     .csec-title{font-size:12.5px}
     .csec-sum{font-size:8.5px}
@@ -939,6 +961,13 @@
         </table>
       </div>
     </div>
+  </div>
+  <div class="wave-section" id="wave-section" style="display:none">
+    <div class="wave-header">
+      <span class="wave-title">📊 28 家連續五天股價和張數波動變化</span>
+      <span class="wave-subtitle">近 5 個交易日：股價振幅(最高/最低)＋成交量(張)波動。點欄位標題可排序，預設股價波動大者在前。僅供研究、非投資建議。</span>
+    </div>
+    <div class="wave-table-wrap"><table class="wave-table" id="wave-table"></table></div>
   </div>
   <div class="disclaimer-block">
     <strong>⚠️ 重要說明（僅供參考，不構成投資建議）</strong><br><br>
@@ -2582,6 +2611,7 @@ window.setupCollapsibles=function(){
       ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
       ['vc-parents-section','💼 創投母公司 × 投資組合（控股／孵化／併購型）','csum-vc'],
       ['vcsub-section','🔬 創投子公司情報（網址·興櫃·募資·臨床·每日新聞）','csum-vcsub'],
+      ['wave-section','📊 28 家連續五天股價和張數波動變化','csum-wave'],
     ].forEach(([id,title,sumId])=>{
       const el=document.getElementById(id);
       if(el) _csecWrap(el, title, sumId);
@@ -2758,6 +2788,69 @@ function renderVCSubs(){
   const _e2=document.getElementById('vc-scan-meta');
   if(_e2) _e2.textContent = _mt.lastRun ? `⏱ 最新掃描 ${_mt.lastRun}（UTC+8）· 名單人工策展、新聞每日掃描` : '';
 }
+// 📊 28 家連續五天股價/張數波動表（點欄位可排序，預設股價波動大者在前）
+let _waveSort={col:'priceWave',dir:-1};   // dir: -1 大→小, 1 小→大
+function _waveCompute(timelineData){
+  const rows=[];
+  (timelineData||[]).forEach(sec=>{(sec.companies||[]).forEach(c=>{
+    const closes=(c.priceHistory||[]).slice(-5).map(h=>h.close).filter(x=>x!=null);
+    const vols=(c.volHistory||[]).slice(-5).map(h=>h.vol).filter(x=>x!=null);
+    let price=null,chg5=null,priceWave=null;
+    if(closes.length>=2){
+      const mx=Math.max(...closes),mn=Math.min(...closes);
+      price=closes[closes.length-1];
+      chg5=closes[0]>0?(price-closes[0])/closes[0]*100:null;
+      priceWave=mn>0?(mx-mn)/mn*100:null;
+    }
+    let avgVol=null,volWave=null;
+    if(vols.length>=2){
+      const mx=Math.max(...vols),mn=Math.min(...vols);
+      avgVol=vols.reduce((a,b)=>a+b,0)/vols.length;
+      volWave=avgVol>0?(mx-mn)/avgVol*100:null;
+    }
+    rows.push({name:c.name,code:c.code,price,chg5,priceWave,avgVol,volWave});
+  });});
+  return rows;
+}
+function renderWaveTable(timelineData){
+  const tbl=document.getElementById('wave-table');
+  if(!tbl) return;
+  if(timelineData) window._waveRows=_waveCompute(timelineData);
+  const rows=(window._waveRows||[]).slice();
+  const {col,dir}=_waveSort;
+  rows.sort((a,b)=>{
+    if(col==='name') return dir*String(a.code).localeCompare(String(b.code));
+    const x=a[col],y=b[col];
+    if(x==null&&y==null) return 0;
+    if(x==null) return 1; if(y==null) return -1;
+    return dir*(x-y);
+  });
+  const cols=[
+    {k:'name',label:'公司'},{k:'price',label:'現價'},{k:'chg5',label:'5日漲跌'},
+    {k:'priceWave',label:'📈股價波動'},{k:'avgVol',label:'5日均量(張)'},{k:'volWave',label:'📊張數波動'}
+  ];
+  const arr=k=>_waveSort.col===k?(_waveSort.dir<0?' ▼':' ▲'):'';
+  const thead=`<thead><tr>${cols.map(c=>`<th onclick="sortWave('${c.k}')" title="點擊以此欄排序">${c.label}${arr(c.k)}</th>`).join('')}</tr></thead>`;
+  const body=`<tbody>${rows.map((r,i)=>{
+    const chgCls=r.chg5>0?'wave-up':(r.chg5<0?'wave-down':'');
+    const pwCls=(r.priceWave>=10)?'wave-hot':((r.priceWave>=5)?'wave-warm':'');
+    return `<tr>
+      <td class="wave-co"><span class="wave-rank">${i+1}</span><a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${r.code}" target="_blank" rel="noopener" class="wave-co-link">${r.name}<span class="wave-code">${r.code}</span></a></td>
+      <td class="num">${r.price==null?'—':r.price.toFixed(2)}</td>
+      <td class="num ${chgCls}">${r.chg5==null?'—':(r.chg5>0?'+':'')+r.chg5.toFixed(1)+'%'}</td>
+      <td class="num ${pwCls}">${r.priceWave==null?'—':r.priceWave.toFixed(1)+'%'}</td>
+      <td class="num">${r.avgVol==null?'—':Math.round(r.avgVol).toLocaleString()}</td>
+      <td class="num">${r.volWave==null?'—':r.volWave.toFixed(0)+'%'}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+  tbl.innerHTML=thead+body;
+  const sm=document.getElementById('csum-wave'); if(sm) sm.textContent=`${rows.length} 家 · 近 5 日波動`;
+}
+window.sortWave=function(col){
+  if(_waveSort.col===col) _waveSort.dir*=-1;
+  else { _waveSort.col=col; _waveSort.dir=(col==='name')?1:-1; }
+  renderWaveTable();
+};
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -2784,6 +2877,7 @@ Promise.all([
   window._timelineData = timelineData;  // 給 renderStatusBar 二次呼叫用
   renderStatusBar(statusData, newsData, timelineData);
   renderData(timelineData);
+  setTimeout(()=>{ try { renderWaveTable(timelineData); } catch(e){ console.warn('renderWaveTable fail', e); } }, 0);
   // 動態更新主時程表副標家數
   const _tsub = document.getElementById('timeline-subtitle');
   if(_tsub && timelineData){
