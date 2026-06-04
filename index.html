@@ -524,6 +524,8 @@
   .scan-provisions .dot{background:#fbbf24}
   .scan-highlights{background:linear-gradient(90deg,rgba(251,191,36,.18),rgba(245,158,11,.1));border-color:rgba(251,191,36,.4);color:#fde047}
   .scan-highlights .dot{background:#fde047}
+  .scan-vc{background:linear-gradient(90deg,rgba(236,72,153,.16),rgba(139,92,246,.1));border-color:rgba(236,72,153,.35);color:#f472b6}
+  .scan-vc .dot{background:#f472b6}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   /* 🗂️ 可收合區塊（10 個 table/卡片點擊展開）*/
   .csec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
@@ -664,7 +666,7 @@
   <details class="csec csec-status" id="scan-details">
     <summary class="csec-head">
       <span class="csec-arrow">▶</span>
-      <span class="csec-title" style="font-size:11.5px">📡 AI 紀錄時間更新：股價、新聞、集保、現金流等</span>
+      <span class="csec-title" style="font-size:11.5px">📡 AI 紀錄時間更新：股價、新聞、集保、現金流、創投等</span>
       <span class="csec-sum" id="scan-sum"></span>
     </summary>
     <div id="scan-bar" class="scan-bar"></div>
@@ -2492,16 +2494,31 @@ function renderStatusBar(status, newsData, timelineData){
       '影響：💰 27 家現金流餘額排行 · 🎯 AI 動態評分（現金跑道模組）&#10;排程：週六 06:00 TST（每週 1 次）'));
   }
 
+  // 8. 💼 創投母子公司（時間取自 vc_news.json 的 _meta）
+  const vcMeta=(window._vcNews||{})._meta;
+  if(vcMeta && vcMeta.lastRun){
+    const vn=window._vcNews||{};
+    const subCount=(typeof VC_SUBS!=='undefined')
+      ? VC_SUBS.filter(s=>!s.onlyNews||(vn[s.key]&&vn[s.key].title)).length : 0;
+    const stats=`💼 6 母公司 · ${subCount} 子公司在追蹤 · 新聞每日掃描`;
+    pills.push(buildPill('scan-vc',
+      '💼 創投母子公司', '🔄 每天 ×2 (06/15時)',
+      vcMeta.lastRun, stats,
+      '影響：💼 創投母公司 × 投資組合 · 🔬 創投子公司情報&#10;母公司名單人工策展；子公司新聞每日 06:00 + 15:00 TST 掃描更新'));
+  }
+
   bar.innerHTML=pills.join('');
   // 收合框摘要：項數 + 今日已更新幾項 + 最新一筆時間
   const ssum=document.getElementById('scan-sum');
   if(ssum && status){
     const keys=['prices','news','highlights','scores','provisions','holders','cashflow'];
     const runs=keys.map(k=>status[k]&&status[k].lastRun).filter(Boolean);
+    if(vcMeta&&vcMeta.lastRun) runs.push(vcMeta.lastRun);
     const latest=runs.sort().slice(-1)[0]||'';
     // 以「新聞掃描日」當今天基準（新聞每天都跑）
     const refToday=(status.news&&status.news.lastRunDate)||'';
-    const ranToday=keys.filter(k=>status[k]&&status[k].lastRunDate===refToday).length;
+    let ranToday=keys.filter(k=>status[k]&&status[k].lastRunDate===refToday).length;
+    if(vcMeta&&vcMeta.lastRunDate===refToday) ranToday++;
     ssum.textContent=`${pills.length} 項 · 今日已更新 ${ranToday} 項 · 最新 ${latest}`;
   }
 }
