@@ -600,6 +600,7 @@
   .vcsub-plan{background:rgba(255,193,7,.13);color:#ffd64a;border-color:rgba(255,193,7,.4)}
   .vcsub-merged{background:rgba(160,160,200,.12);color:#aab2c8;border-color:rgba(160,160,200,.3)}
   .vcsub-unknown{background:rgba(120,130,150,.1);color:#8b96a8;border-color:rgba(120,130,150,.3)}
+  .vcsub-tag{font-size:9.5px;padding:2px 7px;border-radius:9px;white-space:nowrap;background:rgba(0,212,255,.13);color:#5fd8ff;border:1px solid rgba(0,212,255,.35)}
   .vcsub-row{display:flex;gap:7px;font-size:11px;line-height:1.5;margin:3px 0}
   .vcsub-row .vk{color:var(--muted);white-space:nowrap;flex-shrink:0}
   .vcsub-row .vv{color:#cdd6e4}
@@ -2662,7 +2663,7 @@ window.updateCsecSummaries=function(){
 
 // 🔬 創投子公司情報（靜態策展資料；每日新聞由 vc_news.json 覆蓋 seedNews）
 const VC_SUBS=[
-  {key:'immunadd',tier:'pre',name:'優億 Immunadd',group:'鑽石系',parent:'鑽石生技投資 6901（2025 加碼超額募資）',
+  {key:'immunadd',tier:'pre',name:'優億 Immunadd',tag:'次世代佐劑',group:'鑽石系',parent:'鑽石生技投資 6901（2025 加碼超額募資）',
    status:{label:'未上市·剛募資',cls:'plan'},
    listing:'未公開（2022 成立·早期階段，未公告興櫃時程）',listingNote:'',
    web:'http://www.immunadd.com/',fund:'2025/9 鑽石加碼，超額募資達 4.5 億元',
@@ -2737,7 +2738,7 @@ function renderVCSubs(){
     const rows=[['📅 興櫃/上市',s.listing,s.listingNote],['💰 募資',s.fund,''],['🧪 領域/進度',s.field,'']]
       .map(([k,v,note])=>`<div class="vcsub-row"><span class="vk">${k}</span><span class="vv">${_vcEsc(v)||'未公開'}${note?`<span class="vnote">${_vcEsc(note)}</span>`:''}</span></div>`).join('');
     return `<div class="vcsub-card">
-      <div class="vcsub-top">${nameHtml}<span class="vcsub-badge vcsub-${s.status.cls}">${_vcEsc(s.status.label)}</span><span class="vcsub-parent">${_vcEsc(s.group)}｜${_vcEsc(s.parent)}</span></div>
+      <div class="vcsub-top">${nameHtml}<span class="vcsub-badge vcsub-${s.status.cls}">${_vcEsc(s.status.label)}</span>${s.tag?`<span class="vcsub-tag">${_vcEsc(s.tag)}</span>`:''}<span class="vcsub-parent">${_vcEsc(s.group)}｜${_vcEsc(s.parent)}</span></div>
       ${rows}
       <div class="vcsub-foot">${newsHtml}</div>
     </div>`;
