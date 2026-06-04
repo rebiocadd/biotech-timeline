@@ -356,9 +356,14 @@ def write_vc_news():
     for k in ONLY_NEWS:
         existing.pop(k, None)
     existing.update(found)
+    # 寫入最新掃描時間戳（前端母公司表/子公司表共用顯示）
+    _now = datetime.now(TAIPEI_TZ)
+    existing["_meta"] = {"lastRun": _now.strftime("%Y/%m/%d %H:%M"),
+                          "lastRunDate": _now.strftime("%m/%d"), "tz": "UTC+8"}
     with open(VC_NEWS_PATH, "w", encoding="utf-8") as f:
         json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
-    print(f" 🔬 子公司新聞：本次更新 {len(found)} 家（vc_news.json 共 {len(existing)} 家）")
+    _ncomp = len([k for k in existing if k != "_meta"])
+    print(f" 🔬 子公司新聞：本次更新 {len(found)} 家（vc_news.json 共 {_ncomp} 家）· {existing['_meta']['lastRun']}")
 
 
 def main():

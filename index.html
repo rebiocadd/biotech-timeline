@@ -608,6 +608,7 @@
   .vcsub-web:hover,.vcsub-news:hover{text-decoration:underline}
   .vcsub-na{font-size:10.5px;color:#6b7688}
   .vcsub-note{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:14px;border-top:1px dashed var(--border);padding-top:10px}
+  .vc-scan,.vcsub-scan{font-size:10px;color:var(--accent1);font-family:'Space Mono',monospace;margin-top:5px;display:block;opacity:.85}
   @media(max-width:700px){
     .csec-title{font-size:12.5px}
     .csec-sum{font-size:8.5px}
@@ -787,6 +788,7 @@
     <div class="vc-header">
       <span class="vc-title">💼 創投母公司 × 投資組合</span>
       <span class="vc-subtitle">控股／孵化／併購型生技公司及其主要轉投資。⭐ = 你正在追蹤的子公司；母公司常領先反映子公司利多。持股%為約略值、會變動，僅供研究非投資建議。</span>
+      <span class="vc-scan" id="vc-scan-meta"></span>
     </div>
     <div class="vc-table-wrap">
       <table class="vc-table">
@@ -872,6 +874,7 @@
     <div class="vcsub-header">
       <span class="vcsub-title">🔬 創投子公司情報</span>
       <span class="vcsub-subtitle">母公司旗下未上市／興櫃子公司的網址·興櫃推估·募資·臨床進度·最新新聞。標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠資料、未臆測。每日 06:00 掃描更新新聞。僅供研究、非投資建議。</span>
+      <span class="vcsub-scan" id="vcsub-scan-meta"></span>
     </div>
     <div id="vcsub-body"></div>
   </div>
@@ -2730,6 +2733,12 @@ function renderVCSubs(){
     `<div class="vcsub-grouptitle">📈 已登錄興櫃／上櫃（${B.length}·已可查/交易）</div><div class="vcsub-grid">${B.map(card).join('')}</div>`+
     `<div class="vcsub-note">⚠️ best-effort 整理：標「推估」為依公開新聞推估、非公司公告；「未公開」為查無可靠公開資料、未臆測。每日 06:00 隨新聞掃描更新各公司最新一則新聞。部分子公司（如美台/榮港/協和/地天泰/伊甸）平時隱藏，僅在掃到最新消息時才自動出現。資料來源：各公司官網／法說、環球生技、GeneOnline、經濟日報等。</div>`;
   const _sm=document.getElementById('csum-vcsub'); if(_sm) _sm.textContent=`${A.length} 未上市 · ${B.length} 已興櫃/上櫃`;
+  // ⏱ 最新掃描時間（母公司表 + 子公司表共用 vc_news.json 的 _meta）
+  const _mt=(news && news._meta) || {};
+  const _e1=document.getElementById('vcsub-scan-meta');
+  if(_e1) _e1.textContent = _mt.lastRun ? `⏱ 最新掃描 ${_mt.lastRun}（UTC+8）· 每日 06:00／15:00 自動更新` : '⏱ 尚未掃描';
+  const _e2=document.getElementById('vc-scan-meta');
+  if(_e2) _e2.textContent = _mt.lastRun ? `⏱ 最新掃描 ${_mt.lastRun}（UTC+8）· 名單人工策展、新聞每日掃描` : '';
 }
 // 並行載入所有資料，再渲染時間表
 Promise.all([
