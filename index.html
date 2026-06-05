@@ -969,8 +969,8 @@
   </div>
   <div class="wave-section" id="wave-section" style="display:none">
     <div class="wave-header">
-      <span class="wave-title">📊 28 家連續五天股價和張數波動變化</span>
-      <span class="wave-subtitle">連續 5 個交易日逐日呈現：每天收盤價／日漲跌％／成交量(張)。點欄位標題可排序，預設股價波動大者在前。紅漲綠跌。僅供研究、非投資建議。</span>
+      <span class="wave-title">📊 28 家連續十天股價和張數波動變化</span>
+      <span class="wave-subtitle">連續 10 個交易日逐日呈現：每天收盤價／日漲跌％／成交量(張)。點欄位標題可排序，預設股價波動大者在前。紅漲綠跌。可左右捲動看完整 10 天。僅供研究、非投資建議。</span>
     </div>
     <div class="wave-table-wrap"><table class="wave-table" id="wave-table"></table></div>
   </div>
@@ -2616,7 +2616,7 @@ window.setupCollapsibles=function(){
       ['__cash-box','💰 28 家現金流餘額排行','csum-cash'],
       ['vc-parents-section','💼 創投母公司 × 投資組合（控股／孵化／併購型）','csum-vc'],
       ['vcsub-section','🔬 創投子公司情報（網址·興櫃·募資·臨床·每日新聞）','csum-vcsub'],
-      ['wave-section','📊 28 家連續五天股價和張數波動變化','csum-wave'],
+      ['wave-section','📊 28 家連續十天股價和張數波動變化','csum-wave'],
     ].forEach(([id,title,sumId])=>{
       const el=document.getElementById(id);
       if(el) _csecWrap(el, title, sumId);
@@ -2798,7 +2798,7 @@ let _waveSort={col:'priceWave',dir:-1};   // dir: -1 大→小, 1 小→大
 function _waveCompute(timelineData){
   const rows=[];
   (timelineData||[]).forEach(sec=>{(sec.companies||[]).forEach(c=>{
-    const w=(c.wave5||[]).slice(-5);   // [{date,close,vol}]，同源對齊
+    const w=(c.wave10||[]).slice(-10);   // [{date,close,vol}]，同源對齊
     const closes=w.map(d=>d.close).filter(x=>x!=null);
     const vols=w.map(d=>d.vol).filter(x=>x!=null);
     let priceWave=null,volWave=null;
@@ -2815,7 +2815,7 @@ function renderWaveTable(timelineData){
   const rows=(window._waveRows||[]).slice();
   // 共同 5 個日期（各家 wave5 日期聯集取最後 5）+ 每家 date->{close,vol}
   const freq={}; rows.forEach(r=>r.days.forEach(d=>{freq[d.date]=(freq[d.date]||0)+1;}));
-  const dates=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,5)
+  const dates=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,10)
     .sort((a,b)=>{const[am,ad]=a.split('/').map(Number),[bm,bd]=b.split('/').map(Number);return am-bm||ad-bd;});
   rows.forEach(r=>{r.map={};r.days.forEach(d=>r.map[d.date]={close:d.close,vol:d.vol});});
   const {col,dir}=_waveSort;
@@ -2849,7 +2849,7 @@ function renderWaveTable(timelineData){
     return `<tr>${tds}</tr>`;
   }).join('');
   tbl.innerHTML=`<thead><tr>${th}</tr></thead><tbody>${body}</tbody>`;
-  const sm=document.getElementById('csum-wave'); if(sm) sm.textContent=`${rows.length} 家 · 連續 5 日逐日`;
+  const sm=document.getElementById('csum-wave'); if(sm) sm.textContent=`${rows.length} 家 · 連續 10 日逐日`;
 }
 window.sortWave=function(col){
   if(_waveSort.col===col) _waveSort.dir*=-1;

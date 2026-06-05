@@ -234,9 +234,10 @@ def main():
                 if history:
                     # priceHistory 維持收盤價（餵 MA/條紋），不夾帶量避免肥大
                     company["priceHistory"] = [{"date": h["date"], "close": h["close"]} for h in history]
-                    # wave5：近 5 交易日 {date, close, vol(張)} 同源對齊，供「5 日逐日表」用
-                    company["wave5"] = history[-5:]
-                    company.pop("volHistory", None)   # 移除舊欄位
+                    # wave10：近 10 交易日 {date, close, vol(張)} 同源對齊，供「10 日逐日表」用
+                    company["wave10"] = history[-10:]
+                    company.pop("wave5", None)        # 移除舊欄位
+                    company.pop("volHistory", None)
                 ok_count += 1
             else:
                 fail_list.append(f"{name}({code})")
