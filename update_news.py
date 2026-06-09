@@ -236,6 +236,12 @@ def scan_company(code, name, drugs=None):
     JUNK_KEYWORDS = ['股市爆料同學會', '爆料同學會', 'Mobile01', 'Dcard',
                       '最具洞見', '文章集合', '市場趨勢文章', '個股分析文章',
                       '報明牌', '飆股名單', '神單', '存股名單', '當沖', '隔日沖']
+    # 藥祇(7878) 專屬：使用者指定只保留正向/中性，含下列負面字眼一律過濾（僅此公司）
+    NEG_7878 = ['跌破', '破發', '重挫', '暴跌', '大跌', '跌停', '摜破', '崩跌', '腰斬', '跳水',
+                '賣壓', '套牢', '殺低', '虧損', '衰退', '下滑', '不如預期', '疲弱', '下修', '減資',
+                '失敗', '未達標', '未通過', '退件', '駁回', '喊卡', '終止', '解盲失', '不顯著', '無效',
+                '警示', '處置股', '變更交易', '下市', '違約', '掏空', '訴訟', '起訴', '求償', '裁罰',
+                '違規', '弊案', '假帳', '跳票', '利空', '疑慮', '爭議', '風暴', '危機', '崩盤', '停損']
     for it in items:
         pub = parse_rss_date(it["pubDate"])
         if not pub or pub < cutoff:
@@ -252,6 +258,9 @@ def scan_company(code, name, drugs=None):
             continue
         # 排除論壇/內容農場/明牌等「非理性」非新聞來源
         if any(j in title for j in JUNK_KEYWORDS):
+            continue
+        # 藥祇(7878) 專屬：濾掉負面新聞（僅此公司，使用者指定）
+        if code == '7878' and any(neg in title for neg in NEG_7878):
             continue
         pub_taipei = pub.astimezone(TAIPEI_TZ)
         fresh_news.append({
