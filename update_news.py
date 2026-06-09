@@ -232,6 +232,10 @@ def scan_company(code, name, drugs=None):
     NOISE_KEYWORDS = ['黃仁勳', 'Jensen Huang', '輝達', 'Nvidia', '張忠謀', '蘋果', 'Apple',
                        'TSMC', '台積電', '鴻海', '聯發科', '台達電', '富邦', '玉山', '中華電',
                        '凱基證', '凱基銀', '券商分點', '00919', '00407', 'ETF']
+    # 非理性/非新聞來源（論壇貼文、內容農場、明牌名單）— 過濾掉，保留正規媒體報導
+    JUNK_KEYWORDS = ['股市爆料同學會', '爆料同學會', 'Mobile01', 'Dcard',
+                      '最具洞見', '文章集合', '市場趨勢文章', '個股分析文章',
+                      '報明牌', '飆股名單', '神單', '存股名單', '當沖', '隔日沖']
     for it in items:
         pub = parse_rss_date(it["pubDate"])
         if not pub or pub < cutoff:
@@ -245,6 +249,9 @@ def scan_company(code, name, drugs=None):
             continue
         # 二次過濾：排除標題含明確污染詞的新聞（即使含公司短名也擋）
         if any(noise in title for noise in NOISE_KEYWORDS):
+            continue
+        # 排除論壇/內容農場/明牌等「非理性」非新聞來源
+        if any(j in title for j in JUNK_KEYWORDS):
             continue
         pub_taipei = pub.astimezone(TAIPEI_TZ)
         fresh_news.append({
