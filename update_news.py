@@ -165,6 +165,18 @@ def is_clinical(title):
     return any(kw in title for kw in CLINICAL_KEYWORDS)
 
 
+# 特定公司加強搜尋：補上更多來源/關鍵字查詢（多多尋找新聞，使用者指定）
+EXTRA_QUERIES = {
+    '7878': [  # 藥祇生醫
+        '藥祇生醫', '藥祇 新藥', '藥祇 糖尿病', '藥祇 解盲',
+        'Pharmasaga 藥祇', 'PS-001', 'PDIA4',
+        'site:money.udn.com 藥祇', 'site:cnyes.com 藥祇',
+        'site:wantgoo.com 藥祇生醫', 'site:technews.tw 藥祇',
+        'site:gbimonthly.com 藥祇', '藥祇 楊文欽',
+    ],
+}
+
+
 def fetch_all_for_company(company):
     """多重 query 搜尋一家公司：
        Q1. 全名 + code      (例：藥祇生醫 7878)
@@ -192,10 +204,15 @@ def fetch_all_for_company(company):
     # 重要生技媒體專門搜尋（補強 generic query 漏抓）
     queries.append(f"site:ctee.com.tw {short}")        # 工商時報（user 指定）
     queries.append(f"site:gbimonthly.com {short}")     # 環球生技月刊
+    # 加強名單（如藥祇）：補更多來源/關鍵字，多多尋找新聞
+    queries += EXTRA_QUERIES.get(code, [])
+    _seenq = set()
+    queries = [q for q in queries if not (q in _seenq or _seenq.add(q))]
 
     seen_links = set()
     all_items = []
-    for q in queries[:8]:   # 最多 8 個 query
+    _cap = 8 + len(EXTRA_QUERIES.get(code, []))   # 一般 8 個；加強名單更多
+    for q in queries[:_cap]:
         try:
             xml = fetch_rss(q)
             items = parse_rss(xml)
@@ -224,7 +241,8 @@ def scan_company(code, name, drugs=None):
         return {"error": str(e), "news": []}
 
     now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=DAYS_FRESH)
+    _days_fresh = 60 if code == '7878' else DAYS_FRESH   # 藥祇加強：放寬到 60 天，多多尋找
+    cutoff = now - timedelta(days=_days_fresh)
     short = short_name(name)
 
     fresh_news = []
@@ -483,7 +501,7 @@ def main():
         best_news = min(scored, key=lambda x: (x['rank'], x['order']))
         # 額外：特別關注的公司在主列底下多顯示 N 條子新聞（其他公司保持簡潔）
         # 格式：{代號: 補充新聞條數}
-        WATCHLIST_EXTRA_NEWS = {'7878': 4, '6945': 2}   # 藥祇 4 條、圓祥 2 條
+        WATCHLIST_EXTRA_NEWS = {'7878': 8, '6945': 2}   # 藥祇 8 條（多多尋找）、圓祥 2 條
         secondary = []
         _extra_n = WATCHLIST_EXTRA_NEWS.get(code, 0)
         if _extra_n:

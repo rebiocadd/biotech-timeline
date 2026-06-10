@@ -4,8 +4,10 @@ on:
   schedule:
     - cron: '0 22 * * 0-4'  # 06:00 TST prices (週一-五，UTC 22:00 為前一日)
     - cron: '0 7 * * 1-5'   # 15:00 TST prices (收盤後)
-    - cron: '0 22 * * *'    # 06:00 TST news/highlights/scores/provisions/news_summary（每天）
-    - cron: '0 7 * * *'     # 15:00 TST news/highlights/scores/provisions/news_summary（每天，下午二次掃描）
+    - cron: '0 22 * * *'    # 06:00 TST news（每天，一日四掃 1/4）
+    - cron: '0 2 * * *'     # 10:00 TST news（每天，一日四掃 2/4）
+    - cron: '0 7 * * *'     # 15:00 TST news（每天，一日四掃 3/4）
+    - cron: '0 12 * * *'    # 20:00 TST news（每天，一日四掃 4/4）
     - cron: '0 22 * * 5'    # 06:00 TST Sat holders/cashflow (UTC 22:00 Fri = TST 06:00 Sat)
   workflow_dispatch:
     inputs:
@@ -55,7 +57,7 @@ jobs:
     needs: update-prices
     if: |
       always() && (
-        (github.event_name == 'schedule' && (github.event.schedule == '0 22 * * *' || github.event.schedule == '0 7 * * *')) ||
+        (github.event_name == 'schedule' && (github.event.schedule == '0 22 * * *' || github.event.schedule == '0 2 * * *' || github.event.schedule == '0 7 * * *' || github.event.schedule == '0 12 * * *')) ||
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'news' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest
