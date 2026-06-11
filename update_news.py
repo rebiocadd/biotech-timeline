@@ -232,9 +232,9 @@ def fetch_all_for_company(company):
 MOPS_NEWS_CODES = {'7878'}   # 從公開資訊觀測站(MOPS)重大訊息抓新聞的公司
 
 
-def fetch_mops_news(code, cutoff):
-    """從公開資訊觀測站 t146sb05 抓近期重大訊息（官方權威來源），回傳 [{title,link,date,ts}]。"""
-    rows = []
+def fetch_mops(code, cutoff):
+    """從 MOPS t146sb05 抓「重大訊息」+「內部人持股異動」，回傳 [{title,link,date,ts}]。"""
+    res = None
     for _try in range(3):   # 重試，避免單次連線失敗就漏抓
         try:
             req = urllib.request.Request(
@@ -245,15 +245,16 @@ def fetch_mops_news(code, cutoff):
                 method='POST')
             with urllib.request.urlopen(req, timeout=20) as r:
                 j = json.loads(r.read().decode('utf-8'))
-            rows = (((j.get('result') or {}).get('recent_important_news') or {}).get('data')) or []
-            if rows:
+            res = j.get('result') or {}
+            if res:
                 break
         except Exception:
             time.sleep(1.5)
-    if not rows:
+    if not res:
         return []
     out, seen = [], set()
-    for row in rows:
+    # 1) 重大訊息
+    for row in (((res.get('recent_important_news') or {}).get('data')) or []):
         try:
             roc, raw = row[0], (row[1] or '')
             title = re.sub(r'\s+', ' ', raw.replace('\r', ' ').replace('\n', ' ')).strip()
@@ -261,7 +262,6 @@ def fetch_mops_news(code, cutoff):
             dt = datetime(int(y) + 1911, int(mo), int(d), tzinfo=TAIPEI_TZ)
             if dt < cutoff:
                 continue
-            # 去掉（更正）（補充）標記後當去重核心，避免同一公告多版本重複
             core = re.sub(r'[（(](更正|補充)[^）)]*[）)]', '', title)
             core = re.sub(r'[\s（）()，、,：:]+', '', core)[:24]
             if core in seen:
@@ -270,6 +270,32 @@ def fetch_mops_news(code, cutoff):
             out.append({
                 'title': (title + ' - 公開資訊觀測站')[:140],
                 'link': f'https://mops.twse.com.tw/mops/#/web/t146sb05?companyId={code}',
+                'date': dt.strftime('%m/%d'),
+                'ts': int(dt.timestamp()),
+            })
+        except Exception:
+            continue
+    # 2) 內部人持股異動（月彙總；有異動才當消息）
+    for row in (((res.get('changes_insider_ownership') or {}).get('data')) or []):
+        try:
+            period, shares, chg, total = row[0], row[1], row[2], row[3]
+            chg_v = float(str(chg).replace('%', '').replace(',', '').strip())
+            if abs(chg_v) < 0.01:               # 無異動，不算消息
+                continue
+            if code == '7878' and chg_v < 0:    # 藥祇只留正向（增持），減持不顯示
+                continue
+            y = int(period[:3]) + 1911
+            m = int(period[3:5])
+            nxt = datetime(y + (1 if m == 12 else 0), 1 if m == 12 else m + 1, 1, tzinfo=TAIPEI_TZ)
+            dt = nxt - timedelta(days=1)          # 該月月底
+            if dt < cutoff:
+                continue
+            sign = '+' if chg_v > 0 else ''
+            title = (f"📊 內部人持股異動 {period[:3]}/{period[3:5]}：{shares} 張、"
+                     f"較前月 {sign}{chg_v:.2f}%、占股本 {total} - 公開資訊觀測站(內部人持股)")
+            out.append({
+                'title': title[:140],
+                'link': f'https://mops.twse.com.tw/mops/#/web/query6_1?dataType=1&companyId={code}',
                 'date': dt.strftime('%m/%d'),
                 'ts': int(dt.timestamp()),
             })
@@ -339,7 +365,7 @@ def scan_company(code, name, drugs=None):
 
     # 公開資訊觀測站(MOPS) 重大訊息 — 指定公司（官方權威來源，使用者指定）
     if code in MOPS_NEWS_CODES:
-        for m in fetch_mops_news(code, cutoff):
+        for m in fetch_mops(code, cutoff):
             t = m["title"]
             if any(j in t for j in JUNK_KEYWORDS):
                 continue
