@@ -10,7 +10,7 @@ update_news.py - 每日自動掃描公司臨床進度新聞
   python update_news.py --push   # 更新後自動 git commit & push
 """
 
-import json, re, sys, os, subprocess
+import json, re, sys, os, subprocess, time
 import urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
 
@@ -229,6 +229,55 @@ def fetch_all_for_company(company):
     return all_items
 
 
+MOPS_NEWS_CODES = {'7878'}   # 從公開資訊觀測站(MOPS)重大訊息抓新聞的公司
+
+
+def fetch_mops_news(code, cutoff):
+    """從公開資訊觀測站 t146sb05 抓近期重大訊息（官方權威來源），回傳 [{title,link,date,ts}]。"""
+    rows = []
+    for _try in range(3):   # 重試，避免單次連線失敗就漏抓
+        try:
+            req = urllib.request.Request(
+                'https://mops.twse.com.tw/mops/api/t146sb05',
+                data=json.dumps({'companyId': code}).encode('utf-8'),
+                headers={'User-Agent': 'Mozilla/5.0',
+                         'Content-Type': 'application/json', 'Accept': 'application/json'},
+                method='POST')
+            with urllib.request.urlopen(req, timeout=20) as r:
+                j = json.loads(r.read().decode('utf-8'))
+            rows = (((j.get('result') or {}).get('recent_important_news') or {}).get('data')) or []
+            if rows:
+                break
+        except Exception:
+            time.sleep(1.5)
+    if not rows:
+        return []
+    out, seen = [], set()
+    for row in rows:
+        try:
+            roc, raw = row[0], (row[1] or '')
+            title = re.sub(r'\s+', ' ', raw.replace('\r', ' ').replace('\n', ' ')).strip()
+            y, mo, d = roc.split('/')
+            dt = datetime(int(y) + 1911, int(mo), int(d), tzinfo=TAIPEI_TZ)
+            if dt < cutoff:
+                continue
+            # 去掉（更正）（補充）標記後當去重核心，避免同一公告多版本重複
+            core = re.sub(r'[（(](更正|補充)[^）)]*[）)]', '', title)
+            core = re.sub(r'[\s（）()，、,：:]+', '', core)[:24]
+            if core in seen:
+                continue
+            seen.add(core)
+            out.append({
+                'title': (title + ' - 公開資訊觀測站')[:140],
+                'link': f'https://mops.twse.com.tw/mops/#/web/t146sb05?companyId={code}',
+                'date': dt.strftime('%m/%d'),
+                'ts': int(dt.timestamp()),
+            })
+        except Exception:
+            continue
+    return out
+
+
 def scan_company(code, name, drugs=None):
     """掃描單家公司的最新新聞（強化版）
     - 多重 query
@@ -288,6 +337,16 @@ def scan_company(code, name, drugs=None):
             "ts": int(pub.timestamp()),
         })
 
+    # 公開資訊觀測站(MOPS) 重大訊息 — 指定公司（官方權威來源，使用者指定）
+    if code in MOPS_NEWS_CODES:
+        for m in fetch_mops_news(code, cutoff):
+            t = m["title"]
+            if any(j in t for j in JUNK_KEYWORDS):
+                continue
+            if code == '7878' and any(neg in t for neg in NEG_7878):
+                continue
+            fresh_news.append(m)
+
     fresh_news.sort(key=lambda x: x["ts"], reverse=True)
     # 移除重複標題（不同來源同一新聞）
     seen_titles = set()
@@ -298,7 +357,7 @@ def scan_company(code, name, drugs=None):
             continue
         seen_titles.add(title_key)
         deduped.append(n)
-    return {"news": deduped[:8]}
+    return {"news": deduped[:(12 if code in MOPS_NEWS_CODES else 8)]}
 
 # 🔬 創投子公司每日新聞掃描（寫入 vc_news.json）
 # 這些公司多無股票代號、短名易撞名（美台/協和/榮港），故要求標題命中「完整名稱或代號」避免污染。
