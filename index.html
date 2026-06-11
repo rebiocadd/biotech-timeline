@@ -526,6 +526,8 @@
   .scan-highlights .dot{background:#fde047}
   .scan-vc{background:linear-gradient(90deg,rgba(236,72,153,.16),rgba(139,92,246,.1));border-color:rgba(236,72,153,.35);color:#f472b6}
   .scan-vc .dot{background:#f472b6}
+  .scan-wave{background:linear-gradient(90deg,rgba(20,184,166,.16),rgba(0,212,255,.1));border-color:rgba(20,184,166,.4);color:#2dd4bf}
+  .scan-wave .dot{background:#2dd4bf}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   /* 🗂️ 可收合區塊（10 個 table/卡片點擊展開）*/
   .csec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
@@ -1021,6 +1023,7 @@
     <div class="wave-header">
       <span class="wave-title">📊 28 家連續十天股價和張數波動變化</span>
       <span class="wave-subtitle">連續 10 個交易日逐日呈現：每天收盤價／日漲跌％／成交量(張)。點欄位標題可排序，預設股價波動大者在前。紅漲綠跌。可左右捲動看完整 10 天。僅供研究、非投資建議。</span>
+      <span class="vc-scan" id="wave-scan-meta"></span>
     </div>
     <div class="wave-table-wrap"><table class="wave-table" id="wave-table"></table></div>
   </div>
@@ -2484,7 +2487,7 @@ function renderStatusBar(status, newsData, timelineData){
     pills.push(buildPill('scan-prices',
       '💰 股價更新', '🔄 平日 ×2 (06/15時)',
       status.prices.lastRun, stats,
-      '影響：🗓️ 主時程表 · 🔵 今年解盲 · 📈 近 5 日收盤條紋&#10;排程：平日 06:00、15:00 TST（共 2 次）'));
+      '影響：🗓️ 主時程表 · 🔵 今年解盲 · 📈 近 5 日收盤條紋 · 📊 十日波動表&#10;排程：平日 06:00、15:30 TST（共 2 次）'));
   }
 
   // 2. 📰 新聞掃描
@@ -2585,7 +2588,15 @@ function renderStatusBar(status, newsData, timelineData){
       '影響：💰 27 家現金流餘額排行 · 🎯 AI 動態評分（現金跑道模組）&#10;排程：週六 06:00 TST（每週 1 次）'));
   }
 
-  // 8. 💼 創投母子公司（時間取自 vc_news.json 的 _meta）
+  // 8. 📊 十日波動表（資料隨股價掃描更新；平日 06:00 + 15:00 收盤後）
+  if(status && status.prices && status.prices.lastRun){
+    pills.push(buildPill('scan-wave',
+      '📊 十日波動表', '🔄 每天 ×2 (06/15時)',
+      status.prices.lastRun, '📈 28 家 × 連續 10 交易日 股價/張數',
+      '影響：📊 28 家連續十天股價和張數波動變化&#10;資料隨股價掃描更新（含三點過後 15:30 一次）&#10;排程：平日 06:00、15:30 TST（共兩次）'));
+  }
+
+  // 9. 💼 創投母子公司（時間取自 vc_news.json 的 _meta）
   const vcMeta=(window._vcNews||{})._meta;
   if(vcMeta && vcMeta.lastRun){
     const vn=window._vcNews||{};
@@ -2609,6 +2620,7 @@ function renderStatusBar(status, newsData, timelineData){
     // 以「新聞掃描日」當今天基準（新聞每天都跑）
     const refToday=(status.news&&status.news.lastRunDate)||'';
     let ranToday=keys.filter(k=>status[k]&&status[k].lastRunDate===refToday).length;
+    if(status.prices&&status.prices.lastRunDate===refToday) ranToday++;   // 📊 十日波動表（同股價來源）
     if(vcMeta&&vcMeta.lastRunDate===refToday) ranToday++;
     ssum.textContent=`${pills.length} 項 · 今日已更新 ${ranToday} 項 · 最新 ${latest}`;
   }
@@ -2906,6 +2918,10 @@ function renderWaveTable(timelineData){
   }).join('');
   tbl.innerHTML=`<thead><tr>${th}</tr></thead><tbody>${body}</tbody>`;
   const sm=document.getElementById('csum-wave'); if(sm) sm.textContent=`${rows.length} 家 · 連續 10 日逐日`;
+  // ⏱ 時間註解：波動資料來自股價掃描（平日 06:00 + 15:00 收盤後，共兩次）
+  const _ps=(window._statusData||{}).prices||{};
+  const _wm=document.getElementById('wave-scan-meta');
+  if(_wm) _wm.textContent=_ps.lastRun?`⏱ 最新抓取 ${_ps.lastRun}（UTC+8）· 每天 06:00 與 15:30（三點過後/收盤後）共兩次`:'';
 }
 window.sortWave=function(col){
   if(_waveSort.col===col) _waveSort.dir*=-1;

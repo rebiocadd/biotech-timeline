@@ -3,7 +3,7 @@ name: 自動更新（股價/新聞/千張）
 on:
   schedule:
     - cron: '0 22 * * 0-4'  # 06:00 TST prices (週一-五，UTC 22:00 為前一日)
-    - cron: '0 7 * * 1-5'   # 15:00 TST prices (收盤後)
+    - cron: '30 7 * * 1-5'  # 15:30 TST prices (三點過後/收盤後，含十日波動表 wave10)
     - cron: '0 22 * * *'    # 06:00 TST news（每天，一日四掃 1/4）
     - cron: '0 2 * * *'     # 10:00 TST news（每天，一日四掃 2/4）
     - cron: '0 7 * * *'     # 15:00 TST news（每天，一日四掃 3/4）
@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   update-prices:
-    if: github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 0-4' || github.event.schedule == '0 7 * * 1-5') || github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'prices' || github.event.inputs.task == 'all')
+    if: github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 0-4' || github.event.schedule == '30 7 * * 1-5') || github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'prices' || github.event.inputs.task == 'all')
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
