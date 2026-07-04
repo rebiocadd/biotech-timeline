@@ -704,6 +704,14 @@
   .search-bar input:focus{box-shadow:0 0 0 3px rgba(0,212,255,.15)}
   .co-suggest{display:none;position:absolute;top:47px;left:0;right:0;background:#0f1828;border:1px solid var(--border);border-radius:10px;z-index:60;max-height:340px;overflow-y:auto;box-shadow:0 16px 40px rgba(0,0,0,.5)}
   .co-suggest.show{display:block}
+  /* 📅 資料新鮮度守門員 */
+  .freshbar{margin:8px auto 0;padding:7px 14px;border-radius:8px;font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--border);font-family:'Noto Sans TC',sans-serif;line-height:1.55;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+  .freshbar.stale{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.45)}
+  .freshbar-warn{color:#fbbf24;font-weight:700}
+  .freshbar-asof{color:var(--muted)}
+  .freshbar-asof b{color:#9fb3c8;font-family:'Space Mono',monospace}
+  .freshbar-x{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);font-size:10px;border-radius:10px;padding:2px 9px;cursor:pointer;white-space:nowrap}
+  .freshbar-x:hover{color:#fff;border-color:var(--accent1)}
   .co-opt{padding:9px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);color:#cdd6e4}
   .co-opt:hover{background:rgba(0,212,255,.1)}
   .co-opt b{color:#fff}
@@ -758,6 +766,7 @@
     <input id="co-search" type="text" placeholder="🔍 搜尋公司檔案：輸入名稱或代號（例：藥祇 或 7878）" autocomplete="off" oninput="onCoSearch()" onkeydown="onCoKey(event)" onfocus="onCoSearch()">
     <div id="co-suggest" class="co-suggest"></div>
   </div>
+  <div id="freshbar" class="freshbar" style="display:none"></div>
   <div class="legend">
     <span class="legend-label">類型</span>
     <div class="legend-item"><span class="legend-dot" style="background:#00d4ff"></span>解盲/數據讀出</div>
@@ -3043,6 +3052,53 @@ function openCompanyProfile(code){
 function closeProfile(){ const o=document.getElementById('profile-overlay'); if(o) o.classList.remove('show'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const o=document.getElementById('profile-overlay'); if(o&&o.classList.contains('show')) closeProfile(); } });
 document.addEventListener('click',e=>{ const sb=document.querySelector('.search-bar'); if(sb&&!sb.contains(e.target)){ const sg=document.getElementById('co-suggest'); if(sg) sg.classList.remove('show'); } });
+// 📅 資料新鮮度守門員：透明化真實收盤日 + 只在「真的漏更新」時警示（避開週末誤報）
+function _fbParseMd(mmdd, now){
+  if(!mmdd || !/^\d\d?\/\d\d?$/.test(mmdd)) return null;
+  const [m,d]=mmdd.split('/').map(Number);
+  const dt=new Date(now.getFullYear(), m-1, d);
+  if(dt - now > 180*864e5) dt.setFullYear(now.getFullYear()-1);  // 跨年（1月看到12月資料）
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function _fbLastTradingDay(now){
+  // 「應有收盤」的最近交易日：平日 18:00 後=今天；否則往回找最近的已收盤平日（跳過週末）
+  const d=new Date(now);
+  const weekdayClosed = d.getDay()>=1 && d.getDay()<=5 && d.getHours()>=18;
+  if(!weekdayClosed){ do { d.setDate(d.getDate()-1); } while(d.getDay()===0 || d.getDay()===6); }
+  d.setHours(0,0,0,0);
+  return d;
+}
+function checkFreshness(){
+  const bar=document.getElementById('freshbar'); if(!bar) return;
+  const now=new Date();
+  const S=window._statusData||{};
+  // 股價實際收盤日 = wave10 各公司最後一天取最大
+  let pMd='', pDate=null;
+  (window._timelineData||[]).forEach(s=>(s.companies||[]).forEach(c=>{
+    const w=c.wave10||[]; if(w.length){ const dt=_fbParseMd(w[w.length-1].date, now); if(dt&&(!pDate||dt>pDate)){pDate=dt; pMd=w[w.length-1].date;} }
+  }));
+  const hMd=(S.holders||{}).dataDate||(S.holders||{}).lastRunDate||'';
+  const nMd=(S.news||{}).lastRunDate||'';
+  const asof=[];
+  if(pMd) asof.push(`股價 <b>${pMd}</b>`);
+  if(hMd) asof.push(`集保 <b>${hMd}</b>`);
+  if(nMd) asof.push(`新聞 <b>${nMd}</b>`);
+  const warns=[];
+  if(pDate){
+    const exp=_fbLastTradingDay(now);
+    if(pDate < exp){
+      warns.push(`股價/波動可能延遲：停在 ${pMd}，預期應為 ${exp.getMonth()+1}/${exp.getDate()}（多為排程掃描延遲，稍後會自動補上）`);
+    }
+  }
+  // 新聞：落後今天 2 天以上才提醒（新聞每天多掃）
+  if(nMd){ const nd=_fbParseMd(nMd, now); const t0=new Date(); t0.setHours(0,0,0,0); if(nd){ const behind=Math.round((t0-nd)/864e5); if(behind>=2) warns.push(`新聞停在 ${nMd}，已 ${behind} 天未更新`); } }
+  bar.classList.toggle('stale', warns.length>0);
+  const warnHtml = warns.length ? `<span class="freshbar-warn">⚠️ ${warns.join('；')}</span>` : '';
+  const asofHtml = `<span class="freshbar-asof">📅 資料截至 · ${asof.join(' · ')}（UTC+8）</span>`;
+  bar.innerHTML = warnHtml + asofHtml + `<button class="freshbar-x" onclick="document.getElementById('freshbar').style.display='none'">知道了</button>`;
+  bar.style.display='flex';
+}
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -3097,6 +3153,7 @@ Promise.all([
   }
   // 🗂️ 全部區塊包成可收合（預設收合）
   window.setupCollapsibles();
+  try { checkFreshness(); } catch(e){ console.warn('checkFreshness fail', e); }   // 📅 資料新鮮度守門員
   document.getElementById('topbar')?.classList.add('done');   // 載入完成，收起頂部進度條
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';document.getElementById('topbar')?.classList.add('done');});
 </script>
