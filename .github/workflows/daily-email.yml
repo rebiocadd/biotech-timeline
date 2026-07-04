@@ -1,0 +1,24 @@
+name: 每日藥祇早報 email
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 06:00 TST（UTC 22:00＝台北隔日 06:00）
+  workflow_dispatch:        # 也可在 Actions 頁手動「Run workflow」立即測試
+
+concurrency:
+  group: daily-email
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: 寄送藥祇早報
+        env:
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO:   ${{ secrets.MAIL_TO }}
+        run: python send_email.py
