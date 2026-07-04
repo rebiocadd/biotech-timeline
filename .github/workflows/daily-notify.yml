@@ -1,4 +1,4 @@
-name: 每日藥祇早報 email
+name: 每日藥祇早報（Telegram / Email）
 
 on:
   schedule:
@@ -6,17 +6,22 @@ on:
   workflow_dispatch:        # 也可在 Actions 頁手動「Run workflow」立即測試
 
 concurrency:
-  group: daily-email
+  group: daily-notify
   cancel-in-progress: false
 
 jobs:
-  send:
+  notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
-      - name: 寄送藥祇早報
+      - name: Telegram 早報
+        env:
+          TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python send_telegram.py
+      - name: Email 早報（可選；未設定則自動跳過）
         env:
           MAIL_USER: ${{ secrets.MAIL_USER }}
           MAIL_PASS: ${{ secrets.MAIL_PASS }}

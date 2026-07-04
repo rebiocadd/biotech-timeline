@@ -110,7 +110,7 @@ def main():
     user = os.environ.get("MAIL_USER"); pw = os.environ.get("MAIL_PASS")
     to = os.environ.get("MAIL_TO") or user
     if not user or not pw:
-        print("❌ 缺 MAIL_USER / MAIL_PASS（請在 GitHub Secrets 設定）"); sys.exit(1)
+        print("跳過 email（未設定 MAIL_USER / MAIL_PASS）"); return
     msg = MIMEText(html, "html", "utf-8")
     msg["Subject"] = Header(subject, "utf-8")
     msg["From"] = user
