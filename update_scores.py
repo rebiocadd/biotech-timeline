@@ -35,6 +35,7 @@ PATHS = {
     "cashflow": os.path.join(BASE, "cashflow.json"),
     "news":     os.path.join(BASE, "news_status.json"),
     "scores":   os.path.join(BASE, "scores.json"),
+    "scores_history": os.path.join(BASE, "scores_history.json"),
 }
 
 # ─────────────────────────────────────────────
@@ -387,9 +388,10 @@ def main():
     cashflow_by_code = (cashflow.get("companies") or {})
     news_by_code = (news.get("companies") or {})
 
-    # 讀取舊 scores.json 保留 history
-    old_scores = load_json(PATHS["scores"], {})
-    history = old_scores.get("history", {})  # code → [{date, score, ...}, ...]
+    # 讀取評分歷史（獨立檔 scores_history.json；首次遷移改讀舊 scores.json 內嵌的 history）
+    history = load_json(PATHS["scores_history"], {})
+    if not history:   # 空或不存在 → 相容舊版
+        history = load_json(PATHS["scores"], {}).get("history", {})  # code → [{date, score, ...}, ...]
 
     weights_main = weights["totalWeights"]
     results = {}
@@ -483,10 +485,12 @@ def main():
         "tz": "UTC+8",
         "weightsVersion": weights.get("version", "1.0"),
         "companies": results,
-        "history": history,
     }
     with open(PATHS["scores"], "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
+    # 評分歷史寫獨立檔（前端不載入，省下每次 ~250KB 解析）
+    with open(PATHS["scores_history"], "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, separators=(",", ":"))
 
     # 排序顯示 Top 10
     print("\n" + "=" * 60)
