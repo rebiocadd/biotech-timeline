@@ -747,6 +747,10 @@
   .pf-news:last-child{border-bottom:none}
   .pf-news a{color:#cdd6e4;text-decoration:none}
   .pf-news a:hover{color:var(--accent1);text-decoration:underline}
+  .pf-trend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
+  .pf-trend{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+  .pf-trend-h{font-size:11px;color:#cdd6e4;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:600;font-family:'Space Mono',monospace}
+  .pf-trend-lb{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:4px}
 </style>
 </head>
 <body>
@@ -2993,6 +2997,32 @@ const _PF_TAG={'tag-resolve':'🔵 解盲/數據讀出','tag-data':'🟣 臨床�
 const _PF_SC={catalyst:'催化',cashRunway:'現金跑道',pricePosition:'股價位置',trend:'趨勢',shareholder:'籌碼',newsSentiment:'新聞',clinicalCredibility:'臨床可信'};
 const _PF_PV={imminence:'迫近',priceWindow:'股價窗口',clinical:'臨床',cash:'現金',newsHeat:'新聞熱',successProb:'成功率',shareStructure:'籌碼'};
 const _PF_VCPARENT={'6535':'晟德系（晟德 4123）','7776':'晟德系（晟德 4123）','4162':'泛東洋集團（東洋 4105）','6696':'倍利創投 7882'};
+// 📊 迷你走勢線（SVG sparkline）+ 評分歷史 lazy-load（scores_history.json 只在開檔案時抓）
+let _scoresHistCache=null;
+function _spark(values, opts){
+  opts=opts||{};
+  const vals=values.filter(v=>v!=null&&!isNaN(v));
+  if(vals.length<2) return '<span style="color:var(--muted);font-size:10px">資料不足</span>';
+  const w=opts.w||170, h=opts.h||34, pad=3;
+  const mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1;
+  const pts=vals.map((v,i)=>{ const x=pad+i*(w-2*pad)/(vals.length-1); const y=h-pad-(v-mn)/rng*(h-2*pad); return x.toFixed(1)+','+y.toFixed(1); });
+  const col=opts.color||'#00d4ff';
+  const la=pts[pts.length-1].split(',');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;max-width:100%">`
+    +`<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>`
+    +`<circle cx="${la[0]}" cy="${la[1]}" r="2.6" fill="${col}"/></svg>`;
+}
+async function _fillScoreTrend(code){
+  const el=document.getElementById('pf-scoretrend'); if(!el) return;
+  try{ if(!_scoresHistCache) _scoresHistCache=await fetch('scores_history.json?v='+Date.now()).then(r=>r.json()); }
+  catch(e){ _scoresHistCache={}; }
+  const hist=(_scoresHistCache||{})[code]||[];
+  const vals=hist.map(h=>h.total).filter(v=>v!=null&&!isNaN(v));
+  if(vals.length>=2){
+    const d=+(vals[vals.length-1]-vals[0]).toFixed(1);
+    el.innerHTML=`<div class="pf-trend-h">📈 AI 評分走勢（${vals.length} 筆）<span style="color:${d>=0?'#a78bfa':'#94a3b8'}">${d>=0?'+':''}${d}</span></div>${_spark(vals,{color:'#a78bfa'})}<div class="pf-trend-lb">${vals[0]} → ${vals[vals.length-1]}</div>`;
+  } else { el.innerHTML='<div class="pf-trend-h">📈 AI 評分走勢</div><span style="color:var(--muted);font-size:10px">歷史不足</span>'; }
+}
 function openCompanyProfile(code){
   const c=_findCo(code); if(!c) return;
   const E=_vcEsc;
@@ -3039,6 +3069,20 @@ function openCompanyProfile(code){
   // 現金流
   if(cash){ const cells=[['cash_2023','2023'],['cash_2024','2024'],['cash_2025','2025'],['cash_2026','2026Q1']].map(([k,lb])=>{const m=_pfMoney(cash[k]&&cash[k].value); return m?`<span class="pf-chip">${lb} <b>${m}</b></span>`:'';}).filter(Boolean).join('');
     if(cells) parts.push(`<div class="pf-sec"><div class="pf-sec-t">💧 現金流餘額</div><div class="pf-grid">${cells}</div></div>`); }
+  // 📊 歷史趨勢（股東人數/現金流用已載入資料；評分走勢 lazy-load）
+  {
+    const trends=[];
+    const wks=(window._hHistory&&window._hHistory.weeks)||[];
+    const shVals=[...wks].reverse().map(w=>{const r=(w.data||[]).find(x=>x.code===code);return r?r.total_h:null;}).filter(v=>v!=null);
+    if(shVals.length>=2){
+      const d=shVals[shVals.length-1]-shVals[0];
+      trends.push(`<div class="pf-trend"><div class="pf-trend-h">👥 總股東人數（${shVals.length} 週）<span style="color:#f59e0b">${d>0?'+':''}${d.toLocaleString()}</span></div>${_spark(shVals,{color:'#f59e0b'})}<div class="pf-trend-lb">${shVals[0].toLocaleString()} → ${shVals[shVals.length-1].toLocaleString()} 人</div></div>`);
+    }
+    const cfVals=['cash_2023','cash_2024','cash_2025','cash_2026'].map(k=>cash&&cash[k]&&cash[k].value).filter(v=>v!=null);
+    if(cfVals.length>=2) trends.push(`<div class="pf-trend"><div class="pf-trend-h">💧 現金餘額（逐年）</div>${_spark(cfVals,{color:'#22d3ee'})}<div class="pf-trend-lb">${_pfMoney(cfVals[0])} → ${_pfMoney(cfVals[cfVals.length-1])}</div></div>`);
+    trends.push(`<div class="pf-trend" id="pf-scoretrend"><div class="pf-trend-h">📈 AI 評分走勢</div><span style="color:var(--muted);font-size:10px">載入中…</span></div>`);
+    parts.push(`<div class="pf-sec"><div class="pf-sec-t">📊 歷史趨勢</div><div class="pf-trend-grid">${trends.join('')}</div></div>`);
+  }
   // 新聞
   if(news.length){ const items=news.slice(0,8).map(n=>`<div class="pf-news"><a href="${E(n.link||'#')}" target="_blank" rel="noopener">${n.date?`<span style="color:var(--muted);font-family:'Space Mono',monospace;font-size:10px">${E(n.date)} </span>`:''}${E((n.title||'').replace(/\s-\s[^-]+$/,''))}</a></div>`).join('');
     parts.push(`<div class="pf-sec"><div class="pf-sec-t">📰 最新新聞（${news.length}）</div>${items}</div>`); }
@@ -3048,6 +3092,7 @@ function openCompanyProfile(code){
   document.getElementById('profile-overlay').classList.add('show');
   document.body.style.overflow='hidden';
   const sg=document.getElementById('co-suggest'); if(sg) sg.classList.remove('show');
+  _fillScoreTrend(code);   // 📈 評分走勢 lazy-load（scores_history.json）
 }
 function closeProfile(){ const o=document.getElementById('profile-overlay'); if(o) o.classList.remove('show'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const o=document.getElementById('profile-overlay'); if(o&&o.classList.contains('show')) closeProfile(); } });
