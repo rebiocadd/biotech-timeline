@@ -790,7 +790,7 @@
   </div>
   <!-- 👑 台灣生技界股王 · 藥華藥 6446（模範研究對象 Case Study）-->
   <style>
-  .pe-showcase{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(21,29,46,.55) 55%);border:1px solid rgba(245,158,11,.38);border-radius:14px;padding:20px 22px;margin:0 0 30px;position:relative;overflow:hidden}
+  .pe-showcase{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(21,29,46,.55) 55%);border:1px solid rgba(245,158,11,.4);border-radius:14px;margin:0 0 22px;position:relative;overflow:hidden}
   .pe-showcase::before{content:"";position:absolute;top:-45px;right:-35px;width:170px;height:170px;background:radial-gradient(circle,rgba(245,158,11,.16),transparent 70%);pointer-events:none}
   .pe-crown{position:absolute;top:13px;right:18px;font-size:30px;opacity:.55;filter:drop-shadow(0 2px 7px rgba(245,158,11,.45))}
   .pe-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2.5px;color:var(--accent4);text-transform:uppercase;opacity:.85}
@@ -827,77 +827,18 @@
   .pe-note{font-size:10px;color:var(--muted);max-width:70%}.pe-note b{color:#94a3b8}
   .pe-btn{background:var(--accent4);color:#0a0e1a;font-weight:700;font-size:12px;border:none;padding:9px 18px;border-radius:20px;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}
   .pe-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(245,158,11,.38)}
-  @media(max-width:640px){.pe-showcase{padding:16px 15px}.pe-h{font-size:18px}.pe-note{max-width:100%}}
+  .pe-sum{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(21,29,46,.12));list-style:none}
+  .pe-sum:hover{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(21,29,46,.12))}
+  .pe-showcase[open] .pe-sum{border-bottom:1px solid rgba(245,158,11,.22)}
+  .pe-sum .csec-arrow{color:var(--accent4)}
+  .pe-crown-in{font-size:16px;filter:drop-shadow(0 1px 4px rgba(245,158,11,.55));flex-shrink:0}
+  .pe-sum-title{color:#fde68a!important;font-weight:800!important;white-space:normal!important}
+  .pe-sum-title b{color:var(--accent4);font-family:'Space Mono',monospace;font-size:12px;margin:0 3px}
+  .pe-sum-badge{font-size:9.5px;font-weight:700;color:#0a0e1a;background:var(--accent4);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:.5px;white-space:nowrap;vertical-align:middle}
+  .pe-sum-meta{margin-left:auto;font-size:9.5px;color:var(--accent4);font-family:'Space Mono',monospace;background:rgba(245,158,11,.1);padding:3px 9px;border-radius:10px;border:1px solid rgba(245,158,11,.22);white-space:nowrap;text-align:right;line-height:1.35;flex-shrink:0;cursor:help}
+  .pe-body{padding:4px 20px 20px}
+  @media(max-width:640px){.pe-body{padding:2px 14px 16px}.pe-note{max-width:100%}.pe-sum-meta{font-size:8px;padding:2px 6px}.pe-sum-badge{display:none}.pe-sum-title{font-size:12px}}
   </style>
-  <div class="pe-showcase" id="pe-showcase">
-    <div class="pe-crown">👑</div>
-    <div class="pe-tag">Model Case Study · 模範研究對象</div>
-    <div class="pe-h">台灣生技界股王 — 藥華藥<span class="pe-code">6446</span></div>
-    <p class="pe-lead">全站唯一「<b>已商業化、真獲利、握全球藥證</b>」的生技公司。多數台廠還在燒錢等解盲，藥華藥已靠主力藥 <b>Ropeg（Besremi）</b> 在多國賣藥賺錢——把它當作「生技成功長什麼樣子」的一把尺，衡量其他 27 家還差多遠。</p>
-    <div class="pe-live">
-      <div class="pe-stat"><b id="pe-price">—</b><span>收盤 <span id="pe-pdate">—</span> <span id="pe-chg"></span></span></div>
-      <div class="pe-stat"><b id="pe-score">—</b><span id="pe-band">AI 多維度評分</span></div>
-      <div class="pe-stat"><b>千金股</b><span>2025/3 約 690 → 現翻倍</span></div>
-      <div class="pe-stat"><b>約 242 億</b><span>手上現金（2026）</span></div>
-    </div>
-    <div class="pe-grid">
-      <div class="pe-block">
-        <div class="pe-block-t">🏆 為什麼是模範</div>
-        <ul>
-          <li><b>有藥有證</b>：Ropeg 已在美/歐/台/日/中/韓＋加拿大上市</li>
-          <li><b>真金白銀</b>：月營收年增翻倍，不是本夢比</li>
-          <li><b>真獲利</b>：季季賺、EPS 逐季墊高</li>
-          <li><b>自建通路</b>：不只收授權金，掌握海外定價與毛利</li>
-        </ul>
-      </div>
-      <div class="pe-block">
-        <div class="pe-block-t">💰 關鍵財務</div>
-        <div class="pe-kfig">
-          <div><b>5.79 元</b><span>2026 Q1 EPS</span> <em>年增 52%</em></div>
-          <div><b>24.6 億</b><span>2026/5 月營收</span> <em>年增 108%</em></div>
-          <div><b>96.4 億</b><span>上半年累計營收</span> <em>年增 74%</em></div>
-          <div><b>約 24 元</b><span>2026 全年 EPS 預估</span> <em>法人 FactSet</em></div>
-        </div>
-      </div>
-      <div class="pe-block">
-        <div class="pe-block-t">💊 Ropeg 適應症擴張</div>
-        <div class="pe-flow">
-          <div class="pe-flow-i"><b>PV 真性紅血球增多症</b>：全球多國上市，7/3 再拿下加拿大 → 北美布局完成</div>
-          <div class="pe-flow-i hot"><b>ET 血小板增多症</b>：台灣 5/13 全球首張藥證 → <b>美國 FDA PDUFA 8/30</b>（今年最大催化）→ 日/中/韓推進</div>
-          <div class="pe-flow-i"><b>筆針</b>獲 FDA 核准、數週內美國上市；<b>PMF 骨髓纖維化</b>三期收案中（2028 送件）</div>
-        </div>
-      </div>
-      <div class="pe-block pe-warn">
-        <div class="pe-block-t">📈 股價與估值（要冷靜）</div>
-        <ul>
-          <li>半年 690 → 約 1,400 元<b>翻倍</b>，已是千金股</li>
-          <li>⚠️ 現價<b>已超過分析師目標價（約 900–970）</b>，利多提前反映</li>
-          <li>AI「股價位置」僅 25 分＝<b>追高風險高</b>，籌碼近期轉散</li>
-        </ul>
-      </div>
-      <div class="pe-block pe-warn">
-        <div class="pe-block-t">⚠️ 主要風險</div>
-        <ul>
-          <li><b>8/30 FDA</b> 若延期／不過 → 賣壓湧現（市場預期已滿）</li>
-          <li>估值超前基本面，回檔空間大</li>
-          <li>千金股波動大；美元營收受台幣升值侵蝕；MPN 領域競爭</li>
-        </ul>
-      </div>
-      <div class="pe-block pe-lesson">
-        <div class="pe-block-t">🎓 模範啟示：一支藥怎麼變成股王</div>
-        <ul>
-          <li><b>一魚多吃</b>：單一新藥深耕，適應症逐個擴張（PV → ET → PMF → 探索血癌），一款藥滾出多個市場</li>
-          <li><b>掌握通路</b>：自建海外銷售、不只收授權金，才吃得到定價與毛利</li>
-          <li><b>藥證滾動</b>：多國逐一申請，市場一塊塊拼（北美 → 歐洲 → 亞洲）</li>
-          <li><b>有營收才有估值</b>：多數台廠靠「解盲題材」一次性跳動，藥華藥用實質獲利撐住千金股——這是「可持續」與「一次性」的差別</li>
-        </ul>
-      </div>
-    </div>
-    <div class="pe-foot">
-      <span class="pe-note">資料整合自公開資訊（法說會、月營收、公開資訊觀測站、FactSet、Google News）· 數字截至 2026/07 · <b>僅供研究、非投資建議</b></span>
-      <button class="pe-btn" onclick="openCompanyProfile('6446')">開啟完整檔案 →</button>
-    </div>
-  </div>
   <!-- 📡 監控自動化更新狀態（移到策略下方、新聞表格上方）-->
   <details class="csec csec-status" id="scan-details">
     <summary class="csec-head">
@@ -909,6 +850,81 @@
   </details>
   <!-- 🔵 今年解盲（2026 全年）-->
   <!-- 📰 27 家最新新聞表格（放在「今年解盲」上方）-->
+  <!-- 👑 台灣生技界股王 · 藥華藥 6446（模範研究對象；可點選展開，放在 28 家新聞上方）-->
+  <details class="csec pe-showcase" id="pe-showcase">
+    <summary class="csec-head pe-sum">
+      <span class="csec-arrow">▶</span>
+      <span class="pe-crown-in">👑</span>
+      <span class="csec-title pe-sum-title">台灣生技界股王 · 藥華藥 <b>6446</b><span class="pe-sum-badge">模範研究對象</span></span>
+      <span class="pe-sum-meta" id="pe-scan-meta">⏱ 每日更新兩次</span>
+    </summary>
+    <div class="pe-body">
+      <p class="pe-lead">全站唯一「<b>已商業化、真獲利、握全球藥證</b>」的生技公司。多數台廠還在燒錢等解盲，藥華藥已靠主力藥 <b>Ropeg（Besremi）</b> 在多國賣藥賺錢——把它當作「生技成功長什麼樣子」的一把尺，衡量其他 27 家還差多遠。</p>
+      <div class="pe-live">
+        <div class="pe-stat"><b id="pe-price">—</b><span>收盤 <span id="pe-pdate">—</span> <span id="pe-chg"></span></span></div>
+        <div class="pe-stat"><b id="pe-score">—</b><span id="pe-band">AI 多維度評分</span></div>
+        <div class="pe-stat"><b>千金股</b><span>2025/3 約 690 → 現翻倍</span></div>
+        <div class="pe-stat"><b>約 242 億</b><span>手上現金（2026）</span></div>
+      </div>
+      <div class="pe-grid">
+        <div class="pe-block">
+          <div class="pe-block-t">🏆 為什麼是模範</div>
+          <ul>
+            <li><b>有藥有證</b>：Ropeg 已在美/歐/台/日/中/韓＋加拿大上市</li>
+            <li><b>真金白銀</b>：月營收年增翻倍，不是本夢比</li>
+            <li><b>真獲利</b>：季季賺、EPS 逐季墊高</li>
+            <li><b>自建通路</b>：不只收授權金，掌握海外定價與毛利</li>
+          </ul>
+        </div>
+        <div class="pe-block">
+          <div class="pe-block-t">💰 關鍵財務</div>
+          <div class="pe-kfig">
+            <div><b>5.79 元</b><span>2026 Q1 EPS</span> <em>年增 52%</em></div>
+            <div><b>24.6 億</b><span>2026/5 月營收</span> <em>年增 108%</em></div>
+            <div><b>96.4 億</b><span>上半年累計營收</span> <em>年增 74%</em></div>
+            <div><b>約 24 元</b><span>2026 全年 EPS 預估</span> <em>法人 FactSet</em></div>
+          </div>
+        </div>
+        <div class="pe-block">
+          <div class="pe-block-t">💊 Ropeg 適應症擴張</div>
+          <div class="pe-flow">
+            <div class="pe-flow-i"><b>PV 真性紅血球增多症</b>：全球多國上市，7/3 再拿下加拿大 → 北美布局完成</div>
+            <div class="pe-flow-i hot"><b>ET 血小板增多症</b>：台灣 5/13 全球首張藥證 → <b>美國 FDA PDUFA 8/30</b>（今年最大催化）→ 日/中/韓推進</div>
+            <div class="pe-flow-i"><b>筆針</b>獲 FDA 核准、數週內美國上市；<b>PMF 骨髓纖維化</b>三期收案中（2028 送件）</div>
+          </div>
+        </div>
+        <div class="pe-block pe-warn">
+          <div class="pe-block-t">📈 股價與估值（要冷靜）</div>
+          <ul>
+            <li>半年 690 → 約 1,400 元<b>翻倍</b>，已是千金股</li>
+            <li>⚠️ 現價<b>已超過分析師目標價（約 900–970）</b>，利多提前反映</li>
+            <li>AI「股價位置」僅 25 分＝<b>追高風險高</b>，籌碼近期轉散</li>
+          </ul>
+        </div>
+        <div class="pe-block pe-warn">
+          <div class="pe-block-t">⚠️ 主要風險</div>
+          <ul>
+            <li><b>8/30 FDA</b> 若延期／不過 → 賣壓湧現（市場預期已滿）</li>
+            <li>估值超前基本面，回檔空間大</li>
+            <li>千金股波動大；美元營收受台幣升值侵蝕；MPN 領域競爭</li>
+          </ul>
+        </div>
+        <div class="pe-block pe-lesson">
+          <div class="pe-block-t">🎓 模範啟示：一支藥怎麼變成股王</div>
+          <ul>
+            <li><b>一魚多吃</b>：單一新藥深耕，適應症逐個擴張（PV → ET → PMF → 探索血癌），一款藥滾出多個市場</li>
+            <li><b>掌握通路</b>：自建海外銷售、不只收授權金，才吃得到定價與毛利</li>
+            <li><b>藥證滾動</b>：多國逐一申請，市場一塊塊拼（北美 → 歐洲 → 亞洲）</li>
+            <li><b>有營收才有估值</b>：多數台廠靠「解盲題材」一次性跳動，藥華藥用實質獲利撐住千金股——這是「可持續」與「一次性」的差別</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pe-foot">
+        <span class="pe-note">資料整合自公開資訊（法說會、月營收、公開資訊觀測站、FactSet、Google News）· 股價與評分每日更新兩次 · 數字截至 2026/07 · <b>僅供研究、非投資建議</b></span>
+        <button class="pe-btn" onclick="openCompanyProfile('6446')">開啟完整檔案 →</button>
+      </div>
+    </div>
+  </details>
   <div class="news-summary-section" id="news-summary-section" style="display:none">
     <div class="ns-header">
       <span class="ns-title" id="ns-title">📰 28 家生技公司最新新聞</span>
@@ -3220,6 +3236,9 @@ function renderPEShowcase(){
     const sc=((window._scoresData||{}).companies||{})['6446'];
     if(sc){ const se=document.getElementById('pe-score'); if(se) se.textContent=sc.total;
       const be=document.getElementById('pe-band'); if(be) be.textContent=(sc.band||{}).label||'AI 多維度評分'; }
+    const _ps=(window._statusData||{}).prices||{};
+    const me=document.getElementById('pe-scan-meta');
+    if(me){ me.textContent=_ps.lastRun?`⏱ ${_ps.lastRun} · 每日更新兩次`:'⏱ 每日更新兩次（06:00 + 15:30）'; me.title='股價與 AI 評分每日 06:00 + 15:30（收盤後）自動更新兩次（UTC+8）'; }
   }catch(e){ console.warn('renderPEShowcase fail', e); }
 }
 // 📅 資料新鮮度守門員：透明化真實收盤日 + 只在「真的漏更新」時警示（避開週末誤報）
