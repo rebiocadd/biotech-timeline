@@ -837,6 +837,25 @@
   .pe-sum-badge{font-size:9.5px;font-weight:700;color:#0a0e1a;background:var(--accent4);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:.5px;white-space:nowrap;vertical-align:middle}
   .pe-sum-meta{margin-left:auto;font-size:9.5px;color:var(--accent4);font-family:'Space Mono',monospace;background:rgba(245,158,11,.1);padding:3px 9px;border-radius:10px;border:1px solid rgba(245,158,11,.22);white-space:nowrap;text-align:right;line-height:1.35;flex-shrink:0;cursor:help}
   .pe-body{padding:4px 20px 20px}
+  .pe-sci{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(10,14,26,.42));border-color:rgba(0,212,255,.28);grid-column:1/-1}
+  .pe-sci .pe-block-t{color:var(--accent1)}
+  .pe-sci li::before{color:var(--accent1);opacity:.8}
+  .pe-sci li b{color:#7dd3fc}
+  .pe-sci-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .pe-sci-h{font-size:11px;font-weight:700;color:#7dd3fc;margin:2px 0 5px;letter-spacing:.5px}
+  .pe-seq-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
+  .pe-seq{font-family:'Space Mono',monospace;font-size:10.5px;line-height:1.65;color:#7dd3fc;background:#080c16;border:1px solid rgba(0,212,255,.18);border-radius:8px;padding:11px 13px;margin:0;overflow-x:auto;white-space:pre;letter-spacing:.5px}
+  .pe-seq-note{font-size:9.5px;color:var(--muted);margin-top:6px;font-style:italic}
+  .pe-roadmap{background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(10,14,26,.42));border-color:rgba(16,185,129,.26);grid-column:1/-1}
+  .pe-roadmap .pe-block-t{color:var(--accent3)}
+  .pe-rm{display:flex;flex-direction:column;gap:7px}
+  .pe-rm-row{display:flex;gap:10px;align-items:flex-start;font-size:11.5px;color:#cbd5e1;line-height:1.55}
+  .pe-rm-row b{color:#fde68a}
+  .pe-rm-tag{flex-shrink:0;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;min-width:64px;text-align:center}
+  .pe-rm-tag.done{background:rgba(16,185,129,.16);color:#34d399;border:1px solid rgba(16,185,129,.4)}
+  .pe-rm-tag.hot{background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.4)}
+  .pe-rm-tag.next{background:rgba(0,212,255,.13);color:#7dd3fc;border:1px solid rgba(0,212,255,.35)}
+  @media(max-width:640px){.pe-sci-cols{grid-template-columns:1fr}.pe-seq{font-size:8.5px}.pe-rm-tag{min-width:52px}}
   @media(max-width:640px){.pe-body{padding:2px 14px 16px}.pe-note{max-width:100%}.pe-sum-meta{font-size:8px;padding:2px 6px}.pe-sum-badge{display:none}.pe-sum-title{font-size:12px}}
   </style>
   <!-- 📡 監控自動化更新狀態（移到策略下方、新聞表格上方）-->
@@ -917,6 +936,45 @@
             <li><b>藥證滾動</b>：多國逐一申請，市場一塊塊拼（北美 → 歐洲 → 亞洲）</li>
             <li><b>有營收才有估值</b>：多數台廠靠「解盲題材」一次性跳動，藥華藥用實質獲利撐住千金股——這是「可持續」與「一次性」的差別</li>
           </ul>
+        </div>
+        <div class="pe-block pe-sci">
+          <div class="pe-block-t">🧬 科學檔案：分子結構與作用機轉</div>
+          <div class="pe-sci-cols">
+            <div>
+              <div class="pe-sci-h">分子（Ropeg／P1101／Besremi）</div>
+              <ul>
+                <li><b>本質</b>：長效型「單一位點」聚乙二醇化重組人類干擾素 α-2b（mono-PEG IFN-α2b）</li>
+                <li><b>蛋白骨架</b>：165 個胺基酸、約 19 kDa，典型干擾素<b>五股 α-螺旋束</b>；2 對雙硫鍵（Cys1–Cys98、Cys29–Cys138）；第 23 位為 <b>Arg</b>（α2b 特徵，有別於 α2a 的 Lys）</li>
+                <li><b>關鍵創新</b>：N 端接上工程化<b>脯胺酸（Proline）</b>，使 40 kDa 分支 mPEG <b>位點專一</b>結合 → 單一位置異構物、純度高、免疫原性低（總分子量約 60 kDa）</li>
+                <li><b>藥動</b>：半衰期約 78–130 小時（3–5 天）→ <b>每 2 週皮下注射</b>，維持期可再拉長，順從性佳</li>
+              </ul>
+            </div>
+            <div>
+              <div class="pe-sci-h">作用機轉（為何能「治本」）</div>
+              <ul>
+                <li>結合第一型干擾素受體 <b>IFNAR1／IFNAR2</b></li>
+                <li>活化 <b>JAK1／TYK2 → STAT1／STAT2</b> 磷酸化 → 組成 ISGF3 → 誘導數百個干擾素刺激基因（ISGs）</li>
+                <li>於骨髓增生性腫瘤（MPN）中<b>選擇性抑制／清除帶 JAK2-V617F 突變的惡性造血幹細胞克隆</b>（非直接抑制 JAK2 激酶，而是清除突變克隆）</li>
+                <li>與劑量相關地<b>降低 JAK2-V617F 等位基因負荷（allele burden）</b> → 具「<b>疾病修飾／分子緩解</b>」潛力，非僅控制血球數——這是它有別於放血、hydroxyurea 的核心價值</li>
+              </ul>
+            </div>
+          </div>
+          <div class="pe-seq-label">🔬 人類干擾素 α-2b 成熟蛋白序列（165 aa · 單字母碼 · 來源 UniProt P01563）— Ropeg 的蛋白質骨架</div>
+          <pre class="pe-seq">  1  CDLPQTHSLG SRRTLMLLAQ MRRISLFSCL KDRHDFGFPQ EEFGNQFQKA
+ 51  ETIPVLHEMI QQIFNLFSTK DSSAAWDETL LDKFYTELYQ QLNDLEACVI
+101  QGVGVTETPL MKEDSILAVR KYFQRITLYL KEKKYSPCAW EVVRAEIMRS
+151  FSLSTNLQES LRSKE</pre>
+          <div class="pe-seq-note">＊Ropeg 在此骨架 N 端額外接上脯胺酸並進行 40 kDa mPEG 位點專一修飾；序列僅供學術參考、非投資建議。</div>
+        </div>
+        <div class="pe-block pe-roadmap">
+          <div class="pe-block-t">🌍 各國藥證時程 & 未來藍圖</div>
+          <div class="pe-rm">
+            <div class="pe-rm-row"><span class="pe-rm-tag done">PV 已核准</span><span>美國 2021/11 · 歐盟 · 日本 2023/3（6 月上市）· 中國 NMPA · 韓國 · 台灣 · <b>加拿大 2026/7（北美布局完成）</b>，全球約 <b>50 國</b></span></div>
+            <div class="pe-rm-row"><span class="pe-rm-tag hot">ET 進行中</span><span>台灣 <b>2026/5/13 全球首張 ET 藥證</b> → <b>美國 FDA PDUFA 2026/8/30</b> → 日本／中國／韓國申請推進（日本估 2026 取證）</span></div>
+            <div class="pe-rm-row"><span class="pe-rm-tag done">新劑型</span><span><b>Besremi 筆針</b>獲 FDA 核准，數週內美國上市，提升便利與滲透率</span></div>
+            <div class="pe-rm-row"><span class="pe-rm-tag next">新適應症</span><span><b>PMF 骨髓纖維化</b> HOPE-PMF 三期收案中（&gt;130 人，估 2028 送件）；探索 <b>CTCL、CML、AML</b> 等血液腫瘤</span></div>
+            <div class="pe-rm-row"><span class="pe-rm-tag next">產能布局</span><span>新產線／波多黎各廠確效中（估 2027 完成），支撐 Ropeg 全球放量</span></div>
+          </div>
         </div>
       </div>
       <div class="pe-foot">
