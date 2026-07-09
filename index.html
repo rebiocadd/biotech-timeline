@@ -875,6 +875,17 @@
   .pe-indigo .pe-flow-i.hot{border-left-color:#f87171;background:rgba(248,113,113,.09)}
   .pe-indigo .pe-btn{background:#8b5cf6;color:#fff}
   .pe-indigo .pe-btn:hover{box-shadow:0 6px 18px rgba(139,92,246,.4)}
+  /* 🏆 成功範例分組標題（藥華藥金 × 仁新紫）*/
+  .pe-grouphead{margin:2px 0 12px;padding:12px 18px;border-radius:12px;background:linear-gradient(100deg,rgba(245,158,11,.13),rgba(139,92,246,.13));border:1px solid rgba(148,163,184,.2);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;position:relative;overflow:hidden}
+  .pe-grouphead::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent4),#8b5cf6)}
+  .pe-grouphead-t{font-size:16px;font-weight:800;color:#f8fafc;letter-spacing:.5px}
+  .pe-grouphead-sub{font-size:10.5px;color:var(--muted);margin-top:3px}
+  .pe-grouphead-chips{display:flex;gap:7px;flex-wrap:wrap}
+  .pe-gh-chip{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;cursor:pointer;transition:transform .12s}
+  .pe-gh-chip:hover{transform:translateY(-1px)}
+  .pe-gh-chip.gold{background:rgba(245,158,11,.16);color:#fde68a;border:1px solid rgba(245,158,11,.42)}
+  .pe-gh-chip.violet{background:rgba(139,92,246,.16);color:#ddd6fe;border:1px solid rgba(139,92,246,.44)}
+  @media(max-width:640px){.pe-grouphead{padding:11px 14px}.pe-grouphead-t{font-size:14px}}
   @media(max-width:640px){.pe-body{padding:2px 14px 16px}.pe-note{max-width:100%}.pe-sum-meta{font-size:8px;padding:2px 6px}.pe-sum-badge{display:none}.pe-sum-title{font-size:12px}}
   </style>
   <!-- 📡 監控自動化更新狀態（移到策略下方、新聞表格上方）-->
@@ -888,6 +899,17 @@
   </details>
   <!-- 🔵 今年解盲（2026 全年）-->
   <!-- 📰 27 家最新新聞表格（放在「今年解盲」上方）-->
+  <!-- 🏆 成功範例分組標題（藥華藥 + 仁新）-->
+  <div class="pe-grouphead">
+    <div>
+      <div class="pe-grouphead-t">🏆 台灣生技界成功範例</div>
+      <div class="pe-grouphead-sub">兩種通往成功的路：商業化獲利 × 新藥開發＋國際化 · 點卡片標題可展開深度拆解</div>
+    </div>
+    <div class="pe-grouphead-chips">
+      <span class="pe-gh-chip gold" onclick="_openShowcase('pe-showcase')">👑 藥華藥 6446</span>
+      <span class="pe-gh-chip violet" onclick="_openShowcase('rs-showcase')">🌐 仁新醫藥 6696</span>
+    </div>
+  </div>
   <!-- 👑 台灣生技界股王 · 藥華藥 6446（模範研究對象；可點選展開，放在 28 家新聞上方）-->
   <details class="csec pe-showcase" id="pe-showcase">
     <summary class="csec-head pe-sum">
@@ -3430,6 +3452,7 @@ function _fillShowcase(code, pre){
   }catch(e){ console.warn('fillShowcase fail', code, e); }
 }
 function renderPEShowcase(){ _fillShowcase('6446','pe-'); _fillShowcase('6696','rs-'); }
+function _openShowcase(id){ const d=document.getElementById(id); if(d){ d.open=true; d.scrollIntoView({behavior:'smooth',block:'start'}); } }
 // 📅 資料新鮮度守門員：透明化真實收盤日 + 只在「真的漏更新」時警示（避開週末誤報）
 function _fbParseMd(mmdd, now){
   if(!mmdd || !/^\d\d?\/\d\d?$/.test(mmdd)) return null;
@@ -3532,6 +3555,8 @@ Promise.all([
   }
   // 🗂️ 全部區塊包成可收合（預設收合）
   window.setupCollapsibles();
+  // 🏆 讓「成功範例」分組標題緊貼藥華藥卡（移到全部展開工具列下方）
+  try{ const _gh=document.querySelector('.pe-grouphead'), _pe=document.getElementById('pe-showcase'); if(_gh&&_pe&&_pe.previousElementSibling!==_gh) _pe.parentNode.insertBefore(_gh,_pe); }catch(e){}
   try { checkFreshness(); } catch(e){ console.warn('checkFreshness fail', e); }   // 📅 資料新鮮度守門員
   document.getElementById('topbar')?.classList.add('done');   // 載入完成，收起頂部進度條
 }).catch(()=>{timeline.innerHTML='<p style="color:var(--muted);padding:20px">資料載入失敗，請透過 HTTP 伺服器開啟此頁面。</p>';document.getElementById('topbar')?.classList.add('done');});
