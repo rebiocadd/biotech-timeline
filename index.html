@@ -771,105 +771,6 @@
     <div id="co-suggest" class="co-suggest"></div>
   </div>
   <div id="freshbar" class="freshbar" style="display:none"></div>
-  <!-- 📊 即時儀表板（指揮中心；由 renderDashboard 動態填入）-->
-  <style>
-  .dash{margin:2px 0 26px}
-  .dash-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--border)}
-  .dash-title{font-size:17px;font-weight:800;color:#f1f5f9;letter-spacing:.3px}
-  .dash-sub{font-size:11px;font-weight:400;color:var(--muted);margin-left:8px}
-  .dash-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent1);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.22);padding:3px 10px;border-radius:12px;white-space:nowrap}
-  .dash-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
-  .dash-kpi{background:linear-gradient(160deg,rgba(21,29,46,.9),rgba(13,19,32,.7));border:1px solid var(--border);border-radius:10px;padding:11px 14px 12px;position:relative;overflow:hidden}
-  .dash-kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--accent1))}
-  .dash-kpi .k-lb{font-size:9.5px;color:var(--muted);letter-spacing:.6px;margin-bottom:6px;white-space:nowrap}
-  .dash-kpi .k-v{font-size:21px;font-weight:800;color:#fff;font-family:'Space Mono',monospace;line-height:1.05}
-  .dash-kpi .k-v.small{font-size:14px;font-weight:700}
-  .k-up{color:#f87171}.k-dn{color:#34d399}
-  .dash-breadth{margin-bottom:15px}
-  .brd-lbl{display:flex;justify-content:space-between;font-size:10.5px;font-family:'Space Mono',monospace;margin-bottom:5px}
-  .brd-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:#1e2d45}
-  .brd-bar span{display:block;transition:width .5s ease}
-  .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-  .dash-panel{background:rgba(15,22,36,.55);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
-  .dash-panel-h{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700;color:#cbd5e1;margin-bottom:9px}
-  .dash-toggle{display:flex;gap:4px}
-  .dash-tg{font-size:10px;padding:3px 11px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s}
-  .dash-tg.active{background:rgba(0,212,255,.14);color:var(--accent1);border-color:rgba(0,212,255,.4)}
-  .mv-row,.cat-row{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;font-size:12px}
-  .mv-row:hover,.cat-row:hover{background:rgba(255,255,255,.045)}
-  .mv-rank{font-family:'Space Mono',monospace;font-size:10px;color:#475569;width:14px;flex-shrink:0}
-  .mv-name{flex:1;color:#e2e8f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mv-code{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-left:5px}
-  .mv-price{font-family:'Space Mono',monospace;color:#94a3b8;font-size:11px}
-  .mv-chg{font-family:'Space Mono',monospace;font-weight:700;min-width:58px;text-align:right}
-  .cat-row{align-items:flex-start}
-  .cat-q{flex-shrink:0;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:#c4b5fd;background:rgba(139,92,246,.16);padding:3px 7px;border-radius:8px;margin-top:1px}
-  .cat-body{font-size:11.5px;color:#cbd5e1;line-height:1.45}
-  .cat-body b{color:#e8edf5}
-  .cat-note{color:var(--accent4);margin-left:5px;font-size:10px}
-  .dash-empty{color:var(--muted);font-size:11px;padding:10px 8px;text-align:center}
-  .dash-universe{background:rgba(15,22,36,.55);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
-  .uni-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:11px}
-  .uni-search{flex:1;min-width:190px;background:rgba(10,14,26,.7);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;font-family:inherit}
-  .uni-search::placeholder{color:#475569}
-  .uni-search:focus{outline:none;border-color:var(--accent1);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
-  .uni-chips{display:flex;gap:5px;flex-wrap:wrap}
-  .uni-chip{font-size:11px;padding:6px 13px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s}
-  .uni-chip.active{background:rgba(0,212,255,.14);color:var(--accent1);border-color:rgba(0,212,255,.4)}
-  .uni-count{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:auto}
-  .uni-wrap{overflow:auto;max-height:440px;border-radius:8px}
-  .uni-tbl{width:100%;border-collapse:collapse;font-size:12px}
-  .uni-tbl th{position:sticky;top:0;background:#121a2b;color:var(--muted);font-size:10px;font-weight:600;text-align:left;padding:9px 11px;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border);z-index:2;user-select:none}
-  .uni-tbl th.num{text-align:right}
-  .uni-tbl th:hover{color:var(--accent1)}
-  .uni-tbl th .so{color:var(--accent1);font-size:8px;margin-left:2px}
-  .uni-tbl td{padding:8px 11px;border-bottom:1px solid rgba(30,45,69,.55)}
-  .uni-tbl tbody tr{cursor:pointer;transition:background .12s}
-  .uni-tbl tbody tr:hover{background:rgba(0,212,255,.055)}
-  .uni-tbl td.num{text-align:right;font-family:'Space Mono',monospace}
-  .uni-co b{color:#e8edf5;font-weight:600}
-  .uni-code{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-left:6px}
-  .uni-ind{display:block;font-size:9.5px;color:#64748b;margin-top:2px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .uni-mk{font-size:10px;color:#94a3b8;background:rgba(100,116,139,.15);padding:2px 8px;border-radius:8px;white-space:nowrap}
-  .uni-score{font-family:'Space Mono',monospace;font-weight:700;padding:2px 9px;border-radius:8px;border:1px solid currentColor;font-size:11px}
-  .uni-cat{font-size:11px;color:#94a3b8;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .uni-none{color:#475569}
-  @media(max-width:860px){.dash-kpis{grid-template-columns:repeat(3,1fr)}.dash-cols{grid-template-columns:1fr}}
-  @media(max-width:520px){.dash-kpis{grid-template-columns:repeat(2,1fr)}.dash-title{font-size:15px}.uni-ind{display:none}}
-  </style>
-  <section class="dash" id="dashboard" aria-label="即時儀表板">
-    <div class="dash-head">
-      <div class="dash-title">📊 生技雷達 · 即時儀表板<span class="dash-sub">28 家台灣生技一眼掌握</span></div>
-      <div class="dash-time" id="dash-time">⏱ 載入中…</div>
-    </div>
-    <div class="dash-kpis" id="dash-kpis"></div>
-    <div class="dash-breadth" id="dash-breadth"></div>
-    <div class="dash-cols">
-      <div class="dash-panel">
-        <div class="dash-panel-h"><span>📈 今日盤面</span>
-          <span class="dash-toggle"><button class="dash-tg active" data-mv="gain" onclick="_setMovers('gain')">強勢</button><button class="dash-tg" data-mv="lose" onclick="_setMovers('lose')">弱勢</button></span>
-        </div>
-        <div id="dash-movers"></div>
-      </div>
-      <div class="dash-panel">
-        <div class="dash-panel-h"><span>📅 近期催化行事曆</span></div>
-        <div id="dash-catalysts"></div>
-      </div>
-    </div>
-    <div class="dash-universe">
-      <div class="uni-bar">
-        <input id="uni-q" class="uni-search" placeholder="🔍 篩選 28 家：名稱 / 代號 / 適應症（例：解盲、CAR-T、6446）" oninput="_uniRender()" autocomplete="off">
-        <div class="uni-chips" id="uni-market">
-          <button class="uni-chip active" data-mk="" onclick="_uniMk(this,'')">全部</button>
-          <button class="uni-chip" data-mk="上市" onclick="_uniMk(this,'上市')">上市</button>
-          <button class="uni-chip" data-mk="上櫃" onclick="_uniMk(this,'上櫃')">上櫃</button>
-          <button class="uni-chip" data-mk="興櫃" onclick="_uniMk(this,'興櫃')">興櫃</button>
-        </div>
-        <span class="uni-count" id="uni-count"></span>
-      </div>
-      <div class="uni-wrap"><table class="uni-tbl" id="uni-tbl"></table></div>
-    </div>
-  </section>
   <div class="legend">
     <span class="legend-label">類型</span>
     <div class="legend-item"><span class="legend-dot" style="background:#00d4ff"></span>解盲/數據讀出</div>
@@ -3605,95 +3506,6 @@ function checkFreshness(){
   bar.innerHTML = warnHtml + asofHtml + `<button class="freshbar-x" onclick="document.getElementById('freshbar').style.display='none'">知道了</button>`;
   bar.style.display='flex';
 }
-// ===== 📊 即時儀表板（指揮中心）：全部由已載入的 window 資料即時計算 =====
-let _moversMode='gain';
-const _uniState={q:'',mk:'',sort:'score',dir:-1};
-function _dashCompanies(){
-  const sc=((window._scoresData||{}).companies)||{};
-  const ns=((window._newsStatus||{}).companies)||{};
-  const out=[];
-  (window._timelineData||[]).forEach(s=>{
-    const mkt=(s.section||'').replace('公司','').trim();
-    (s.companies||[]).forEach(c=>{
-      const chg=parseFloat(c.change); const sd=sc[c.code];
-      const ups=[]; ['q1','q2','q3','q4','h2'].forEach(q=>{ const ev=(c.events||{})[q]; if(ev&&ev.label&&!ev.statusLabel) ups.push({q,ev}); });
-      const news=((ns[c.code]||{}).news)||[];
-      out.push({code:c.code,name:c.name||c.code,co:c,mkt,chg:isNaN(chg)?null:chg,price:c.price,score:sd?sd.total:null,band:sd?sd.band:null,ups,newsCount:news.length});
-    });
-  });
-  return out;
-}
-function _dashName(n){ n=n||''; return _vcEsc(n.length>5?n.slice(0,5):n); }
-function _kpi(lb,v,color,small){ return `<div class="dash-kpi" style="--kc:${color||'var(--accent1)'}"><div class="k-lb">${lb}</div><div class="k-v${small?' small':''}">${v}</div></div>`; }
-function renderDashboard(){
-  try{
-    const all=_dashCompanies(); if(!all.length) return;
-    const wc=all.filter(x=>x.chg!=null);
-    const up=wc.filter(x=>x.chg>0).length, down=wc.filter(x=>x.chg<0).length;
-    const scored=all.filter(x=>x.score!=null);
-    const avg=scored.length?scored.reduce((a,x)=>a+x.score,0)/scored.length:null;
-    const top=scored.slice().sort((a,b)=>b.score-a.score)[0];
-    const cat=all.reduce((a,x)=>a+x.ups.length,0);
-    const strong=wc.slice().sort((a,b)=>b.chg-a.chg)[0];
-    const unit=t=>` <span style="font-size:12px;font-weight:400;color:var(--muted)">${t}</span>`;
-    const kpis=[
-      _kpi('追蹤家數', all.length+unit('家'), 'var(--accent1)'),
-      _kpi('今日漲跌', `<span class="k-up">▲${up}</span> <span class="k-dn">▼${down}</span>`, '#f87171'),
-      _kpi('平均 AI 評分', avg!=null?avg.toFixed(1):'—', 'var(--accent4)'),
-      _kpi('近期催化', cat+unit('件'), '#a78bfa'),
-      _kpi('今日最強', strong&&strong.chg>0?`${_dashName(strong.name)} <span class="k-up" style="font-size:13px">+${strong.chg}%</span>`:'—', '#f87171', true),
-      _kpi('AI 最高分', top?`${_dashName(top.name)} <span style="color:${(top.band||{}).color||'#fff'};font-size:15px">${top.score}</span>`:'—', 'var(--accent3)', true),
-    ];
-    const k=document.getElementById('dash-kpis'); if(k) k.innerHTML=kpis.join('');
-    const flat=wc.length-up-down, tot=wc.length||1;
-    const bEl=document.getElementById('dash-breadth');
-    if(bEl) bEl.innerHTML=`<div class="brd-lbl"><span class="k-up">▲ 上漲 ${up}</span><span style="color:var(--muted)">▬ 平盤 ${flat}</span><span class="k-dn">▼ 下跌 ${down}</span></div><div class="brd-bar" title="今日市場寬度（紅漲綠跌）"><span style="width:${(up/tot*100).toFixed(1)}%;background:#f87171"></span><span style="width:${(flat/tot*100).toFixed(1)}%;background:#475569"></span><span style="width:${(down/tot*100).toFixed(1)}%;background:#34d399"></span></div>`;
-    const t=document.getElementById('dash-time'); const lr=((window._statusData||{}).prices||{}).lastRun;
-    if(t) t.textContent=lr?`⏱ 更新 ${lr}（UTC+8）`:'⏱ —';
-    _renderMovers(); _renderCatalysts(); _uniRender();
-  }catch(e){ console.warn('renderDashboard fail', e); }
-}
-function _renderMovers(){
-  const el=document.getElementById('dash-movers'); if(!el) return;
-  let rows=_dashCompanies().filter(x=>x.chg!=null&&x.chg!==0);
-  rows=_moversMode==='gain'?rows.sort((a,b)=>b.chg-a.chg):rows.sort((a,b)=>a.chg-b.chg);
-  const html=rows.slice(0,6).map((x,i)=>{ const cls=x.chg>0?'k-up':'k-dn';
-    return `<div class="mv-row" onclick="openCompanyProfile('${x.code}')"><span class="mv-rank">${i+1}</span><span class="mv-name">${_vcEsc(x.name)}<span class="mv-code">${x.code}</span></span><span class="mv-price">${x.price!=null?_vcEsc(''+x.price):'—'}</span><span class="mv-chg ${cls}">${x.chg>0?'+':''}${x.chg}%</span></div>`; }).join('');
-  el.innerHTML=html||'<div class="dash-empty">暫無當日漲跌資料</div>';
-}
-function _setMovers(m){ _moversMode=m; document.querySelectorAll('.dash-tg').forEach(b=>b.classList.toggle('active',b.dataset.mv===m)); _renderMovers(); }
-function _renderCatalysts(){
-  const el=document.getElementById('dash-catalysts'); if(!el) return;
-  const ord={q1:1,q2:2,h2:3.5,q3:3,q4:4}; const items=[];
-  _dashCompanies().forEach(x=>x.ups.forEach(u=>items.push({code:x.code,name:x.name,q:u.q,ev:u.ev,o:ord[u.q]||9})));
-  items.sort((a,b)=>a.o-b.o);
-  const html=items.slice(0,8).map(it=>{ const note=it.ev.expectedDisclosureNote||it.ev.eventIndication||'';
-    return `<div class="cat-row" onclick="openCompanyProfile('${it.code}')"><span class="cat-q">${it.q.toUpperCase()}</span><span class="cat-body"><b>${_vcEsc(it.name)}</b> ${_vcEsc(it.ev.drug||'')} ${_vcEsc(it.ev.label||'')}${note?`<span class="cat-note">${_vcEsc(note)}</span>`:''}</span></div>`; }).join('');
-  el.innerHTML=html||'<div class="dash-empty">近期無待公布的催化事件</div>';
-}
-function _uniMk(btn,mk){ _uniState.mk=mk; document.querySelectorAll('#uni-market .uni-chip').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); _uniRender(); }
-function _uniSort(col){ if(_uniState.sort===col) _uniState.dir*=-1; else{ _uniState.sort=col; _uniState.dir=(col==='name')?1:-1; } _uniRender(); }
-function _uniRender(){
-  const tbl=document.getElementById('uni-tbl'); if(!tbl) return;
-  const qi=document.getElementById('uni-q'); _uniState.q=(qi?qi.value:'').trim();
-  const total=_dashCompanies();
-  let rows=total.slice();
-  if(_uniState.mk) rows=rows.filter(x=>x.mkt===_uniState.mk);
-  if(_uniState.q){ const q=_uniState.q; rows=rows.filter(x=>x.name.includes(q)||x.code.includes(q)||((x.co.indication||'').includes(q))||((x.co.strategy||'').includes(q))||((x.co.target||'').includes(q))); }
-  const s=_uniState.sort,d=_uniState.dir;
-  rows.sort((a,b)=>{ if(s==='name') return d*a.name.localeCompare(b.name,'zh-Hant');
-    let va,vb; if(s==='price'){va=parseFloat(a.price)||0;vb=parseFloat(b.price)||0;} else if(s==='chg'){va=a.chg==null?-1e9:a.chg;vb=b.chg==null?-1e9:b.chg;} else {va=a.score==null?-1:a.score;vb=b.score==null?-1:b.score;}
-    return d*(va-vb); });
-  const so=c=>_uniState.sort===c?`<span class="so">${_uniState.dir>0?'▲':'▼'}</span>`:'';
-  const head=`<thead><tr><th onclick="_uniSort('name')">公司${so('name')}</th><th>市場</th><th class="num" onclick="_uniSort('price')">收盤${so('price')}</th><th class="num" onclick="_uniSort('chg')">漲跌%${so('chg')}</th><th class="num" onclick="_uniSort('score')">AI 評分${so('score')}</th><th>近期催化</th></tr></thead>`;
-  const body=rows.map(x=>{ const cls=x.chg>0?'k-up':(x.chg<0?'k-dn':'');
-    const cat=x.ups.length?`${x.ups[0].q.toUpperCase()} ${_vcEsc(x.ups[0].ev.label||'')}`:'<span class="uni-none">—</span>';
-    const sc=x.score!=null?`<span class="uni-score" style="color:${(x.band||{}).color||'#94a3b8'}">${x.score}</span>`:'<span class="uni-none">—</span>';
-    const ind=x.co.indication?`<span class="uni-ind">${_vcEsc(x.co.indication)}</span>`:'';
-    return `<tr onclick="openCompanyProfile('${x.code}')"><td class="uni-co"><b>${_vcEsc(x.name)}</b><span class="uni-code">${x.code}</span>${ind}</td><td><span class="uni-mk">${_vcEsc(x.mkt||'—')}</span></td><td class="num">${x.price!=null?_vcEsc(''+x.price):'—'}</td><td class="num ${cls}">${x.chg!=null?(x.chg>0?'+':'')+x.chg+'%':'—'}</td><td class="num">${sc}</td><td class="uni-cat">${cat}</td></tr>`; }).join('');
-  tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
-  const cnt=document.getElementById('uni-count'); if(cnt) cnt.textContent=`${rows.length} / ${total.length} 家`;
-}
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -3722,7 +3534,6 @@ Promise.all([
   renderData(timelineData);
   setTimeout(()=>{ try { renderWaveTable(timelineData); } catch(e){ console.warn('renderWaveTable fail', e); } }, 0);
   setTimeout(()=>{ try { renderPEShowcase(); } catch(e){ console.warn('renderPEShowcase fail', e); } }, 0);
-  setTimeout(()=>{ try { renderDashboard(); } catch(e){ console.warn('renderDashboard fail', e); } }, 0);
   // 動態更新主時程表副標家數
   const _tsub = document.getElementById('timeline-subtitle');
   if(_tsub && timelineData){
