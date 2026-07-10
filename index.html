@@ -846,6 +846,10 @@
   .pe-seq-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
   .pe-seq{font-family:'Space Mono',monospace;font-size:10.5px;line-height:1.65;color:#7dd3fc;background:#080c16;border:1px solid rgba(0,212,255,.18);border-radius:8px;padding:11px 13px;margin:0;overflow-x:auto;white-space:pre;letter-spacing:.5px}
   .pe-seq-note{font-size:9.5px;color:var(--muted);margin-top:6px;font-style:italic}
+  .pe-mol-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
+  .pe-mol{background:#080c16;border:1px solid rgba(139,92,246,.22);border-radius:9px;padding:10px 14px;max-width:470px}
+  .pe-mol img{display:block;width:100%;height:auto}
+  .pe-mol-meta{font-family:'Space Mono',monospace;font-size:9.5px;color:#a78bfa;text-align:center;margin-top:6px;letter-spacing:.3px}
   .pe-roadmap{background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(10,14,26,.42));border-color:rgba(16,185,129,.26);grid-column:1/-1}
   .pe-roadmap .pe-block-t{color:var(--accent3)}
   .pe-rm{display:flex;flex-direction:column;gap:7px}
@@ -1110,12 +1114,14 @@
               </ul>
             </div>
           </div>
+          <div class="pe-mol-label">🧪 藥物 2D 化學結構 · Tinlarebant（LBS-008，口服小分子）</div>
+          <div class="pe-mol"><img src="tinlarebant.svg?v=1" alt="Tinlarebant（LBS-008）2D 化學結構" width="500" height="270"><div class="pe-mol-meta">C₂₁H₂₁F₅N₄O₂ · 分子量 456.4 · PubChem CID 92044505</div></div>
           <div class="pe-seq-label">🔬 標的蛋白 RBP4 成熟序列（183 aa · 單字母碼 · 來源 UniProt P02753）— Tinlarebant 的作用「對象」，非藥物本身</div>
           <pre class="pe-seq">  1  ERDCRVSSFR VKENFDKARF SGTWYAMAKK DPEGLFLQDN IVAEFSVDET
  51  GQMSATAKGR VRLLNNWDVC ADMVGTFTDT EDPAKFKMKY WGVASFLQKG
 101  NDDHWIVDTD YDTYAVQYSC RLLNLDGTCA DSYSFVFSRD PNGLPPEAQK
 151  IVRQRQEELC LARQYRLIVH NGYCDGRSER NLL</pre>
-          <div class="pe-seq-note">＊仁新的藥（Tinlarebant）為口服小分子，本身無蛋白質序列；此為其標的蛋白 RBP4，僅供學術參考、非投資建議。</div>
+          <div class="pe-seq-note">＊上為藥物 Tinlarebant（口服小分子）的 2D 化學結構；下為其標的蛋白 RBP4 序列（藥物作用對象）。結構來源 PubChem、序列來源 UniProt，僅供學術參考、非投資建議。</div>
         </div>
         <div class="pe-block pe-roadmap">
           <div class="pe-block-t">🌍 臨床時程 & 未來藍圖</div>
