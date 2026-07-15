@@ -75,6 +75,7 @@
   .strat-cart{background:rgba(139,92,246,.2);color:#c4b5fd;border:1px solid rgba(139,92,246,.4)}
   .strat-newform{background:rgba(0,212,255,.15);color:var(--accent1);border:1px solid rgba(0,212,255,.4)}
   .strat-nce{background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.4)}
+  .strat-revenue{background:rgba(45,212,191,.18);color:#5eead4;border:1px solid rgba(45,212,191,.45)}
   .indication-row{display:flex;flex-direction:column;gap:2px;margin-top:3px;font-family:'Noto Sans TC',sans-serif}
   .indication-label{font-size:9.5px;color:#a78bfa;font-weight:600;line-height:1.3;word-break:break-word}
   .target-label{font-size:9px;color:var(--muted);line-height:1.3;word-break:break-word}
@@ -787,6 +788,7 @@
     <span class="strategy-badge strat-cart">🧫 CAR-T</span>
     <span class="strategy-badge strat-newform">💎 新劑型</span>
     <span class="strategy-badge strat-nce">✨ 創新新藥</span>
+    <span class="strategy-badge strat-revenue">💰 營收型</span>
   </div>
   <!-- 👑 台灣生技界股王 · 藥華藥 6446（模範研究對象 Case Study）-->
   <style>
@@ -2789,7 +2791,8 @@ function renderRow(c){
     'biosimilar':{cls:'strat-biosimilar', icon:'🧬', text:'生物相似藥', tip:'Biosimilar / 學名生物藥'},
     'cart':{cls:'strat-cart', icon:'🧫', text:'CAR-T', tip:'細胞療法 / 再生醫療'},
     'newform':{cls:'strat-newform', icon:'💎', text:'新劑型', tip:'改良型新劑型 / Novel Formulation'},
-    'nce':{cls:'strat-nce', icon:'✨', text:'創新新藥', tip:'NCE / NME'}
+    'nce':{cls:'strat-nce', icon:'✨', text:'創新新藥', tip:'NCE / NME'},
+    'revenue':{cls:'strat-revenue', icon:'💰', text:'營收型', tip:'有營收/獲利 · CDMO/檢驗/服務型（非臨床解盲）'}
   };
   const strat=STRAT_MAP[c.strategy];
   const stratHtml=strat?`<span class="strategy-badge ${strat.cls}" title="${strat.tip}">${strat.icon} ${strat.text}</span>`:'';
