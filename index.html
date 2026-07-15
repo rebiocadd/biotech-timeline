@@ -1146,6 +1146,35 @@
       </div>
     </div>
   </details>
+  <!-- 💰 有營收有賺錢的生技股（策展清單；由 renderProfitStocks 填入）-->
+  <style>
+  .profit-sec .csec-title{color:#5eead4}
+  .profit-intro{font-size:11.5px;color:#94a3b8;line-height:1.65;padding:10px 15px 2px}
+  .profit-intro b{color:#5eead4}
+  .profit-wrap{overflow-x:auto;padding:8px 12px 14px}
+  .profit-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:580px}
+  .profit-tbl th{text-align:left;font-size:10px;color:var(--muted);font-weight:600;padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .profit-tbl th.num{text-align:right}
+  .profit-tbl td{padding:8px 10px;border-bottom:1px solid rgba(30,45,69,.5);vertical-align:top}
+  .profit-tbl tbody tr{cursor:pointer;transition:background .12s}
+  .profit-tbl tbody tr:hover{background:rgba(45,212,191,.06)}
+  .profit-co b{color:#e8edf5}
+  .profit-code{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-left:6px}
+  .profit-track{font-size:8px;color:#fbbf24;background:rgba(245,158,11,.13);padding:1px 5px;border-radius:6px;margin-left:5px;white-space:nowrap}
+  .profit-tag{font-size:9.5px;padding:2px 8px;border-radius:8px;white-space:nowrap;background:rgba(45,212,191,.14);color:#5eead4;border:1px solid rgba(45,212,191,.3)}
+  .profit-eps{font-family:'Space Mono',monospace;font-weight:700;color:#5eead4;text-align:right;white-space:nowrap}
+  .profit-eps span{display:block;font-size:8.5px;color:var(--muted);font-weight:400}
+  .profit-note{font-size:11px;color:#94a3b8;line-height:1.45;max-width:300px}
+  </style>
+  <details class="csec profit-sec" id="profit-section">
+    <summary class="csec-head">
+      <span class="csec-arrow">▶</span>
+      <span class="csec-title">💰 有營收有賺錢的生技股</span>
+      <span class="csec-sum" id="profit-sum"></span>
+    </summary>
+    <div class="profit-intro">台灣多數新藥股仍在<b>燒錢等解盲</b>；這裡收集<b>真正有營收又獲利</b>的生技／製藥類股（新藥、CDMO 代工、學名藥、原料藥、檢驗、保健）。<b>藥華藥</b>、<b>啟新</b> 已在追蹤名單（點列開完整檔案），其餘點列開 Goodinfo。近期 EPS 為公開資料整理、依獲利高→低排序，<b>僅供研究、非投資建議</b>，請以官方財報為準。</div>
+    <div class="profit-wrap"><table class="profit-tbl" id="profit-tbl"></table></div>
+  </details>
   <div class="news-summary-section" id="news-summary-section" style="display:none">
     <div class="ns-header">
       <span class="ns-title" id="ns-title">📰 29 家生技公司最新新聞</span>
@@ -3513,6 +3542,35 @@ function checkFreshness(){
   bar.innerHTML = warnHtml + asofHtml + `<button class="freshbar-x" onclick="document.getElementById('freshbar').style.display='none'">知道了</button>`;
   bar.style.display='flex';
 }
+// 💰 有營收有賺錢的生技股（策展清單，非自動掃描；EPS 為公開資料整理）
+const PROFIT_STOCKS=[
+ {code:'6446',name:'藥華藥',type:'新藥',eps:'約 24',epsNum:24,period:'2026 預估',note:'長效干擾素 Ropeg，PV/ET 全球放量、營收年增逾七成',tracked:1},
+ {code:'6472',name:'保瑞',type:'CDMO',eps:'19.50',epsNum:19.5,period:'2025H1',note:'CDMO 龍頭、生技獲利王，併購＋代工放量'},
+ {code:'6491',name:'晶碩',type:'醫材',eps:'10.29',epsNum:10.29,period:'2025H1',note:'隱形眼鏡大廠'},
+ {code:'1707',name:'葡萄王',type:'保健',eps:'9.6~10',epsNum:9.8,period:'2025 預估',note:'保健食品品牌，產業價值力前十'},
+ {code:'1795',name:'美時',type:'學名藥',eps:'8.29',epsNum:8.29,period:'2025H1',note:'困難學名藥、上半年營收王（94.7 億）'},
+ {code:'1762',name:'中化生',type:'原料藥',eps:'6.86',epsNum:6.86,period:'2024',note:'原料藥獲利王，EPA 魚油原料藥擴產'},
+ {code:'1777',name:'生泰',type:'原料藥',eps:'逾 5',epsNum:5.4,period:'2024',note:'原料藥，獲利逾半個股本'},
+ {code:'4119',name:'旭富',type:'原料藥',eps:'4.53',epsNum:4.53,period:'2024',note:'原料藥，客戶遍及國際'},
+ {code:'7837',name:'啟新',type:'檢驗',eps:'4.5',epsNum:4.5,period:'2024',note:'微生物檢驗龍頭，轉型 CGT/ATMP CDMO',tracked:1},
+ {code:'4746',name:'台耀',type:'CDMO',eps:'穩定獲利',epsNum:null,period:'2025H1',note:'原料藥／CDMO，本業營益率約 20%'},
+ {code:'4105',name:'台灣東洋',type:'特殊藥',eps:'穩定獲利',epsNum:null,period:'',note:'抗癌針劑／特殊學名藥，產業價值力前十'},
+ {code:'1789',name:'神隆',type:'原料藥',eps:'穩定獲利',epsNum:null,period:'',note:'老牌原料藥（API）廠'},
+ {code:'8436',name:'大江',type:'保健',eps:'穩定獲利',epsNum:null,period:'',note:'保健品 CDMO'},
+];
+function renderProfitStocks(){
+  try{
+    const tbl=document.getElementById('profit-tbl'); if(!tbl) return;
+    const rows=PROFIT_STOCKS.slice().sort((a,b)=>(b.epsNum==null?-1:b.epsNum)-(a.epsNum==null?-1:a.epsNum));
+    const body=rows.map(x=>{
+      const act=x.tracked?`openCompanyProfile('${x.code}')`:`window.open('https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${x.code}','_blank','noopener')`;
+      const trk=x.tracked?'<span class="profit-track">已追蹤</span>':'';
+      return `<tr onclick="${act}" title="${x.tracked?'開啟站內完整檔案':'開啟 Goodinfo'}"><td class="profit-co"><b>${_vcEsc(x.name)}</b><span class="profit-code">${x.code}</span>${trk}</td><td><span class="profit-tag">${_vcEsc(x.type)}</span></td><td class="profit-eps">${_vcEsc(x.eps)}${x.period?`<span>${_vcEsc(x.period)}</span>`:''}</td><td class="profit-note">${_vcEsc(x.note)}</td></tr>`;
+    }).join('');
+    tbl.innerHTML=`<thead><tr><th>公司</th><th>類型</th><th class="num">近期 EPS</th><th>說明</th></tr></thead><tbody>${body}</tbody>`;
+    const sm=document.getElementById('profit-sum'); if(sm) sm.textContent=`${rows.length} 檔 · 有營收有獲利`;
+  }catch(e){ console.warn('renderProfitStocks fail', e); }
+}
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
@@ -3541,6 +3599,7 @@ Promise.all([
   renderData(timelineData);
   setTimeout(()=>{ try { renderWaveTable(timelineData); } catch(e){ console.warn('renderWaveTable fail', e); } }, 0);
   setTimeout(()=>{ try { renderPEShowcase(); } catch(e){ console.warn('renderPEShowcase fail', e); } }, 0);
+  setTimeout(()=>{ try { renderProfitStocks(); } catch(e){ console.warn('renderProfitStocks fail', e); } }, 0);
   // 動態更新主時程表副標家數
   const _tsub = document.getElementById('timeline-subtitle');
   if(_tsub && timelineData){
