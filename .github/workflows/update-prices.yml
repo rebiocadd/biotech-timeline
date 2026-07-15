@@ -11,6 +11,7 @@ on:
     - cron: '0 7 * * *'     # 15:00 TST news（每天，一日四掃 3/4）
     - cron: '0 12 * * *'    # 20:00 TST news（每天，一日四掃 4/4）
     - cron: '0 22 * * 5'    # 06:00 TST Sat holders/cashflow (UTC 22:00 Fri = TST 06:00 Sat)
+    - cron: '0 22 * * 2'    # 06:00 TST Wed holders 補抓（TDCC 週間才發布，週三補抓一次；無新資料自動略過）
   workflow_dispatch:
     inputs:
       task:
@@ -97,7 +98,7 @@ jobs:
     needs: update-news
     if: |
       always() && (
-        (github.event_name == 'schedule' && github.event.schedule == '0 22 * * 5') ||
+        (github.event_name == 'schedule' && (github.event.schedule == '0 22 * * 5' || github.event.schedule == '0 22 * * 2')) ||
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.task == 'holders' || github.event.inputs.task == 'all'))
       )
     runs-on: ubuntu-latest
