@@ -868,6 +868,8 @@
   .cx-cred{display:block;margin-top:6px;font-size:9px;color:#64748b;font-style:italic}
   .cx-cred a{color:#0369a1;text-decoration:none}
   .cx-cred a:hover{text-decoration:underline}
+  .mb-box{background:#080c16;border:1px solid rgba(16,185,129,.22);border-radius:8px;padding:10px 12px 6px;margin:2px 0 8px}
+  .mb-box svg{width:100%;height:auto;display:block}
   .pe-fasta{font-family:'Space Mono',monospace;font-size:9.5px;line-height:1.55;color:#a7f3d0;background:#080c16;border:1px solid rgba(16,185,129,.22);border-radius:8px;padding:10px 12px;margin:0;overflow:auto;white-space:pre;letter-spacing:.3px}
   .pe-mol-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
   .pe-mol{background:#fff;border:1px solid rgba(139,92,246,.35);border-radius:9px;padding:10px 14px 8px;max-width:470px;box-shadow:0 2px 12px rgba(0,0,0,.32)}
@@ -1329,6 +1331,41 @@
               <tr class="sum"><td>合計</td><td>SEQ ID 1–5</td><td>5 條序列</td><td>3,554 aa</td><td>≈ 755 kDa</td><td>14 次單元</td><td>專利主張 740–790（最佳 ~760）</td></tr>
             </tbody>
           </table></div>
+          <div class="pe-seq-label"><span>🧮 <b style="color:#34d399">760 kDa 質量拆解</b> — 與廠商公開圖交叉比對（本站自行繪製）</span></div>
+          <div class="mb-box"><svg viewBox="0 0 620 152" xmlns="http://www.w3.org/2000/svg">
+            <text x="77" y="16" text-anchor="middle" font-size="9.5" fill="#34d399">核心神經毒素</text>
+            <text x="189" y="16" text-anchor="middle" font-size="9.5" fill="#38bdf8">NTNHA</text>
+            <text x="422" y="16" text-anchor="middle" font-size="9.5" fill="#fca5a5">HA 次單元（輔助蛋白）</text>
+            <rect x="20" y="24" width="114" height="30" rx="3" fill="#34d399"/>
+            <rect x="136" y="24" width="107" height="30" rx="3" fill="#38bdf8"/>
+            <rect x="245" y="24" width="355" height="30" rx="3" fill="#fca5a5"/>
+            <text x="77" y="44" text-anchor="middle" font-size="11.5" font-weight="700" fill="#04160f">150 kDa</text>
+            <text x="189" y="44" text-anchor="middle" font-size="11.5" font-weight="700" fill="#04160f">140 kDa</text>
+            <text x="422" y="44" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3f1010">~470 kDa</text>
+            <path d="M20 60 L20 66 L243 66 L243 60" stroke="#64748b" fill="none" stroke-width="1"/>
+            <text x="131" y="78" text-anchor="middle" font-size="9" fill="#94a3b8">Core protein ＝ 290 kDa</text>
+            <path d="M245 60 L245 66 L600 66 L600 60" stroke="#64748b" fill="none" stroke-width="1"/>
+            <text x="422" y="78" text-anchor="middle" font-size="9" fill="#94a3b8">Auxiliary protein ＝ ~470 kDa</text>
+            <rect x="245" y="90" width="161" height="18" rx="2" fill="#fca5a5" opacity=".8"/>
+            <rect x="408" y="90" width="154" height="18" rx="2" fill="#f9a8d4" opacity=".8"/>
+            <rect x="564" y="90" width="36" height="18" rx="2" fill="#fbcfe8" opacity=".8"/>
+            <text x="325" y="103" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3f1010">HA70×3 ＝ 213</text>
+            <text x="485" y="103" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3f1010">HA33×6 ＝ 204</text>
+            <text x="582" y="103" text-anchor="middle" font-size="7.5" font-weight="700" fill="#3f1010">×3＝51</text>
+            <text x="245" y="122" font-size="8.5" fill="#94a3b8">HA 拆解（專利標示質量）：213 ＋ 204 ＋ 51 ＝ 468 kDa ≈ 廠商圖的 ~470</text>
+            <text x="20" y="144" font-size="12" font-weight="700" fill="#34d399">150 ＋ 140 ＋ 470 ＝ 760 kDa</text>
+            <text x="243" y="144" font-size="9.5" fill="#94a3b8">｜專利實算 149 ＋ 138 ＋ 468 ＝ 755 kDa —— 兩條獨立路徑吻合</text>
+          </svg></div>
+          <div class="cx-table"><table>
+            <thead><tr><th>項目</th><th>鼎晉／浩鼎公開圖</th><th>本站（專利 TW202138002A ＋ UniProt 實算）</th><th>比對</th></tr></thead>
+            <tbody>
+              <tr><td>核心神經毒素</td><td>150 kDa</td><td>BoNT/A1 149 kDa ×1</td><td>✓ 相符</td></tr>
+              <tr><td>NTNHA</td><td>140 kDa</td><td>NTNH 138 kDa ×1</td><td>✓ 相符</td></tr>
+              <tr><td>HA 次單元</td><td>~470 kDa</td><td>HA70×3 213 ＋ HA33×6 204 ＋ HA17×3 51 ＝ 468</td><td>✓ 相符</td></tr>
+              <tr class="sum"><td>合計</td><td>760 kDa</td><td>755 kDa</td><td>✓ 高度吻合</td></tr>
+            </tbody>
+          </table></div>
+          <div class="pe-seq-note">＊上方質量拆解圖為<b>本站依公開數據自行繪製</b>（未重製廠商圖檔）。數據取自 <a href="https://www.obigenpharma.com/pipelines" target="_blank" rel="noopener">鼎晉 OBIGEN 產品線頁</a> 之 OBI-858 複合體組成圖；該圖右下標註之原始出處為：OBIGEN EM data on file、Shenyan Gu <i>Curr Top Microbiol Immunol</i> 2013;364:21–44、Benefield DA <i>PNAS</i> 2013;110:5630–5635、Lee K. &amp; Gu S. <i>PLoS Pathog</i> 2013;9:e1003690。<br>🎯 <b>交叉驗證結論</b>：廠商公開圖的 150＋140＋470＝<b>760 kDa</b>，與本站由專利 TW202138002A 標示質量＋UniProt 序列獨立推算的 149＋138＋468＝<b>755 kDa</b> 高度一致 —— 兩條互不相干的資料路徑得到相同結構，可信度高。</div>
           <pre class="pe-fasta" style="max-height:200px;overflow:auto">&gt;BoNT/A|P0DPI1|1296aa|~150kDa|x1
 MPFVNKQFNYKDPVNGVDIAYIKIPNAGQMQPVKAFKIHNKIWVIPERDTFTNPEEGDLN
 PPPEAKQVPVSYYDSTYLSTDNEKDNYLKGVTKLFERIYSTDLGRMLLTSIVRGIPFWGG
