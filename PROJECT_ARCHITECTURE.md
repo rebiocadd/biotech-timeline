@@ -50,6 +50,14 @@ biotech-timeline/
 ├── 【前端】
 ├── index.html                      唯一前端檔案（4000+ 行，含 CSS + JS + HTML）
 │
+├── 【科學展示卡 3D／2D 結構資產（index.html 內嵌 viewer 讀取）】
+├── spin/
+│   ├── 9qcm.pdb.gz                 實驗結構：RCSB PDB 9QCM（B1 型 14 鏈 L-PTC）
+│   └── af_complex.pdb.gz           AlphaFold 組裝：5 蛋白單鏈預測 + 疊合成 14 鏈
+├── bont_ptc_3d.jpg                 實驗複合體 3D 靜態海報（poster fallback）
+├── bont_af_3d.jpg                  AlphaFold 14 鏈 3D 靜態海報
+├── tinlarebant.svg                 仁新 Tinlarebant 2D 小分子結構
+│
 ├── 【資料 JSON（前端 fetch 讀取）】
 ├── date.json                       26 家公司 + 2026 events 主資料（最重要）
 ├── scores.json                     動態評分結果（7 模組 + 風險閘）
@@ -390,13 +398,74 @@ git push origin main
 | 加新公司 | `date.json` → 對應 section.companies |
 | 調整評分權重 | `config/scoringWeights.json` |
 | 改前端樣式/版面 | `index.html` |
+| 改／重建 3D 分子結構圖 | `index.html`（`_MOL3D_CFG`）＋ `spin/*.pdb.gz`；重建方法見第十四節 |
 | 改自動化排程時間 | `.github/workflows/update-prices.yml` |
 | 看資料抓取的歷史問題 | `DATA_SEARCH_MEMO.md` |
 | 看評分引擎邏輯 | `SCORING_ENGINE.md` 或 `update_scores.py` |
 
 ---
 
-## 十四、聯絡與授權
+## 十四、深度分析卡與 3D 分子結構系統
+
+> 頁面在「28 家新聞」上方有幾張可展開的 **深度分析展示卡**（`.pe-showcase` / `<details class="csec">`），
+> 全部純寫在 `index.html`（HTML + 內嵌 SVG + JS），資料**非**來自 JSON 排程、也不受 cron 影響。
+
+### 展示卡一覽
+
+| 卡片 | 代號 | 主題 | 特色內容 |
+|---|---|---|---|
+| 🏆 台灣生技界股王 藥華藥 | 6446 | 成功範例① | 藥物機轉、蛋白序列、他國藥證時程 |
+| 🏆 成功範例 仁新醫藥 | 6696 | 成功範例② | Tinlarebant（RBP4）、2D 小分子結構 + SMILES |
+| 🌱 台灣醫美潛力生技股 鼎晉生技 | 7876 | 潛力範例 | OBI-858 肉毒桿菌毒素、760 kDa 複合體、**3D 結構** |
+
+### 3D 分子結構檢視器
+
+| 項目 | 實作 |
+|---|---|
+| **函式庫** | [3Dmol.js](https://3dmol.csb.pitt.edu/) 2.4.2，CDN 載入 |
+| **載入時機** | 卡片 `<details>` 首次 `toggle` 展開時才 lazy-load（省流量） |
+| **設定物件** | `_MOL3D_CFG[id] = {gz, rot, style}`：資料檔、初始旋轉、著色函式 |
+| **資料解壓** | 檔案為 gzip，瀏覽器端用 `DecompressionStream('gzip')` 即時解壓成 PDB 文字 |
+| **poster fallback** | 每個 viewer 有靜態 `<img>` 底圖；3Dmol 載入失敗時退回顯示 |
+
+目前鼎晉卡有 **兩顆可對照的 14 鏈 3D**：
+
+| viewer id | 資料檔 | 來源 | 上色 |
+|---|---|---|---|
+| `mol3d` | `spin/9qcm.pdb.gz` | **實驗結構** RCSB PDB 9QCM（2.9 Å 冷凍電鏡，B1 型，實測 757.93 kDa） | 依鏈（紅/青/粉） |
+| `mol3d2` | `spin/af_complex.pdb.gz` | **AlphaFold 組裝模型**（見下） | 依鏈（同上，可直接對照） |
+
+### ★ AlphaFold 14 鏈複合體組裝方法（可重現）
+
+A 型 OBI-858 的完整 L-PTC 尚無實驗結構，故以「AlphaFold 單鏈預測 ＋ 剛體疊合」組裝：
+
+1. **取 5 種蛋白的 AlphaFold 單鏈模型**（UniProt accession → AlphaFold DB）：
+
+   | 鏈 | 蛋白 | UniProt | 份數 |
+   |---|---|---|---|
+   | A | BoNT/A 神經毒素 | P0DPI1 | ×1 |
+   | B | NTNH | A5HZZ8 | ×1 |
+   | C–E | HA70 | A5HZZ4 | ×3 |
+   | F–H | HA17 | A5HZZ5 | ×3 |
+   | I–N | HA33 | A5HZZ6 | ×6 |
+   | | | | **合計 14 鏈** |
+
+2. **依 1:1:3:3:6 化學計量** 複製各單鏈為 14 條鏈（A–N）。
+3. **Kabsch 剛體疊合**：把每條 AlphaFold 單鏈的 Cα，位置對位疊到實驗模板 **9QCM** 對應鏈的座標上，再把該旋轉平移套用到整條鏈全部原子。
+4. 輸出 `spin/af_complex.pdb.gz`（**53,412 原子**），並以自寫 space-filling 渲染器產靜態海報 `bont_af_3d.jpg`（依鏈上色，與實驗圖同配色便於對照）。
+
+- **重建腳本**：`assemble_af14.py`（＋ `render_ptc.py` 渲染海報）保存在開發者 scratchpad，**未進 repo**；上述 4 步已足以重現。
+- **誠實標註**：A 型完整複合體無實驗結構 → 空間排列採用同架構（1:1:3:3:6）的 B1 型 9QCM 為模板 → 圖說標明為「**組裝模型**」而非單一實驗解析。
+- **授權**：AlphaFold DB 模型 CC BY 4.0（Jumper *Nature* 2021、Varadi *NAR* 2024）；PDB 9QCM 公開。
+
+### 版權原則（重要）
+
+> **不複製期刊 / 廠商的圖檔**。所有結構圖一律以 **公開座標（PDB／AlphaFold DB）或公開序列（UniProt／專利 SEQ ID）自行渲染重製**，並在圖說標註原始來源。
+> 760 kDa 交叉驗證三方一致：OBIGEN 公開圖（150+140+470）× 專利 TW202138002A 質量加總 × PDB 9QCM 實測 757.93 kDa。
+
+---
+
+## 十五、聯絡與授權
 
 - 維護者：rebiocadd
 - 授權：本專案僅供研究與追蹤參考，不構成投資建議
