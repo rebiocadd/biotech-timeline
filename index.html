@@ -866,6 +866,12 @@
   .cx-fig figcaption{font-size:10.5px;color:#334155;line-height:1.55;margin-top:8px}
   .cx-fig figcaption b{color:#065f46}
   .cx-3d img{max-width:470px}
+  .spin3d{position:relative;max-width:470px;margin:0 auto;cursor:grab;touch-action:pan-y;user-select:none}
+  .spin3d.dragging{cursor:grabbing}
+  .spin3d img{display:block;width:100%;height:auto;pointer-events:none;max-width:none}
+  .spin-hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:10px;background:rgba(15,23,42,.85);color:#a7f3d0;padding:4px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;transition:opacity .3s}
+  .spin3d.ready .spin-hint{opacity:.45}
+  .spin3d.ready:hover .spin-hint{opacity:1}
   .cx-fig .lg{display:inline-flex;align-items:center;gap:4px;margin:0 7px;font-size:10px;white-space:nowrap;font-weight:700;color:#334155}
   .cx-fig .lg i{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
   .cx-cred{display:block;margin-top:6px;font-size:9px;color:#64748b;font-style:italic}
@@ -1324,7 +1330,7 @@
             <span class="cx-cred">圖片來源：Rawson AM, Dempster AW, Humphreys CM, Minton NP. <i>Pathogenicity and virulence of Clostridium botulinum</i>. <b>Virulence</b>. 2023;14(1):2205251, Figure 4. <a href="https://doi.org/10.1080/21505594.2023.2205251" target="_blank" rel="noopener">DOI</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10171130/" target="_blank" rel="noopener">PMC10171130</a> · 依 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> 授權重製，未修改原圖。</span></figcaption>
           </figure>
           <figure class="cx-fig cx-3d">
-            <img src="bont_ptc_3d.jpg" alt="完整 14 次單元大型前驅毒素複合體 L-PTC 的 3D 空間填充結構：粉紅 HA 三腳架、青綠 NTNH、深紅神經毒素">
+            <div class="spin3d" id="spin3d" data-frames="24"><img id="spin-img" src="bont_ptc_3d.jpg" alt="完整 14 次單元大型前驅毒素複合體 L-PTC 的 3D 空間填充結構：粉紅 HA 三腳架、青綠 NTNH、深紅神經毒素"><div class="spin-hint" id="spin-hint">🔄 可拖曳旋轉</div></div>
             <figcaption><b>完整複合體 3D 真實結構</b>（14 次單元 L-PTC，實測 <b>757.9 kDa</b>）
               <span class="lg"><i style="background:#be2634"></i>神經毒素 ~150 kDa ×1</span><span class="lg"><i style="background:#1cbea8"></i>NTNH ~140 kDa ×1</span><span class="lg"><i style="background:#f396a3"></i>HA 三腳架 ~470 kDa（×3／×3／×6）</span><br>
               <b>三大區塊一目了然</b>：底部<b>深紅神經毒素</b>被<b>青綠 NTNH</b> 包覆成核心（≈290 kDa）；上方<b>粉紅 HA 三腳架</b>（HA70×3 ＋ HA17×3 ＋ HA33×6 ≈ 470 kDa）如珊瑚般張開 —— 兩者相加即 <b>~760 kDa</b>，與鼎晉公開圖的三段式組成完全一致。
@@ -3911,6 +3917,29 @@ function _copySeq(btn){
     else _fbCopy(txt, done);
   }catch(e){ console.warn('copySeq fail', e); }
 }
+// 🔄 3D 複合體轉盤：拖曳/觸控旋轉，畫格於鼎晉卡展開時才 lazy-load（維持零 3D 依賴）
+function _initSpin3D(){
+  const box=document.getElementById('spin3d'); if(!box||box._init) return; box._init=true;
+  const img=document.getElementById('spin-img'); const N=parseInt(box.dataset.frames)||24;
+  const frames=[]; let loaded=0, cur=0, dragging=false, moved=0, startX=0, startFrame=0;
+  for(let i=0;i<N;i++){ const im=new Image(); im.onload=()=>{ if(++loaded===N){ box.classList.add('ready'); const h=document.getElementById('spin-hint'); if(h) h.textContent='🔄 拖曳旋轉 · '+N+' 視角'; } };
+    im.src='spin/ptc'+String(i).padStart(2,'0')+'.webp'; frames[i]=im; }
+  const show=k=>{ cur=((k%N)+N)%N; const f=frames[cur]; if(f&&f.complete&&f.naturalWidth) img.src=f.src; };
+  const down=x=>{ dragging=true; moved=0; startX=x; startFrame=cur; box.classList.add('dragging'); };
+  const move=x=>{ if(!dragging) return; const dx=x-startX; moved=Math.max(moved,Math.abs(dx));
+    show(startFrame - Math.round(dx/ (box.clientWidth/N) )); };   // 拖過整個寬度 = 轉一圈
+  const up=()=>{ dragging=false; box.classList.remove('dragging'); };
+  box.addEventListener('mousedown',e=>{ e.preventDefault(); down(e.clientX); });
+  window.addEventListener('mousemove',e=>move(e.clientX));
+  window.addEventListener('mouseup',up);
+  box.addEventListener('touchstart',e=>down(e.touches[0].clientX),{passive:true});
+  box.addEventListener('touchmove',e=>{ if(dragging&&Math.abs(e.touches[0].clientX-startX)>4){ e.preventDefault(); } move(e.touches[0].clientX); },{passive:false});
+  box.addEventListener('touchend',up);
+  box.addEventListener('click',e=>{ if(moved>6){ e.preventDefault(); e.stopPropagation(); } }, true);  // 旋轉後的放開不要誤觸
+}
+// 鼎晉卡一展開就初始化轉盤
+document.addEventListener('DOMContentLoaded',()=>{ const dj=document.getElementById('dj-showcase');
+  if(dj) dj.addEventListener('toggle',()=>{ if(dj.open) _initSpin3D(); }); });
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
