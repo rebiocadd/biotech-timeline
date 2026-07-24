@@ -853,6 +853,15 @@
   .seq-copy.ok{border-color:#34d399;color:#34d399;background:rgba(16,185,129,.14)}
   .pe-seq{font-family:'Space Mono',monospace;font-size:10.5px;line-height:1.65;color:#7dd3fc;background:#080c16;border:1px solid rgba(0,212,255,.18);border-radius:8px;padding:11px 13px;margin:0;overflow-x:auto;white-space:pre;letter-spacing:.5px}
   .pe-seq-note{font-size:9.5px;color:var(--muted);margin-top:6px;font-style:italic}
+  .pe-seq-note a{color:#38bdf8;text-decoration:none}
+  .pe-seq-note a:hover{text-decoration:underline}
+  .cx-table{overflow-x:auto;margin:4px 0 8px}
+  .cx-table table{width:100%;border-collapse:collapse;font-size:10.5px;min-width:540px}
+  .cx-table th{text-align:left;color:var(--muted);font-weight:600;padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .cx-table td{padding:5px 8px;border-bottom:1px solid rgba(30,45,69,.5);color:#cbd5e1;white-space:nowrap}
+  .cx-table td a{color:#38bdf8;text-decoration:none;font-family:'Space Mono',monospace}
+  .cx-table tr.sum td{color:#34d399;font-weight:700;border-bottom:none}
+  .pe-fasta{font-family:'Space Mono',monospace;font-size:9.5px;line-height:1.55;color:#a7f3d0;background:#080c16;border:1px solid rgba(16,185,129,.22);border-radius:8px;padding:10px 12px;margin:0;overflow:auto;white-space:pre;letter-spacing:.3px}
   .pe-mol-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
   .pe-mol{background:#fff;border:1px solid rgba(139,92,246,.35);border-radius:9px;padding:10px 14px 8px;max-width:470px;box-shadow:0 2px 12px rgba(0,0,0,.32)}
   .pe-mol img{display:block;width:100%;height:auto}
@@ -1296,7 +1305,85 @@
  1141  GSVMTTNIYL NSSLYRGTKF IIKKYASGNK DNIVRNNDRV YINVVVKNKE YRLATNASQA
  1201  GVEKILSALE IPDVGNLSQV VVMKSKNDQG ITNKCKMNLQ DNNGNDIGFI GFHQFNNIAK
  1261  LVASNWYNRQ IERSSRTLGC SWEFIPVDDG WGERPL</pre>
-          <div class="pe-seq-note">＊OBI-858 為 760 kDa 複合體（神經毒素＋伴隨蛋白）；上為天然 A 型肉毒神經毒素（BoNT/A）序列與結構域，僅供學術參考、非投資建議。</div>
+          <div class="pe-seq-label"><span>🧩 <b style="color:#34d399">760 kDa 複合體（L-PTC）完整組成</b> — 5 種蛋白、化學計量 1:1:3:3:6（約 14 個次單元）</span><button class="seq-copy" onclick="_copySeq(this)" title="複製 5 條序列的完整 FASTA（3,554 aa）">⧉ 複製 FASTA</button></div>
+          <div class="cx-table"><table>
+            <thead><tr><th>組成蛋白</th><th>UniProt</th><th>長度</th><th>分子量</th><th>比例</th><th>角色</th></tr></thead>
+            <tbody>
+              <tr><td>BoNT/A 神經毒素</td><td><a href="https://www.uniprot.org/uniprotkb/P0DPI1" target="_blank" rel="noopener">P0DPI1</a></td><td>1296 aa</td><td>~150 kDa</td><td>×1</td><td>催化／毒性本體（切 SNAP-25）</td></tr>
+              <tr><td>NTNH 非毒性非血凝素</td><td><a href="https://www.uniprot.org/uniprotkb/A5HZZ8" target="_blank" rel="noopener">A5HZZ8</a></td><td>1193 aa</td><td>~130 kDa</td><td>×1</td><td>保護毒素抗胃酸與蛋白酶</td></tr>
+              <tr><td>HA70（HA3）</td><td><a href="https://www.uniprot.org/uniprotkb/A5HZZ4" target="_blank" rel="noopener">A5HZZ4</a></td><td>626 aa</td><td>~70 kDa</td><td>×3</td><td>複合體骨架、黏膜吸收</td></tr>
+              <tr><td>HA17（HA2）</td><td><a href="https://www.uniprot.org/uniprotkb/A5HZZ5" target="_blank" rel="noopener">A5HZZ5</a></td><td>146 aa</td><td>~17 kDa</td><td>×3</td><td>連接 HA70 與 HA33</td></tr>
+              <tr><td>HA33（HA1）</td><td><a href="https://www.uniprot.org/uniprotkb/A5HZZ6" target="_blank" rel="noopener">A5HZZ6</a></td><td>293 aa</td><td>~33 kDa</td><td>×6</td><td>結合醣類、促進吸收</td></tr>
+              <tr class="sum"><td>合計</td><td>5 種蛋白</td><td>3,554 aa</td><td>≈ 739–760 kDa</td><td>14 次單元</td><td>即「760 kDa」L-PTC</td></tr>
+            </tbody>
+          </table></div>
+          <pre class="pe-fasta" style="max-height:200px;overflow:auto">&gt;BoNT/A|P0DPI1|1296aa|~150kDa|x1
+MPFVNKQFNYKDPVNGVDIAYIKIPNAGQMQPVKAFKIHNKIWVIPERDTFTNPEEGDLN
+PPPEAKQVPVSYYDSTYLSTDNEKDNYLKGVTKLFERIYSTDLGRMLLTSIVRGIPFWGG
+STIDTELKVIDTNCINVIQPDGSYRSEELNLVIIGPSADIIQFECKSFGHEVLNLTRNGY
+GSTQYIRFSPDFTFGFEESLEVDTNPLLGAGKFATDPAVTLAHELIHAGHRLYGIAINPN
+RVFKVNTNAYYEMSGLEVSFEELRTFGGHDAKFIDSLQENEFRLYYYNKFKDIASTLNKA
+KSIVGTTASLQYMKNVFKEKYLLSEDTSGKFSVDKLKFDKLYKMLTEIYTEDNFVKFFKV
+LNRKTYLNFDKAVFKINIVPKVNYTIYDGFNLRNTNLAANFNGQNTEINNMNFTKLKNFT
+GLFEFYKLLCVRGIITSKTKSLDKGYNKALNDLCIKVNNWDLFFSPSEDNFTNDLNKGEE
+ITSDTNIEAAEENISLDLIQQYYLTFNFDNEPENISIENLSSDIIGQLELMPNIERFPNG
+KKYELDKYTMFHYLRAQEFEHGKSRIALTNSVNEALLNPSRVYTFFSSDYVKKVNKATEA
+AMFLGWVEQLVYDFTDETSEVSTTDKIADITIIIPYIGPALNIGNMLYKDDFVGALIFSG
+AVILLEFIPEIAIPVLGTFALVSYIANKVLTVQTIDNALSKRNEKWDEVYKYIVTNWLAK
+VNTQIDLIRKKMKEALENQAEATKAIINYQYNQYTEEEKNNINFNIDDLSSKLNESINKA
+MININKFLNQCSVSYLMNSMIPYGVKRLEDFDASLKDALLKYIYDNRGTLIGQVDRLKDK
+VNNTLSTDIPFQLSKYVDNQRLLSTFTEYIKNIINTSILNLRYESNHLIDLSRYASKINI
+GSKVNFDPIDKNQIQLFNLESSKIEVILKNAIVYNSMYENFSTSFWIRIPKYFNSISLNN
+EYTIINCMENNSGWKVSLNYGEIIWTLQDTQEIKQRVVFKYSQMINISDYINRWIFVTIT
+NNRLNNSKIYINGRLIDQKPISNLGNIHASNNIMFKLDGCRDTHRYIWIKYFNLFDKELN
+EKEIKDLYDNQSNSGILKDFWGDYLQYDKPYYMLNLYDPNKYVDVNNVGIRGYMYLKGPR
+GSVMTTNIYLNSSLYRGTKFIIKKYASGNKDNIVRNNDRVYINVVVKNKEYRLATNASQA
+GVEKILSALEIPDVGNLSQVVVMKSKNDQGITNKCKMNLQDNNGNDIGFIGFHQFNNIAK
+LVASNWYNRQIERSSRTLGCSWEFIPVDDGWGERPL
+&gt;NTNH|A5HZZ8|1193aa|~130kDa|x1
+MNINDNLSINSPVDNKNVVVVRARKTDTVFKAFKVAPNIWVAPERYYGESLSIDEEYKVD
+GGIYDSNFLSQDSEKDKFLQAIITLLKRINSTNAGEKLLSLISTAIPFPYGYIGGGYYAP
+NMITFGSAPKSNKKLNSLISSTIPFPYAGYRETNYLSSEDNKSFYASNIVIFGPGANIVE
+NNTVFYKKEDAENGMGTMTEIWFQPFLTYKYDEFYIDPAIELIKCLIKSLYFLYGIKPSD
+DLVIPYRLRSELENIEYSQLNIVDLLVSGGIDPKFINTDPYWFTDNYFSNAKKVFEDHRN
+IYETEIEGNNAIGNDIKLRLKQKFRININDIWELNLNYFSKEFSIMMPDRFNNALKHFYR
+KQYYKIDYPENYSINGFVNGQINAQLSLSDRNQDIINKPEEIINLLNGNNVSLMRSNIYG
+DGLKSTVDDFYSNYKIPYNRAYEYHFNNSNDSSLDNVNIGVIDNIPEIIDVNPYKENCDK
+FSPVQKITSTREINTNIPWPINYLQAQNTNNEKFSLSSDFVEVVSSKDKSLVYSFLSNVM
+FYLDSIKDNSPIDTDKKYYLWLREIFRNYSFDITATQEINTNCGINKVVTWFGKALNILN
+TSDSFVEEFQNLGAISLINKKENLSMPIIESYEIPNDMLGLPLNDLNEKLFNIYSKNTAY
+FKKIYYNFLDQWWTQYYSQYFDLICMAKRSVLAQETLIKRIIQKKLSYLIGNSNISSDNL
+ALMNLTTTNTLRDISNESQIAMNNVDSFLNNAAICVFESNIYPKFISFMEQCINNINIKT
+KEFIQKCTNINEDEKLQLINQNVFNSLDFEFLNIQNMKSLFSSETALLIKEETWPYELVL
+YAFKEPGNNVIGDASGKNTSIEYSKDIGLVYGINSDALYLNGSNQSISFSNDFFENGLTN
+SFSIYFWLRNLGKDTIKSKLIGSKEDNCGWEIYFQDTGLVFNMIDSNGNEKNIYLSDVSN
+NSWHYITISVDRLKEQLLIFIDDNLVANESIKEILNIYSSNIISLLSENNPSYIEGLTIL
+NKPTTSQEVLSNYFEVLNNSYIRDSNEERLEYNKTYQLYNYVFSDKPICEVKQNNNIYLT
+INNTNNLNLQASKFKLLSINPNKQYVQKLDEVIISVLDNMEKYIDISEDNRLQLIDNKNN
+AKKMIISNDIFISNCLTLSYNGKYICLSMKDENHNWMICNNDMSKYLYLWSFK
+&gt;HA70|A5HZZ4|626aa|~70kDa|x3
+MNSSIKKIYNDIQEKVINYSDTIDLADGNYVVRRGDGWILSRQNQILGGSVISNGSTGIV
+GDLRVNDNAIPYYYPTPSFNEEYIKNNIQTVFTNFTEANQIPIGFEFSKTAPSNKNLYMY
+LQYTYIRYEIIKVLQHEIIERAVLYVPSLGYVKSIEFNPGEKINKDFYFLTNDKCILNEQ
+FLYKKILETTKNIPTNNIFNSKVSSTQRVLPYSNGLYVINKGDGYIRTNDKDLIGTLLIE
+AGSSGSIIQPRLRNTTRPLFTTSNDTKFSQQYTEERLKDAFNVQLFNTSTSLFKFVEEAP
+SDKNICIKAYNTYEKYELIDYQNGSIVNKAEYYLPSLGYCEVTNAPSPESEVVKMQVAED
+GFIQNGPEEEIVVGVIDPSENIQEINTAISDNYTYNIPGIVNNNPFYILFTVNTTGIYKI
+NAQNNLPSLKIYEAIGSGNRNFQSGNLCDDDIKAINYITGFDSPNAKSYLVVLLNKDKNY
+YIRVPQTSSNIENQIQFKREEGDLRNLMNSSVNIIDNLNSTGAHYYTRQSPDVHDYISYE
+FTIPGNFNNKDTSNIRLYTSYNQGIGTLFRVTETIDGYNLINIQQNLHLLNNTNSIRLLN
+GAIYILKVEVTELNNYNIRLHIDITN
+&gt;HA17|A5HZZ5|146aa|~17kDa|x3
+MSVERTFLPNGNYNIKSIFSGSLYLNPVSKSLTFSNESSANNQKWNVEYMAENRCFKISN
+VAEPNKYLSYDNFGFISLDSLSNRCYWFPIKIAVNTYIMLSLNKVNELDYAWDIYDTNEN
+ILSQPLLLLPNFDIYNSNQMFKLEKI
+&gt;HA33|A5HZZ6|293aa|~33kDa|x6
+MEHYSVIQNSLNDKIVTISCKADTNLFFYQVAGNVSLFQQTRNYLERWRLIYDSNKAAYK
+IKSMDIHNTNLVLTWNAPTHNISTQQDSNADNQYWLLLKDIGNNSFIIASYKNPNLVLYA
+DTVARNLKLSTLNNSNYIKFIIEDYIISDLNNFTCKISPILDLNKVVQQVDVTNLNVNLY
+TWDYGRNQKWTIRYNEEKAAYQFFNTILSNGVLTWIFSNGNTVRVSSSNDQNNDAQYWLI
+NPVSDTDETYTITNLRDTTKALDLYGGQTANGTAIQVFNYHGDDNQKWNIRNP</pre>
+          <div class="pe-seq-note">＊<b>760 kDa 不是單一蛋白</b>，而是上述 5 種蛋白組成的大型前驅毒素複合體（L-PTC）；依 1:1:3:3:6 計算約 739 kDa，文獻與廠商稱 ~760 kDa（Botox 為 900 kDa）。上列為 <i>C. botulinum</i> A（Hall 株）各組成之<b>公開序列</b>，實際商品的複合體比例與純化製程屬各廠專有配方。<br>📜 OBI-858 專利：台灣智財局 2021/07/27 核准「肉毒桿菌毒素 A 型組成物、其配方及使用方法」（浩鼎）· <a href="https://patents.google.com/patent/AU2020440362A1/en" target="_blank" rel="noopener">AU2020440362A1</a> · <a href="https://www.obipharma.com/announcement/patent-of-obi-858-clostridium-botulinum-toxin-type-a-composition-formulation-and-use-thereof-was-granted-by-the-taiwan-intellectual-property-office/" target="_blank" rel="noopener">浩鼎專利公告</a>。僅供學術參考、非投資建議。</div>
         </div>
         <div class="pe-block pe-gb" style="grid-column:1/-1">
           <div class="pe-block-t">📄 發表文章與詳細解讀（同儕審查期刊）</div>
@@ -3751,7 +3838,7 @@ function _copySeq(btn){
   try{
     let el = btn.closest('.pe-seq-label, .pe-smiles-label');
     el = el ? el.nextElementSibling : null;
-    while(el && !(el.classList && (el.classList.contains('pe-seq')||el.classList.contains('pe-smiles')))) el = el.nextElementSibling;
+    while(el && !(el.classList && (el.classList.contains('pe-seq')||el.classList.contains('pe-smiles')||el.classList.contains('pe-fasta')))) el = el.nextElementSibling;
     if(!el) return;
     const isSeq = el.classList.contains('pe-seq');
     const txt = isSeq ? el.textContent.replace(/[^A-Za-z]/g,'').toUpperCase() : el.textContent.trim();
