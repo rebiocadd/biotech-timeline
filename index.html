@@ -1350,12 +1350,12 @@
               <tr class="sum"><td>合計</td><td>SEQ ID 1–5</td><td>14 條鏈（5 種相異序列）</td><td>6,563 aa</td><td>≈ 755 kDa</td><td>14 次單元</td><td>專利主張 740–790（最佳 ~760）</td></tr>
             </tbody>
           </table></div>
-          <div class="pe-seq-label"><span>🤖 <b style="color:#34d399">由序列 AI 預測的 3D 結構</b>（AlphaFold）— 把胺基酸序列直接餵給 AI，摺出立體結構</span></div>
+          <div class="pe-seq-label"><span>🤖 <b style="color:#34d399">由序列 AI 預測、組裝成完整 14 條鏈</b>（AlphaFold）— 5 種蛋白各自摺疊，再依複合體架構組裝</span></div>
           <figure class="cx-fig cx-3d">
-            <div class="mol3d" id="mol3d2"><img src="bont_af_3d.jpg" alt="AlphaFold 由 BoNT/A 序列預測的 3D 結構，依 pLDDT 信心分數上色"><div class="mol3d-view" id="mol3d2-view"></div><div class="mol3d-hint" id="mol3d2-hint">🔄 展開後可自由旋轉</div></div>
-            <figcaption><b>AI 由序列預測（AlphaFold）</b>，顏色為 <b>pLDDT 信心分數</b>：<span class="lg"><i style="background:#0053d6"></i>極高 &gt;90</span><span class="lg"><i style="background:#65cbf3"></i>高 70–90</span><span class="lg"><i style="background:#ffdb13"></i>低 50–70</span><span class="lg"><i style="background:#ff7d45"></i>極低 &lt;50</span><br>
-              回答「能不能從序列產生 3D」：<b>可以</b>。這張<b>不是實驗解出來的，而是把 BoNT/A 的 1296 個胺基酸序列直接餵給 AlphaFold，由 AI 預測摺疊</b>。整體平均信心 pLDDT <b>92.3</b>（79% 達「極高」深藍）→ AI 對此摺疊非常有把握，只有末端與少數柔性環（橘/黃）信心較低。與上方<b>實驗結構</b>對照，AI 幾乎重現了輕鏈（蛋白酶）＋重鏈（轉位／結合）的雙域架構 —— 這也是為何 AlphaFold 能拿下諾貝爾獎。
-              <span class="cx-cred">模型：<a href="https://alphafold.ebi.ac.uk/entry/P0DPI1" target="_blank" rel="noopener">AlphaFold DB — P0DPI1</a>（v6）· Jumper et al. <i>Nature</i> 2021、Varadi et al. <i>Nucleic Acids Res</i> 2024 · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>。互動渲染以 <a href="https://3dmol.csb.pitt.edu/" target="_blank" rel="noopener">3Dmol.js</a> 在你的瀏覽器即時完成，非重製他人圖檔。</span></figcaption>
+            <div class="mol3d" id="mol3d2"><img src="bont_af_3d.jpg" alt="AlphaFold 預測的 5 種蛋白組裝成完整 14 條鏈 L-PTC 複合體 3D 結構，依蛋白鏈上色"><div class="mol3d-view" id="mol3d2-view"></div><div class="mol3d-hint" id="mol3d2-hint">🔄 展開後可自由旋轉</div></div>
+            <figcaption><b>由 AlphaFold 預測、再組裝成完整 14 條鏈</b>（依蛋白鏈上色，與上方實驗結構同配色可直接對照）：<span class="lg"><i style="background:#be2634"></i>神經毒素 BoNT/A ×1</span><span class="lg"><i style="background:#1cbea8"></i>NTNH ×1</span><span class="lg"><i style="background:#f396a3"></i>HA 三腳架 HA70×3／HA17×3／HA33×6</span><br>
+              回答「能不能從序列產生 3D」：<b>可以，而且能組成整個複合體</b>。這裡把 <b>5 種蛋白（BoNT/A、NTNH、HA70、HA17、HA33）各自的胺基酸序列分別餵給 AlphaFold</b> 預測出單鏈結構（各鏈平均信心 pLDDT 多在 85–92「高／極高」），再<b>依 L-PTC 已知的 1:1:3:3:6 組裝架構，以剛體疊合排成完整 14 條鏈</b>。成果與上方實驗結構幾乎一致：底部神經毒素＋青綠 NTNH 組成核心，上方 HA 如三腳架張開 —— 這正是 AlphaFold 摘下諾貝爾獎的威力。
+              <span class="cx-cred">單鏈模型：AlphaFold DB — <a href="https://alphafold.ebi.ac.uk/entry/P0DPI1" target="_blank" rel="noopener">P0DPI1</a>／<a href="https://alphafold.ebi.ac.uk/entry/A5HZZ8" target="_blank" rel="noopener">A5HZZ8</a>／<a href="https://alphafold.ebi.ac.uk/entry/A5HZZ4" target="_blank" rel="noopener">A5HZZ4</a>／<a href="https://alphafold.ebi.ac.uk/entry/A5HZZ5" target="_blank" rel="noopener">A5HZZ5</a>／<a href="https://alphafold.ebi.ac.uk/entry/A5HZZ6" target="_blank" rel="noopener">A5HZZ6</a>（Jumper <i>Nature</i> 2021、Varadi <i>NAR</i> 2024，<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>）· 空間排列以實驗複合體 <a href="https://www.rcsb.org/structure/9QCM" target="_blank" rel="noopener">PDB 9QCM</a> 為模板疊合。<b>註</b>：A 型完整複合體尚無實驗結構，排列採同架構的 B1 型座標，故為<b>組裝模型</b>；互動渲染由 <a href="https://3dmol.csb.pitt.edu/" target="_blank" rel="noopener">3Dmol.js</a> 在你的瀏覽器即時完成。</span></figcaption>
           </figure>
           <div class="pe-seq-label"><span>🧮 <b style="color:#34d399">760 kDa 質量拆解</b> — 與廠商公開圖交叉比對（本站自行繪製）</span></div>
           <div class="mb-box"><svg viewBox="0 0 620 152" xmlns="http://www.w3.org/2000/svg">
@@ -4029,9 +4029,13 @@ _MOL3D_CFG['mol3d']={gz:'spin/9qcm.pdb.gz', rot:[[90,'x']], style:function(v){
   ['F','G','H'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf8b4be}}));
   ['I','J','K','L','M','N'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xfcd0d6}}));
 }};
-// 檢視器②：AlphaFold 由序列預測（依 pLDDT 信心上色）
-_MOL3D_CFG['mol3d2']={gz:'spin/af_bonta.pdb.gz', rot:[[-20,'x'],[30,'y']], style:function(v){
-  v.setStyle({}, {sphere:{colorfunc:function(a){ var p=a.b; return p>90?0x0053d6:(p>70?0x65cbf3:(p>50?0xffdb13:0xff7d45)); }}});
+// 檢視器②：AlphaFold 預測的 5 種蛋白，依 L-PTC 架構組裝成完整 14 鏈（依鏈上色，與①同配色可對照）
+_MOL3D_CFG['mol3d2']={gz:'spin/af_complex.pdb.gz', rot:[[90,'x']], style:function(v){
+  v.setStyle({chain:'A'},{sphere:{color:0xbe2634}});
+  v.setStyle({chain:'B'},{sphere:{color:0x1cbea8}});
+  ['C','D','E'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf396a3}}));
+  ['F','G','H'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf8b4be}}));
+  ['I','J','K','L','M','N'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xfcd0d6}}));
 }};
 document.addEventListener('DOMContentLoaded',function(){ const dj=document.getElementById('dj-showcase');
   if(dj) dj.addEventListener('toggle',function(){ if(dj.open){ _initMol3Dv('mol3d'); _initMol3Dv('mol3d2'); } }); });
