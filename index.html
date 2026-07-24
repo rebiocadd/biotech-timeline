@@ -570,6 +570,8 @@
   .csec{margin:8px 0;border:1px solid var(--border);border-radius:10px;background:rgba(15,24,40,.45);overflow:hidden}
   .csec[open]{background:rgba(15,24,40,.25);border-color:rgba(0,212,255,.25)}
   .csec-head{cursor:pointer;list-style:none;padding:13px 16px;display:flex;align-items:center;gap:10px;user-select:none;transition:background .15s}
+  /* 標題／時間徽章開放滑鼠選取複製（.csec-head 為避免誤選而關閉選取，這裡放行文字部分）*/
+  .csec-title,.pe-sum-title,.csec-sum,.pe-sum-meta,.pe-sum-badge{user-select:text;-webkit-user-select:text;cursor:text}
   .csec-head::-webkit-details-marker{display:none}
   .csec-head::marker{content:''}
   .csec-head:hover{background:rgba(0,212,255,.06)}
@@ -3727,6 +3729,15 @@ function renderProfitStocks(){
     const sm=document.getElementById('profit-sum'); if(sm) sm.textContent=`${rows.length} 檔 · EPS/月營收/年營收/規劃`;
   }catch(e){ console.warn('renderProfitStocks fail', e); }
 }
+// 🖱 標題可用滑鼠選取複製：若使用者剛在標題列選取了文字，就不要順手把區塊展開/收合
+document.addEventListener('click', function(e){
+  try{
+    const sum = (e.target && e.target.closest) ? e.target.closest('summary') : null;
+    if(!sum) return;
+    const sel = window.getSelection();
+    if(sel && String(sel).trim().length > 0 && sel.anchorNode && sum.contains(sel.anchorNode)) e.preventDefault();
+  }catch(_){}
+});
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
