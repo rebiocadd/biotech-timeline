@@ -1350,6 +1350,13 @@
               <tr class="sum"><td>合計</td><td>SEQ ID 1–5</td><td>5 條序列</td><td>3,554 aa</td><td>≈ 755 kDa</td><td>14 次單元</td><td>專利主張 740–790（最佳 ~760）</td></tr>
             </tbody>
           </table></div>
+          <div class="pe-seq-label"><span>🤖 <b style="color:#34d399">由序列 AI 預測的 3D 結構</b>（AlphaFold）— 把胺基酸序列直接餵給 AI，摺出立體結構</span></div>
+          <figure class="cx-fig cx-3d">
+            <div class="mol3d" id="mol3d2"><img src="bont_af_3d.jpg" alt="AlphaFold 由 BoNT/A 序列預測的 3D 結構，依 pLDDT 信心分數上色"><div class="mol3d-view" id="mol3d2-view"></div><div class="mol3d-hint" id="mol3d2-hint">🔄 展開後可自由旋轉</div></div>
+            <figcaption><b>AI 由序列預測（AlphaFold）</b>，顏色為 <b>pLDDT 信心分數</b>：<span class="lg"><i style="background:#0053d6"></i>極高 &gt;90</span><span class="lg"><i style="background:#65cbf3"></i>高 70–90</span><span class="lg"><i style="background:#ffdb13"></i>低 50–70</span><span class="lg"><i style="background:#ff7d45"></i>極低 &lt;50</span><br>
+              回答「能不能從序列產生 3D」：<b>可以</b>。這張<b>不是實驗解出來的，而是把 BoNT/A 的 1296 個胺基酸序列直接餵給 AlphaFold，由 AI 預測摺疊</b>。整體平均信心 pLDDT <b>92.3</b>（79% 達「極高」深藍）→ AI 對此摺疊非常有把握，只有末端與少數柔性環（橘/黃）信心較低。與上方<b>實驗結構</b>對照，AI 幾乎重現了輕鏈（蛋白酶）＋重鏈（轉位／結合）的雙域架構 —— 這也是為何 AlphaFold 能拿下諾貝爾獎。
+              <span class="cx-cred">模型：<a href="https://alphafold.ebi.ac.uk/entry/P0DPI1" target="_blank" rel="noopener">AlphaFold DB — P0DPI1</a>（v6）· Jumper et al. <i>Nature</i> 2021、Varadi et al. <i>Nucleic Acids Res</i> 2024 · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>。互動渲染以 <a href="https://3dmol.csb.pitt.edu/" target="_blank" rel="noopener">3Dmol.js</a> 在你的瀏覽器即時完成，非重製他人圖檔。</span></figcaption>
+          </figure>
           <div class="pe-seq-label"><span>🧮 <b style="color:#34d399">760 kDa 質量拆解</b> — 與廠商公開圖交叉比對（本站自行繪製）</span></div>
           <div class="mb-box"><svg viewBox="0 0 620 152" xmlns="http://www.w3.org/2000/svg">
             <text x="77" y="16" text-anchor="middle" font-size="9.5" fill="#34d399">核心神經毒素</text>
@@ -3920,43 +3927,52 @@ function _copySeq(btn){
     else _fbCopy(txt, done);
   }catch(e){ console.warn('copySeq fail', e); }
 }
-// 🔄 3D 複合體互動檢視（3Dmol.js WebGL）：可自由 360° 旋轉/縮放；於鼎晉卡展開時才載入
-let _mol3dStarted=false;
-function _mol3dHint(t){ const h=document.getElementById('mol3d-hint'); if(h) h.textContent=t; }
-function _initMol3D(){
-  if(_mol3dStarted) return; _mol3dStarted=true;
-  _mol3dHint('🔄 載入互動式 3D…');
-  if(window.$3Dmol){ _buildMol3D(); return; }
+// 🔄 互動式 3D 檢視（3Dmol.js WebGL）：可自由 360° 旋轉/縮放；於鼎晉卡展開時才載入
+const _MOL3D_CFG={};
+function _mol3dHint(id,t){ const h=document.getElementById(id+'-hint'); if(h) h.textContent=t; }
+function _load3Dmol(cb){
+  if(window.$3Dmol){ cb(true); return; }
+  if(_load3Dmol._q){ _load3Dmol._q.push(cb); return; }
+  _load3Dmol._q=[cb];
   const s=document.createElement('script');
   s.src='https://cdn.jsdelivr.net/npm/3dmol@2.4.2/build/3Dmol-min.js';
-  s.onload=_buildMol3D;
-  s.onerror=function(){ _mol3dStarted=false; _mol3dHint('（互動式 3D 載入失敗，顯示靜態圖）'); };
+  s.onload=function(){ (_load3Dmol._q||[]).forEach(f=>f(true)); _load3Dmol._q=null; };
+  s.onerror=function(){ (_load3Dmol._q||[]).forEach(f=>f(false)); _load3Dmol._q=null; };
   document.head.appendChild(s);
 }
-async function _buildMol3D(){
-  try{
-    if(!window.$3Dmol) throw new Error('no $3Dmol');
-    if(!window.DecompressionStream) throw new Error('no DecompressionStream');
-    const resp=await fetch('spin/9qcm.pdb.gz'); if(!resp.ok) throw new Error('fetch '+resp.status);
-    const txt=await new Response(resp.body.pipeThrough(new DecompressionStream('gzip'))).text();
-    const el=document.getElementById('mol3d-view'); if(!el) return;
-    const v=$3Dmol.createViewer(el,{backgroundColor:'white'});
-    v.addModel(txt,'pdb');
-    v.setStyle({chain:'A'},{sphere:{color:0xbe2634}});                                  // 神經毒素 深紅
-    v.setStyle({chain:'B'},{sphere:{color:0x1cbea8}});                                  // NTNH 青綠
-    ['C','D','E'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf396a3}}));          // HA70
-    ['F','G','H'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf8b4be}}));          // HA17
-    ['I','J','K','L','M','N'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xfcd0d6}}));// HA33
-    v.zoomTo(); v.rotate(90,'x'); v.render();
-    document.getElementById('mol3d').classList.add('ready');
-    _mol3dHint('🔄 拖曳旋轉 · 滾輪縮放');
-    window._mol3dViewer=v;
-    setTimeout(()=>{ try{ v.resize(); v.render(); }catch(_){}}, 60);
-  }catch(e){ console.warn('mol3d build fail', e); _mol3dStarted=false; _mol3dHint('（互動式 3D 載入失敗，顯示靜態圖）'); }
+function _initMol3Dv(id){
+  const cfg=_MOL3D_CFG[id]; if(!cfg||cfg.started) return; cfg.started=true;
+  _mol3dHint(id,'🔄 載入互動式 3D…');
+  _load3Dmol(async function(ok){
+    if(!ok||!window.$3Dmol){ cfg.started=false; _mol3dHint(id,'（互動式 3D 載入失敗，顯示靜態圖）'); return; }
+    try{
+      if(!window.DecompressionStream) throw new Error('no DecompressionStream');
+      const resp=await fetch(cfg.gz); if(!resp.ok) throw new Error('fetch '+resp.status);
+      const txt=await new Response(resp.body.pipeThrough(new DecompressionStream('gzip'))).text();
+      const el=document.getElementById(id+'-view'); if(!el) return;
+      const v=$3Dmol.createViewer(el,{backgroundColor:'white'});
+      v.addModel(txt,'pdb'); cfg.style(v);
+      v.zoomTo(); (cfg.rot||[]).forEach(r=>v.rotate(r[0],r[1])); v.render();
+      document.getElementById(id).classList.add('ready');
+      _mol3dHint(id,'🔄 拖曳旋轉 · 滾輪縮放'); cfg.viewer=v;
+      setTimeout(function(){ try{ v.resize(); v.render(); }catch(_){}}, 60);
+    }catch(e){ console.warn('mol3d build fail', id, e); cfg.started=false; _mol3dHint(id,'（互動式 3D 載入失敗，顯示靜態圖）'); }
+  });
 }
-// 鼎晉卡一展開就初始化互動式 3D
-document.addEventListener('DOMContentLoaded',()=>{ const dj=document.getElementById('dj-showcase');
-  if(dj) dj.addEventListener('toggle',()=>{ if(dj.open) _initMol3D(); }); });
+// 檢視器①：完整 L-PTC 複合體（實驗結構，依鏈上色）
+_MOL3D_CFG['mol3d']={gz:'spin/9qcm.pdb.gz', rot:[[90,'x']], style:function(v){
+  v.setStyle({chain:'A'},{sphere:{color:0xbe2634}});
+  v.setStyle({chain:'B'},{sphere:{color:0x1cbea8}});
+  ['C','D','E'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf396a3}}));
+  ['F','G','H'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xf8b4be}}));
+  ['I','J','K','L','M','N'].forEach(c=>v.setStyle({chain:c},{sphere:{color:0xfcd0d6}}));
+}};
+// 檢視器②：AlphaFold 由序列預測（依 pLDDT 信心上色）
+_MOL3D_CFG['mol3d2']={gz:'spin/af_bonta.pdb.gz', rot:[[-20,'x'],[30,'y']], style:function(v){
+  v.setStyle({}, {sphere:{colorfunc:function(a){ var p=a.b; return p>90?0x0053d6:(p>70?0x65cbf3:(p>50?0xffdb13:0xff7d45)); }}});
+}};
+document.addEventListener('DOMContentLoaded',function(){ const dj=document.getElementById('dj-showcase');
+  if(dj) dj.addEventListener('toggle',function(){ if(dj.open){ _initMol3Dv('mol3d'); _initMol3Dv('mol3d2'); } }); });
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
