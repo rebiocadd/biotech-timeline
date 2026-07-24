@@ -1146,7 +1146,7 @@
       </div>
     </div>
   </details>
-  <!-- 💰 有營收有賺錢的生技股（策展清單；由 renderProfitStocks 填入）-->
+  <!-- 💰 台灣有營收有賺錢的生技股（策展清單；由 renderProfitStocks 填入）-->
   <style>
   .profit-sec .csec-title{color:#5eead4}
   .profit-intro{font-size:11.5px;color:#94a3b8;line-height:1.65;padding:10px 15px 2px}
@@ -1172,7 +1172,7 @@
   <details class="csec profit-sec" id="profit-section">
     <summary class="csec-head">
       <span class="csec-arrow">▶</span>
-      <span class="csec-title">💰 有營收有賺錢的生技股</span>
+      <span class="csec-title">💰 台灣有營收有賺錢的生技股</span>
       <span class="csec-sum" id="profit-sum"></span>
     </summary>
     <div class="profit-intro">台灣多數新藥股仍在<b>燒錢等解盲</b>；這裡收集<b>真正有營收又獲利</b>的生技／製藥股，每檔附<b>近四季 EPS、最新月營收（年增）、2025 年營收與未來規劃</b>。財務取自 FinMind／公開資訊（月營收至 2026/06、EPS 近四季），已濾掉近期轉虧者、依 EPS 高→低排序。<b>藥華藥</b>、<b>啟新</b> 已追蹤（點卡開站內檔案），其餘點卡開 Goodinfo。<b>僅供研究、非投資建議</b>，請以官方財報為準。</div>
@@ -3700,7 +3700,7 @@ function checkFreshness(){
   bar.innerHTML = warnHtml + asofHtml + `<button class="freshbar-x" onclick="document.getElementById('freshbar').style.display='none'">知道了</button>`;
   bar.style.display='flex';
 }
-// 💰 有營收有賺錢的生技股（策展清單，非自動掃描；EPS 為公開資料整理）
+// 💰 台灣有營收有賺錢的生技股（策展清單，非自動掃描；EPS 為公開資料整理）
 const PROFIT_STOCKS=[
  {code:'6491',name:'晶碩',type:'醫材',eps:'20.66',epsP:'近四季',mrev:'7.24 億',yoy:'+34%',annual:'70.4 億',plan:'隱形眼鏡自有品牌＋代工，日拋/彩片擴產，攻歐美日與東南亞'},
  {code:'6446',name:'藥華藥',type:'新藥',eps:'16.26',epsP:'近四季',mrev:'23.3 億',yoy:'+95%',annual:'156.4 億',plan:'Ropeg 攻美國 ET（FDA PDUFA 8/30）、日中韓拓證、PMF 三期；2026 EPS 上看 24',tracked:1},
