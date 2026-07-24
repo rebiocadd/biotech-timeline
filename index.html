@@ -847,14 +847,17 @@
   .pe-sci li b{color:#7dd3fc}
   .pe-sci-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .pe-sci-h{font-size:11px;font-weight:700;color:#7dd3fc;margin:2px 0 5px;letter-spacing:.5px}
-  .pe-seq-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
+  .pe-seq-label{font-size:10px;color:var(--muted);margin:12px 0 5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .seq-copy{margin-left:auto;font-size:9.5px;font-family:'Space Mono',monospace;padding:3px 10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:#94a3b8;cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none;flex-shrink:0}
+  .seq-copy:hover{border-color:var(--accent1);color:var(--accent1);background:rgba(0,212,255,.08)}
+  .seq-copy.ok{border-color:#34d399;color:#34d399;background:rgba(16,185,129,.14)}
   .pe-seq{font-family:'Space Mono',monospace;font-size:10.5px;line-height:1.65;color:#7dd3fc;background:#080c16;border:1px solid rgba(0,212,255,.18);border-radius:8px;padding:11px 13px;margin:0;overflow-x:auto;white-space:pre;letter-spacing:.5px}
   .pe-seq-note{font-size:9.5px;color:var(--muted);margin-top:6px;font-style:italic}
   .pe-mol-label{font-size:10px;color:var(--muted);margin:12px 0 5px}
   .pe-mol{background:#fff;border:1px solid rgba(139,92,246,.35);border-radius:9px;padding:10px 14px 8px;max-width:470px;box-shadow:0 2px 12px rgba(0,0,0,.32)}
   .pe-mol img{display:block;width:100%;height:auto}
   .pe-mol-meta{font-family:'Space Mono',monospace;font-size:9.5px;color:#475569;text-align:center;margin-top:4px;letter-spacing:.3px}
-  .pe-smiles-label{font-size:10px;color:var(--muted);margin:11px 0 4px}
+  .pe-smiles-label{font-size:10px;color:var(--muted);margin:11px 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .pe-smiles{font-family:'Space Mono',monospace;font-size:10.5px;line-height:1.55;color:#c4b5fd;background:#080c16;border:1px solid rgba(139,92,246,.22);border-radius:8px;padding:9px 12px;word-break:break-all;user-select:all;cursor:copy}
   .pe-roadmap{background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(10,14,26,.42));border-color:rgba(16,185,129,.26);grid-column:1/-1}
   .pe-roadmap .pe-block-t{color:var(--accent3)}
@@ -1010,7 +1013,7 @@
               </ul>
             </div>
           </div>
-          <div class="pe-seq-label">🔬 人類干擾素 α-2b 成熟蛋白序列（165 aa · 單字母碼 · 來源 UniProt P01563）— Ropeg 的蛋白質骨架</div>
+          <div class="pe-seq-label"><span>🔬 人類干擾素 α-2b 成熟蛋白序列（165 aa · 單字母碼 · 來源 UniProt P01563）— Ropeg 的蛋白質骨架</span><button class="seq-copy" onclick="_copySeq(this)" title="只複製胺基酸序列，不含位置編號">⧉ 複製序列</button></div>
           <pre class="pe-seq">  1  CDLPQTHSLG SRRTLMLLAQ MRRISLFSCL KDRHDFGFPQ EEFGNQFQKA
  51  ETIPVLHEMI QQIFNLFSTK DSSAAWDETL LDKFYTELYQ QLNDLEACVI
 101  QGVGVTETPL MKEDSILAVR KYFQRITLYL KEKKYSPCAW EVVRAEIMRS
@@ -1122,9 +1125,9 @@
           </div>
           <div class="pe-mol-label">🧪 藥物 2D 化學結構 · Tinlarebant（LBS-008，口服小分子）</div>
           <div class="pe-mol"><img src="tinlarebant.svg?v=2" alt="Tinlarebant（LBS-008）2D 化學結構" width="500" height="270"><div class="pe-mol-meta">C₂₁H₂₁F₅N₄O₂ · 分子量 456.4 · PubChem CID 92044505</div></div>
-          <div class="pe-smiles-label">🔤 SMILES（分子的線性文字編碼 · 點一下全選複製）</div>
+          <div class="pe-smiles-label"><span>🔤 SMILES（分子的線性文字編碼）</span><button class="seq-copy" onclick="_copySeq(this)" title="複製完整 SMILES">⧉ 複製 SMILES</button></div>
           <div class="pe-smiles" title="點一下全選，Ctrl+C 複製">CC(=O)N1CCC2=C(C1)NN=C2C(=O)N3CCC(CC3)C4=C(C(=C(C=C4)F)F)C(F)(F)F</div>
-          <div class="pe-seq-label">🔬 標的蛋白 RBP4 成熟序列（183 aa · 單字母碼 · 來源 UniProt P02753）— Tinlarebant 的作用「對象」，非藥物本身</div>
+          <div class="pe-seq-label"><span>🔬 標的蛋白 RBP4 成熟序列（183 aa · 單字母碼 · 來源 UniProt P02753）— Tinlarebant 的作用「對象」，非藥物本身</span><button class="seq-copy" onclick="_copySeq(this)" title="只複製胺基酸序列，不含位置編號">⧉ 複製序列</button></div>
           <pre class="pe-seq">  1  ERDCRVSSFR VKENFDKARF SGTWYAMAKK DPEGLFLQDN IVAEFSVDET
  51  GQMSATAKGR VRLLNNWDVC ADMVGTFTDT EDPAKFKMKY WGVASFLQKG
 101  NDDHWIVDTD YDTYAVQYSC RLLNLDGTCA DSYSFVFSRD PNGLPPEAQK
@@ -1270,7 +1273,7 @@
           </div>
           <div class="pe-seq-label">🔬 A 型肉毒神經毒素（BoNT/A）結構域（1296 aa，雙鏈：LC 催化 ＋ HC 轉位/結合）</div>
           <div class="dj-struct"><svg viewBox="0 0 600 88" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="32" width="192" height="26" rx="4" fill="#34d399"/><rect x="212" y="32" width="180" height="26" rx="4" fill="#38bdf8"/><rect x="394" y="32" width="188" height="26" rx="4" fill="#fbbf24"/><text x="114" y="49" text-anchor="middle" font-size="11" font-weight="700" fill="#04160f">輕鏈 LC</text><text x="302" y="49" text-anchor="middle" font-size="11" font-weight="700" fill="#04160f">轉位域 HN</text><text x="488" y="49" text-anchor="middle" font-size="11" font-weight="700" fill="#04160f">結合域 HC</text><line x1="112" y1="20" x2="112" y2="32" stroke="#f87171" stroke-width="2"/><circle cx="112" cy="19" r="3" fill="#f87171"/><text x="112" y="14" text-anchor="middle" font-size="9" fill="#fca5a5">催化 HELIH@223</text><text x="18" y="74" font-size="8.5" fill="#64748b">1</text><text x="210" y="74" text-anchor="middle" font-size="8.5" fill="#64748b">~448</text><text x="392" y="74" text-anchor="middle" font-size="8.5" fill="#64748b">~872</text><text x="582" y="74" text-anchor="end" font-size="8.5" fill="#64748b">1296</text><text x="114" y="85" text-anchor="middle" font-size="8" fill="#64748b">鋅蛋白酶·切 SNAP-25</text><text x="302" y="85" text-anchor="middle" font-size="8" fill="#64748b">translocation</text><text x="488" y="85" text-anchor="middle" font-size="8" fill="#64748b">受體/神經節苷脂結合</text></svg></div>
-          <div class="pe-seq-label">🔬 BoNT/A 胺基酸序列（1296 aa · 來源 UniProt P0DPI1）— OBI-858 神經毒素本體；第 223 位 HELIH 為催化位</div>
+          <div class="pe-seq-label"><span>🔬 BoNT/A 胺基酸序列（1296 aa · 來源 UniProt P0DPI1）— OBI-858 神經毒素本體；第 223 位 HELIH 為催化位</span><button class="seq-copy" onclick="_copySeq(this)" title="只複製 1296 個胺基酸，不含位置編號">⧉ 複製序列</button></div>
           <pre class="pe-seq" style="max-height:190px;overflow:auto">    1  MPFVNKQFNY KDPVNGVDIA YIKIPNAGQM QPVKAFKIHN KIWVIPERDT FTNPEEGDLN
    61  PPPEAKQVPV SYYDSTYLST DNEKDNYLKG VTKLFERIYS TDLGRMLLTS IVRGIPFWGG
   121  STIDTELKVI DTNCINVIQP DGSYRSEELN LVIIGPSADI IQFECKSFGH EVLNLTRNGY
@@ -3738,6 +3741,30 @@ document.addEventListener('click', function(e){
     if(sel && String(sel).trim().length > 0 && sel.anchorNode && sum.contains(sel.anchorNode)) e.preventDefault();
   }catch(_){}
 });
+// ⧉ 一鍵複製序列／SMILES：序列會自動濾掉位置編號與空白，只複製純胺基酸
+function _fbCopy(txt, done){
+  try{ const ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;top:-9999px;opacity:0'; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(_){}
+}
+function _copySeq(btn){
+  try{
+    let el = btn.closest('.pe-seq-label, .pe-smiles-label');
+    el = el ? el.nextElementSibling : null;
+    while(el && !(el.classList && (el.classList.contains('pe-seq')||el.classList.contains('pe-smiles')))) el = el.nextElementSibling;
+    if(!el) return;
+    const isSeq = el.classList.contains('pe-seq');
+    const txt = isSeq ? el.textContent.replace(/[^A-Za-z]/g,'').toUpperCase() : el.textContent.trim();
+    if(!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    const done = ()=>{
+      btn.textContent = isSeq ? ('✓ 已複製 '+txt.length+' aa') : '✓ 已複製';
+      btn.classList.add('ok');
+      clearTimeout(btn._t); btn._t = setTimeout(()=>{ btn.textContent = btn.dataset.orig; btn.classList.remove('ok'); }, 1800);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, ()=>_fbCopy(txt, done));
+    else _fbCopy(txt, done);
+  }catch(e){ console.warn('copySeq fail', e); }
+}
 // 並行載入所有資料，再渲染時間表
 Promise.all([
   fetch('status.json?v='+Date.now()).then(r=>r.json()).catch(()=>({})),
